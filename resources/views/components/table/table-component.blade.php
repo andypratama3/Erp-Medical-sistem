@@ -3,7 +3,7 @@
     'columns' => [],
     'searchable' => true,
     'filterable' => true,
-]);
+])
 
 @push('styles')
     <style>
@@ -187,18 +187,35 @@
                                     x-transition
                                     class="absolute right-0 z-50 mt-2 w-40 rounded-xl border  shadow-lg"
                                 >
-                                    <a
-                                        :href="item.actions?.edit"
-                                        class="block px-4 py-2 text-sm dark:text-white"
-                                    >
-                                        Edit
-                                    </a>
+                                   <template x-if="item.actions?.show">
+                                        <a
+                                            :href="item.actions.show"
+                                            class="block px-4 py-2 text-sm dark:text-white hover:bg-gray-50 dark:hover:bg-white/[0.05]"
+                                        >
+                                            Lihat
+                                        </a>
+                                    </template>
 
-                                   <button
-                                        class="w-full text-left dark:text-white px-4 py-2 text-sm text-red-600 js-confirm-delete"
-                                        :data-url="item.actions?.delete">
-                                        Delete
-                                    </button>
+                                    <template x-if="item.actions?.edit">
+                                        <a
+                                            :href="item.actions.edit"
+                                            class="block px-4 py-2 text-sm dark:text-white hover:bg-gray-50 dark:hover:bg-white/[0.05]"
+                                        >
+                                            Edit
+                                        </a>
+                                    </template>
+
+                                    <template x-if="item.actions?.delete">
+                                        <button
+                                            type="button"
+                                            class="w-full text-left px-4 py-2 text-sm text-red-600
+                                                hover:bg-red-50 dark:hover:bg-red-500/10
+                                                js-confirm-delete"
+                                            :data-url="item.actions.delete"
+                                        >
+                                            Delete
+                                        </button>
+                                    </template>
                                 </div>
                             </div>
                         </td>
@@ -248,7 +265,6 @@ window.swalConfirm = function ({
         allowOutsideClick: false,
         allowEscapeKey: true,
         didOpen: () => {
-            // force reflow agar disabled langsung dilepas
             const popup = Swal.getPopup();
             popup && popup.offsetHeight;
         }
@@ -271,9 +287,20 @@ document.addEventListener('click', function (e) {
 
     swalConfirm({
         onConfirm: () => {
-            window.location.href = url;
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = url;
+
+            form.innerHTML = `
+                <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="_method" value="DELETE">
+            `;
+
+            document.body.appendChild(form);
+            form.submit();
         }
     });
 });
 </script>
+
 @endpush

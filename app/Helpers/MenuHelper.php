@@ -10,25 +10,25 @@ class MenuHelper
             [
                 'icon' => 'dashboard',
                 'name' => 'Dashboard',
-                'path' => '/',
+                'path' => route('dashboard'),
             ],
             [
                 'icon' => 'gear',
                 'name' => 'DataSetBuilder',
-                'path' => '/datasets',
+                'path' => route('datasets.index'),
             ],
             [
                 'icon' => 'gear',
                 'name' => 'Maps',
-                'path' => '/map',
+                'path' => route('maps.index'),
             ],
             [
                 'icon' => 'gear',
                 'name' => 'Pengaturan',
                 'subItems' => [
-                    ['name' => 'Pengguna', 'path' => '/users'],
-                    ['name' => 'Role', 'path' => '/roles'],
-                    ['name' => 'Permission', 'path' => route('permissions.index')],
+                    ['name' => 'Pengguna', 'path' =>  route('users.index')],
+                    ['name' => 'Role', 'path' =>  route('roles.index')],
+                    ['name' => 'Permission', 'path' =>  route('permissions.index')],
                 ]
             ],
             [

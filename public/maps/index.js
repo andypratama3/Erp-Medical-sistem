@@ -39,9 +39,9 @@
         }
 
         map = L.map('map', {
-            center: [-7.2575, 112.7521],
-            zoom: 10,
-            zoomControl: true
+            center: [-2.548926, 113.921327],
+            zoom: 5,
+            zoomControl: false,
         });
 
         // Add tile layer
