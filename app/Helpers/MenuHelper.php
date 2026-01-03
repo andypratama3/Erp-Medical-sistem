@@ -34,7 +34,7 @@ class MenuHelper
             [
                 'icon' => 'user-profile',
                 'name' => 'User Profile',
-                'path' => '/profile',
+                'path' => route('profile.edit'),
             ],
         ];
     }

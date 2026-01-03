@@ -119,14 +119,14 @@
         getStatusClass(status) {
             const classes = {
                 Active: 'bg-green-50 text-green-700',
-                Inactive: 'bg-gray-50 text-gray-700',
+                Inactive: 'blue text-gray-700',
                 Pending: 'bg-yellow-50 text-yellow-700',
                 Processing: 'bg-blue-50 text-blue-700',
                 Completed: 'bg-green-50 text-green-700',
                 Failed: 'bg-red-50 text-red-700',
                 Cancelled: 'bg-red-50 text-red-700',
             };
-            return classes[status] || 'bg-gray-50 text-gray-700';
+            return classes[status] || 'blue text-gray-700';
         }
     }"
     class="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]"
@@ -190,7 +190,7 @@
                                    <template x-if="item.actions?.show">
                                         <a
                                             :href="item.actions.show"
-                                            class="block px-4 py-2 text-sm dark:text-white hover:bg-gray-50 dark:hover:bg-white/[0.05]"
+                                            class="block px-4 py-2 text-sm dark:text-white dark:hover:bg-white/[0.05]"
                                         >
                                             Lihat
                                         </a>
@@ -199,7 +199,7 @@
                                     <template x-if="item.actions?.edit">
                                         <a
                                             :href="item.actions.edit"
-                                            class="block px-4 py-2 text-sm dark:text-white hover:bg-gray-50 dark:hover:bg-white/[0.05]"
+                                            class="block px-4 py-2 text-sm dark:text-white dark:hover:bg-white/[0.05]:text-blue-600"
                                         >
                                             Edit
                                         </a>
