@@ -13,14 +13,15 @@ class MenuHelper
                 'path' => route('dashboard'),
             ],
             [
-                'icon' => 'gear',
-                'name' => 'DataSetBuilder',
-                'path' => route('datasets.index'),
-            ],
-            [
-                'icon' => 'gear',
-                'name' => 'Maps',
-                'path' => route('maps.index'),
+                'icon' => 'ui-elements',
+                'name' => 'Data Master',
+                'subItems' => [
+                    ['name' => 'Manufacture', 'path' => route('manufactures.index')],
+                    ['name' => 'Category', 'path' => route('categories.index')],
+                    ['name' => 'Product Group', 'path' => route('product-groups.index')],
+                    ['name' => 'Produk', 'path' => route('products.index')],
+                    ['name' => 'Price List', 'path' => route('price-lists.index')],
+                ]
             ],
             [
                 'icon' => 'gear',

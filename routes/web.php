@@ -1,13 +1,12 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\MapController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
-use App\Http\Controllers\DataSetController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PermissionController;
+use App\Http\Controllers\ProductController;
 
 Route::get('/', function () {
     return view('pages.dashboard.index');
@@ -16,13 +15,21 @@ Route::get('/', function () {
 Route::group(['prefix' => '/', 'middleware' => ['auth']], function () {
     Route::get('/', [DashboardController::class, 'index',['title', 'Dashboard']])->name('dashboard');
 
-    Route::resource('datasets', DataSetController::class);
-    Route::get('datasets/template/download', [DataSetController::class, 'downloadTemplate'])->name('datasets.template');
+    // ERP RMI Management Routes
 
-    Route::get('map', [MapController::class, 'index'])->name('maps.index');
-    Route::get('maps/api/points', [MapController::class, 'getTransactionPoints'])->name('maps.api.points');
-    Route::get('maps/api/boundaries', [MapController::class, 'getBoundaries'])->name('maps.api.boundaries');
-    Route::get('maps/api/statistics', [MapController::class, 'getStatistics'])->name('maps.api.statistics');
+    // Product Routes
+    Route::resource('products', ProductController::class);
+    Route::get('products/import/form', [ProductController::class, 'import'])->name('products.import');
+    Route::post('products/import/process', [ProductController::class, 'processImport'])->name('products.process-import');
+    Route::get('products/import/template', [ProductController::class, 'downloadTemplate'])->name('products.download-template');
+    Route::post('products/{product}/activate', [ProductController::class, 'activate'])->name('products.activate');
+    Route::post('products/{product}/deactivate', [ProductController::class, 'deactivate'])->name('products.deactivate');
+
+    // Master Data Routes
+    Route::resource('categories', \App\Http\Controllers\CategoryController::class);
+    Route::resource('manufactures', \App\Http\Controllers\ManufactureController::class);
+    Route::resource('product-groups', \App\Http\Controllers\ProductGroupController::class);
+    Route::resource('price-lists', \App\Http\Controllers\PriceListController::class);
 
     Route::group(['prefix' => 'settings'], function () {
         Route::resource('users', UserController::class);
@@ -33,6 +40,9 @@ Route::group(['prefix' => '/', 'middleware' => ['auth']], function () {
         Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
         Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     });
+
+    // END ERP RMI Management Routes
+
 });
 
 
