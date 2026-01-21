@@ -15,11 +15,12 @@ class ProductController extends Controller
     {
         $query = Product::with(['category', 'productGroup', 'manufacture']);
 
+        // Filters
         if ($request->filled('search')) {
             $search = $request->search;
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('sku', 'like', "%{$search}%")
-                  ->orWhere('name', 'like', "%{$search}%");
+                ->orWhere('name', 'like', "%{$search}%");
             });
         }
 
@@ -27,22 +28,78 @@ class ProductController extends Controller
             $query->where('category_id', $request->category_id);
         }
 
+        if ($request->filled('product_type')) {
+            $query->where('product_type', $request->product_type);
+        }
+
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
 
         $products = $query->latest()->paginate(15);
-        $categories = Category::active()->get();
 
-        return view('pages.master.products.index', compact('products', 'categories'));
+        /* ============================
+        TABLE COLUMNS (KEY BASED)
+        ============================ */
+        $columns = [
+            ['key' => 'code', 'label' => 'Code', 'type' => 'text'],
+            ['key' => 'name', 'label' => 'Name', 'type' => 'text'],
+            ['key' => 'category', 'label' => 'Category', 'type' => 'text'],
+            ['key' => 'manufacture', 'label' => 'Manufacture', 'type' => 'text'],
+            ['key' => 'unit_price', 'label' => 'Unit Price', 'type' => 'currency'],
+            ['key' => 'status', 'label' => 'Status', 'type' => 'badge'],
+        ];
+
+        /* ============================
+        FORMAT DATA FOR TABLE
+        ============================ */
+        $productsData = $products->getCollection()->map(function ($product) {
+            return [
+                'id' => $product->id,
+                'code' => $product->sku,
+                'name' => $product->name,
+                'category' => $product->category?->name ?? '-',
+                'manufacture' => $product->manufacture?->name ?? '-',
+                'unit_price' => 'Rp ' . number_format($product->unit_price, 0, ',', '.'),
+
+                'status' => [
+                    'value' => $product->status,
+                    'label' => ucfirst($product->status),
+                    'color' => match ($product->status) {
+                        'active' => 'green',
+                        'inactive' => 'red',
+                        'discontinued' => 'yellow',
+                        default => 'gray',
+                    }
+                ],
+
+                'actions' => [
+                    'show' => route('master.products.show', $product),
+                    'edit' => route('master.products.edit', $product),
+                    'delete' => route('master.products.destroy', $product),
+                ],
+            ];
+        })->toArray();
+
+        $categories = Category::active()->get();
+        $manufactures = Manufacture::active()->get();
+
+        return view('pages.master.products.index', compact(
+            'columns',
+            'products',
+            'productsData',
+            'categories',
+            'manufactures'
+        ));
     }
 
     public function create()
     {
         $categories = Category::active()->get();
+        $productGroups = ProductGroup::active()->get();
         $manufactures = Manufacture::active()->get();
 
-        return view('pages.master.products.create', compact('categories', 'manufactures'));
+        return view('pages.master.products.create', compact('productGroups', 'categories', 'manufactures'));
     }
 
     public function store(Request $request)
@@ -61,10 +118,23 @@ class ProductController extends Controller
             'max_stock' => 'nullable|integer|min:0',
             'barcode' => 'nullable|max:100',
             'product_type' => 'required|in:medical_device,pharmaceutical,consumable,other',
-            'is_taxable' => 'boolean',
-            'is_importable' => 'boolean',
+            'is_taxable' => 'nullable|boolean',
+            'is_importable' => 'nullable|boolean',
             'status' => 'required|in:active,inactive,discontinued',
         ]);
+
+        // Handle checkboxes - set to false if not present
+        $validated['is_taxable'] = $request->has('is_taxable') ? true : false;
+        $validated['is_importable'] = $request->has('is_importable') ? true : false;
+
+        // Convert price from string format to numeric
+        if (isset($validated['unit_price'])) {
+            $validated['unit_price'] = (float) str_replace(['.', ','], ['', '.'], $validated['unit_price']);
+        }
+
+        if (isset($validated['cost_price'])) {
+            $validated['cost_price'] = (float) str_replace(['.', ','], ['', '.'], $validated['cost_price']);
+        }
 
         Product::create($validated);
 
@@ -81,9 +151,10 @@ class ProductController extends Controller
     public function edit(Product $product)
     {
         $categories = Category::active()->get();
+        $productGroups = ProductGroup::active()->get();
         $manufactures = Manufacture::active()->get();
 
-        return view('pages.master.products.edit', compact('product', 'categories', 'manufactures'));
+        return view('pages.master.products.edit', compact('product', 'categories', 'productGroups', 'manufactures'));
     }
 
     public function update(Request $request, Product $product)
@@ -101,11 +172,24 @@ class ProductController extends Controller
             'min_stock' => 'nullable|integer|min:0',
             'max_stock' => 'nullable|integer|min:0',
             'barcode' => 'nullable|max:100',
-            'product_type' => 'required',
-            'is_taxable' => 'boolean',
-            'is_importable' => 'boolean',
+            'product_type' => 'required|in:medical_device,pharmaceutical,consumable,other',
+            'is_taxable' => 'nullable|boolean',
+            'is_importable' => 'nullable|boolean',
             'status' => 'required|in:active,inactive,discontinued',
         ]);
+
+        // Handle checkboxes - set to false if not present
+        $validated['is_taxable'] = $request->has('is_taxable') ? true : false;
+        $validated['is_importable'] = $request->has('is_importable') ? true : false;
+
+        // Convert price from string format to numeric
+        if (isset($validated['unit_price'])) {
+            $validated['unit_price'] = (float) str_replace(['.', ','], ['', '.'], $validated['unit_price']);
+        }
+
+        if (isset($validated['cost_price'])) {
+            $validated['cost_price'] = (float) str_replace(['.', ','], ['', '.'], $validated['cost_price']);
+        }
 
         $product->update($validated);
 
@@ -115,8 +199,13 @@ class ProductController extends Controller
 
     public function destroy(Product $product)
     {
-        $product->delete();
-        return redirect()->route('master.products.index')
-            ->with('success', 'Product deleted successfully');
+        try {
+            $product->delete();
+            return redirect()->route('master.products.index')
+                ->with('success', 'Product deleted successfully');
+        } catch (\Exception $e) {
+            return redirect()->route('master.products.index')
+                ->with('error', 'Failed to delete product. It may be in use.');
+        }
     }
 }

@@ -10,6 +10,8 @@ class MasterOffice extends Model
 {
     use SoftDeletes;
 
+    protected $table = "master_offices";
+
     protected $fillable = [
         'code',
         'name',

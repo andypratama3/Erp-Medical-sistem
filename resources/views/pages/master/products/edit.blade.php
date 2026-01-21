@@ -6,10 +6,10 @@
 <x-common.component-card title="Edit Product">
     <x-flash-message.flash />
 
-    <form method="POST" action="{{ route('products.update', $product) }}" enctype="multipart/form-data">
+    <form method="POST" action="{{ route('master.products.update', $product) }}" enctype="multipart/form-data">
         @csrf
         @method('PUT')
-        @include('products.form', [
+        @include('pages.master.products.form', [
             'product' => $product,
             'categories' => $categories,
             'manufactures' => $manufactures,

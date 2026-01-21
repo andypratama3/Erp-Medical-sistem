@@ -107,12 +107,12 @@
             }
 
             if (this.statusFilter) {
-                result = result.filter(item =>
-                    Object.prototype.hasOwnProperty.call(item, 'status')
-                        ? item.status === this.statusFilter
-                        : true
-                );
+                result = result.filter(item => {
+                    if (!item.status || typeof item.status !== 'object') return true;
+                    return item.status.value === this.statusFilter;
+                });
             }
+
 
             return result;
         },
@@ -168,6 +168,21 @@
                                     <p class="text-sm text-gray-600 dark:text-gray-400"
                                        x-text="item[column.key]"></p>
                                 </template>
+                               <template x-if="column.type === 'badge' && item[column.key]">
+                                    <span
+                                        class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium"
+                                        :class="{
+                                            'bg-green-100 text-green-700': item[column.key]?.color === 'green',
+                                            'bg-red-100 text-red-700': item[column.key]?.color === 'red',
+                                            'bg-yellow-100 text-yellow-700': item[column.key]?.color === 'yellow',
+                                            'bg-blue-100 text-blue-700': item[column.key]?.color === 'blue',
+                                            'bg-gray-100 text-gray-700': !item[column.key]?.color
+                                        }"
+                                        x-text="item[column.key]?.label">
+                                    </span>
+                                </template>
+
+
 
                             </td>
                         </template>

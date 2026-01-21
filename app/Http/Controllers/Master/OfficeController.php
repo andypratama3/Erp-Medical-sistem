@@ -11,8 +11,44 @@ class OfficeController extends Controller
     public function index()
     {
         $offices = MasterOffice::latest()->paginate(15);
-        return view('pages.master.offices.index', compact('offices'));
+
+        $columns = [
+            ['key' => 'code', 'label' => 'Code', 'type' => 'text'],
+            ['key' => 'name', 'label' => 'Name', 'type' => 'text'],
+            ['key' => 'city', 'label' => 'City', 'type' => 'text'],
+            ['key' => 'province', 'label' => 'Province', 'type' => 'text'],
+            ['key' => 'phone', 'label' => 'Phone', 'type' => 'text'],
+            ['key' => 'status', 'label' => 'Status', 'type' => 'badge'],
+        ];
+
+        $officesData = $offices->map(function ($office) {
+            return [
+                'id' => $office->id,
+                'code' => $office->code,
+                'name' => $office->name,
+                'city' => $office->city ?? '-',
+                'province' => $office->province ?? '-',
+                'phone' => $office->phone ?? '-',
+                'status' => [
+                    'value' => $office->status,
+                    'label' => ucfirst($office->status),
+                    'color' => $office->status === 'active' ? 'green' : 'red',
+                ],
+                'actions' => [
+                    'show' => route('master.offices.show', $office),
+                    'edit' => route('master.offices.edit', $office),
+                    'delete' => route('master.offices.destroy', $office),
+                ],
+            ];
+        })->toArray();
+
+        return view('pages.master.offices.index', compact(
+            'offices',
+            'officesData',
+            'columns'
+        ));
     }
+
 
     public function create()
     {

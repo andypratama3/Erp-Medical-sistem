@@ -6,9 +6,9 @@
 <x-common.component-card title="Tambah Product">
     <x-flash-message.flash />
 
-    <form method="POST" action="{{ route('products.store') }}" enctype="multipart/form-data">
+    <form method="POST" action="{{ route('master.products.store') }}" enctype="multipart/form-data">
         @csrf
-        @include('products.form', [
+        @include('pages.master.products.form',[
             'categories' => $categories,
             'manufactures' => $manufactures,
             'productGroups' => $productGroups

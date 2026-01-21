@@ -8,10 +8,11 @@ use App\Http\Controllers\Master\{
     CustomerController,
     VendorController,
     ManufactureController,
-    RoleController,
-    PermissionController,
-    UserContController,
 };
+use App\Http\Controllers\RoleController;
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\PermissionController;
+
 
 Route::middleware(['auth'])->prefix('master')->name('master.')->group(function () {
     Route::resource('offices', OfficeController::class);
@@ -22,7 +23,7 @@ Route::middleware(['auth'])->prefix('master')->name('master.')->group(function (
     Route::resource('manufactures', ManufactureController::class);
     Route::resource('roles', RoleController::class);
     Route::resource('permissions', PermissionController::class);
-    Route::resource('users', UserContController::class);
+    Route::resource('users', UserController::class);
 
 
 });
