@@ -18,10 +18,50 @@ class MenuHelper
                 'subItems' => [
                     ['name' => 'Offices', 'path' => route('master.offices.index')],
                     ['name'=> 'Departments', 'path'=> route('master.departments.index')],
-                    ['name'=> 'Products', 'path'=> route('master.products.index')],
                     ['name'=> 'Customers', 'path'=> route('master.customers.index')],
                     ['name'=> 'Vendors', 'path'=> route('master.vendors.index')],
                     ['name'=> 'Manufactures', 'path'=> route('master.manufactures.index')],
+                    ['name'=> 'Products', 'path'=> route('master.products.index')],
+                ]
+            ],
+            [
+                'icon'=> 'ui-elements',
+                'name'=> 'CRM',
+                'subItems'=> [
+                    ['name'=> 'Sales', 'path'=> route('crm.sales-do.index')],
+                ]
+            ],
+            [
+                'icon'=> 'ui-elements',
+                'name'=> 'WQS',
+                'subItems'=> [
+                    ['name'=> 'Task Board', 'path'=> route('wqs.task-board')],
+                    ['name'=> 'Stock Check', 'path'=> route('wqs.stock-checks.index')],
+                ]
+            ],
+            [
+                'icon'=> 'ui-elements',
+                'name'=> 'SCM',
+                'subItems'=> [
+                    ['name'=> 'Task Board', 'path'=> route('scm.task-board')],
+                    ['name'=> 'Delivery', 'path'=> route('scm.deliveries.index')],
+                ]
+            ],
+            [
+                'icon'=> 'ui-elements',
+                'name'=> 'ACT',
+                'subItems'=> [
+                    ['name'=> 'Task Board', 'path'=> route('act.task-board')],
+                    ['name'=> 'Invoice', 'path'=> route('act.invoices.index')],
+                ]
+            ],
+            [
+                'icon'=> 'ui-elements',
+                'name'=> 'FIN',
+                'subItems'=> [
+                    ['name'=> 'Task Board', 'path'=> route('fin.task-board')],
+                    ['name'=> 'Collection', 'path'=> route('fin.collections.index')],
+                    ['name'=> 'Aging', 'path'=> route('fin.aging')],
                 ]
             ],
             [

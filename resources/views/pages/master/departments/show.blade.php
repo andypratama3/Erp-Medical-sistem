@@ -1,10 +1,10 @@
 @extends('layouts.app')
 
 @section('content')
-<x-common.page-breadcrumb pageTitle="Office Detail" />
+<x-common.page-breadcrumb pageTitle="Departments Detail" />
 
 <div class="space-y-6">
-    <x-common.component-card title="Office Information">
+    <x-common.component-card title="Departments Information">
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div>
                 <p class="text-sm text-gray-500 dark:text-gray-400">Code</p>
@@ -54,22 +54,6 @@
                 <p class="text-base font-medium text-gray-800 dark:text-white">{{ $office->created_at->format('d M Y H:i') }}</p>
             </div>
         </div>
-    </x-common.component-card>
-
-    {{-- Departments --}}
-    <x-common.component-card title="Departments">
-        @if($office->departments->isEmpty())
-            <p class="text-sm text-gray-500 dark:text-gray-400">No departments in this office.</p>
-        @else
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                @foreach($office->departments as $dept)
-                    <div class="p-3 rounded-lg border border-gray-200 dark:border-gray-700">
-                        <p class="font-medium text-gray-800 dark:text-white">{{ $dept->name }}</p>
-                        <p class="text-sm text-gray-500 dark:text-gray-400">{{ $dept->code }}</p>
-                    </div>
-                @endforeach
-            </div>
-        @endif
     </x-common.component-card>
 
     <div class="flex justify-end gap-3">

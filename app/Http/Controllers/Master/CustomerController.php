@@ -11,7 +11,7 @@ class CustomerController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Customer::with('paymentTerm');
+        $customers = Customer::with('paymentTerm')->paginate(15);
 
         if ($request->filled('search')) {
             $search = $request->search;
@@ -21,8 +21,60 @@ class CustomerController extends Controller
             });
         }
 
-        $customers = $query->latest()->paginate(15);
-        return view('pages.master.customers.index', compact('customers'));
+        $columns = [
+            ['key' => 'code', 'label' => 'Code', 'type' => 'text'],
+            ['key' => 'name', 'label' => 'Name', 'type' => 'text'],
+            ['key' => 'email', 'label' => 'Email', 'type' => 'text'],
+            ['key' => 'phone', 'label' => 'Phone', 'type' => 'text'],
+            ['key' => 'head_name', 'label' => 'Head', 'type' => 'text'],
+            ['key'=> 'customer_type', 'label'=> 'Type', 'type'=> 'badge'],
+            ['key' => 'status', 'label' => 'Status', 'type' => 'badge'],
+        ];
+        $customersData = $customers->map(function ($customer) {
+            return [
+                'id' => $customer->id,
+                'code' => $customer->code,
+                'name' => $customer->name,
+                'email' => $customer->email ?? '-',
+                'phone' => $customer->phone ?? '-',
+                'head_name' => $customer->head_name ?? '-',
+                'customer_type' => [
+                    'value' => $customer->customer_type,
+                    'label' => ucwords(str_replace('_', ' ', $customer->customer_type)),
+                    'color' => match ($customer->customer_type) {
+                        'hospital' => 'green',
+                        'clinic' => 'blue',
+                        'pharmacy' => 'orange',
+                        'distributor' => 'yellow',
+                        'retail' => 'purple',
+                        'government' => 'gray',
+                        'other' => 'red',
+                        default => 'red',
+                    },
+                ],
+                'status' => [
+                    'value' => $customer->status,
+                    'label' => ucwords(str_replace('_', ' ', $customer->status)),
+                    'color' => match ($customer->status) {
+                    'active' => 'green',
+                    'inactive' => 'red',
+                    'blocked' => 'orange',
+                    default => 'red',
+                }],
+                'actions' => [
+                    'show' => route('master.customers.show', $customer),
+                    'edit' => route('master.customers.edit', $customer),
+                    'delete' => route('master.customers.destroy', $customer),
+                ],
+            ];
+        })->toArray();
+
+
+        return view('pages.master.customers.index', compact(
+            'customers',
+            'customersData',
+            'columns'
+        ));
     }
 
     public function create()

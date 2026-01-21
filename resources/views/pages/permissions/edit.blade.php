@@ -4,7 +4,7 @@
 
 <x-common.page-breadcrumb pageTitle="Edit Permission" />
 
-<form method="POST" action="{{ route('permissions.update', $permission->id) }}">
+<form method="POST" action="{{ route('master.permissions.update', $permission->id) }}">
     @csrf
     @method('PUT')
 

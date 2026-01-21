@@ -1,14 +1,14 @@
 @extends('layouts.app')
 
 @section('content')
-<x-common.page-breadcrumb pageTitle="Create Departments" />
+<x-common.page-breadcrumb pageTitle="Create Office" />
 
-<x-common.component-card title="Create New Departments">
+<x-common.component-card title="Create New Office">
     <x-flash-message.flash />
 
-    <form method="POST" action="{{ route('master.departments.store') }}">
+    <form method="POST" action="{{ route('master.offices.store') }}">
         @csrf
-        @include('pages.master.departments.form')
+        @include('pages.master.offices.form')
     </form>
 </x-common.component-card>
 @endsection

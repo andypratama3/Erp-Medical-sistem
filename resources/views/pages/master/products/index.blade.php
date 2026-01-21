@@ -8,7 +8,7 @@
     <x-common.page-breadcrumb pageTitle="Products" />
     <!-- Filters -->
     <form method="GET" class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Search</label>
                 <input type="text" name="search" value="{{ request('search') }}" placeholder="SKU / nama / barcode / AKL"class="w-full h-11 rounded-lg border px-3 text-sm
@@ -47,11 +47,15 @@
                 </select>
             </div>
         </div>
-        <div class="mt-4 flex gap-2">
+        <div class="mt-4 flex gap-2 align-end">
             <a href="{{ route('master.products.index') }}" class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg">Reset</a>
             <button type="submit" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg">Apply</button>
+            {{-- <button type="button" id="importButton" class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg text-end">Import Excel</button> --}}
         </div>
     </form>
+
+    {{-- Modal --}}
+
 
     <!-- Table -->
    <x-common.component-card

@@ -12,10 +12,10 @@
     <x-common.component-card
         title="Manufacture List"
         desc="Manage all manufactures in your system"
-        link="{{ route('manufactures.create') }}">
+        link="{{ route('master.manufactures.create') }}">
 
         <x-table.table-component
-            :data="$manufactures"
+            :data="$manufacturesData"
             :columns="$columns"
             :searchable="true"
             :filterable="true" />

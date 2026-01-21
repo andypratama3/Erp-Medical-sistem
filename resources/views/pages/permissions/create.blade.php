@@ -4,7 +4,7 @@
 
 <x-common.page-breadcrumb pageTitle="Tambah Permission" />
 
-<form method="POST" action="{{ route('permissions.store') }}">
+<form method="POST" action="{{ route('master.permissions.store') }}">
     @csrf
 
     <x-common.component-card title="Tambah Permission">

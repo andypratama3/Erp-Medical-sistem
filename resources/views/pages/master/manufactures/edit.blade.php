@@ -5,11 +5,11 @@
 
 <x-common.component-card title="Edit Manufactur">
     <x-flash-message.flash />
-    <form method="POST" action="{{ route('manufactures.update', $manufacture->id) }}">
+    <form method="POST" action="{{ route('master.manufactures.update', $manufacture->id) }}">
         @csrf
         @method('PUT')
 
-        @include('pages.manufactures.form', [
+        @include('pages.master.manufactures.form', [
             'manufacture' => $manufacture,
         ])
     </form>

@@ -2,10 +2,10 @@
     $isEdit = isset($product);
 @endphp
 
-<div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
 
     {{-- SKU --}}
-    <div class="md:col-span-2">
+    <div>
         <label class="block text-sm font-medium mb-1 dark:text-white">
             SKU <span class="text-red-500">*</span>
         </label>
@@ -32,7 +32,7 @@
     </div>
 
     {{-- Unit --}}
-    <div class="md:col-span-2">
+    <div>
         <label class="block text-sm font-medium mb-1 dark:text-white">
             Unit <span class="text-red-500">*</span>
         </label>
@@ -44,12 +44,12 @@
     </div>
 
     {{-- Unit Price --}}
-    <div class="md:col-span-2">
+    <div>
         <label class="block text-sm font-medium mb-1 dark:text-white">
             Unit Price <span class="text-red-500">*</span>
         </label>
         <div class="relative">
-            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm dark:text-gray-400">Rp</span>
+            {{-- <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm dark:text-gray-400">Rp</span> --}}
             <input type="text" id="unit_price_display" required
                    value="{{ old('unit_price', isset($product) ? number_format($product->unit_price, 0, ',', '.') : '0') }}"
                    class="w-full h-11 rounded-lg border pl-10 pr-3 text-sm
@@ -61,12 +61,12 @@
     </div>
 
     {{-- Cost Price --}}
-    <div class="md:col-span-2">
+    <div>
         <label class="block text-sm font-medium mb-1 dark:text-white">
             Cost Price
         </label>
         <div class="relative">
-            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm dark:text-gray-400">Rp</span>
+            {{-- <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm dark:text-gray-400">Rp</span> --}}
             <input type="text" id="cost_price_display"
                    value="{{ old('cost_price', isset($product) ? number_format($product->cost_price ?? 0, 0, ',', '.') : '0') }}"
                    class="w-full h-11 rounded-lg border pl-10 pr-3 text-sm
@@ -170,7 +170,7 @@
     </div>
 
     {{-- Min Stock --}}
-    <div class="md:col-span-2">
+    <div>
         <label class="block text-sm font-medium mb-1 dark:text-white">Min Stock</label>
         <input type="number" name="min_stock" min="0"
                value="{{ old('min_stock', $product->min_stock ?? 0) }}"
@@ -180,7 +180,7 @@
     </div>
 
     {{-- Max Stock --}}
-    <div class="md:col-span-2">
+    <div>
         <label class="block text-sm font-medium mb-1 dark:text-white">Max Stock</label>
         <input type="number" name="max_stock" min="0"
                value="{{ old('max_stock', $product->max_stock ?? 0) }}"
@@ -197,18 +197,6 @@
                 Taxable:
             </label>
             <div class="flex items-center gap-4">
-                <label :class="isChecked === '1' ? 'text-gray-700 dark:text-white' : 'text-gray-500 dark:text-gray-400'"
-                       class="relative flex cursor-pointer items-center gap-2 text-sm font-medium select-none">
-                    <input class="sr-only" type="radio" name="is_taxable" value="1"
-                           @checked(old('is_taxable', $product->is_taxable ?? true) == true)
-                           @change="isChecked = '1'">
-                    <span :class="isChecked === '1' ? 'border-blue-500 bg-blue-500' : 'bg-transparent border-gray-300 dark:border-gray-700'"
-                          class="flex h-5 w-5 items-center justify-center rounded-full border-[1.25px] transition-all">
-                        <span :class="isChecked === '1' ? 'block' : 'hidden'"
-                              class="h-2 w-2 rounded-full bg-white"></span>
-                    </span>
-                    Yes
-                </label>
                 <label :class="isChecked === '0' ? 'text-gray-700 dark:text-white' : 'text-gray-500 dark:text-gray-400'"
                        class="relative flex cursor-pointer items-center gap-2 text-sm font-medium select-none">
                     <input class="sr-only" type="radio" name="is_taxable" value="0"
@@ -220,6 +208,18 @@
                               class="h-2 w-2 rounded-full bg-white"></span>
                     </span>
                     No
+                </label>
+                <label :class="isChecked === '1' ? 'text-gray-700 dark:text-white' : 'text-gray-500 dark:text-gray-400'"
+                       class="relative flex cursor-pointer items-center gap-2 text-sm font-medium select-none">
+                    <input class="sr-only" type="radio" name="is_taxable" value="1"
+                           @checked(old('is_taxable', $product->is_taxable ?? true) == true)
+                           @change="isChecked = '1'">
+                    <span :class="isChecked === '1' ? 'border-blue-500 bg-blue-500' : 'bg-transparent border-gray-300 dark:border-gray-700'"
+                          class="flex h-5 w-5 items-center justify-center rounded-full border-[1.25px] transition-all">
+                        <span :class="isChecked === '1' ? 'block' : 'hidden'"
+                              class="h-2 w-2 rounded-full bg-white"></span>
+                    </span>
+                    Yes
                 </label>
             </div>
         </div>
@@ -233,18 +233,7 @@
                 Importable:
             </label>
             <div class="flex items-center gap-4">
-                <label :class="is_importable === '1' ? 'text-gray-700 dark:text-white' : 'text-gray-500 dark:text-gray-400'"
-                       class="relative flex cursor-pointer items-center gap-2 text-sm font-medium select-none">
-                    <input class="sr-only" type="radio" name="is_importable" value="1"
-                           @checked(old('is_importable', $product->is_importable ?? false) == true)
-                           @change="is_importable = '1'">
-                    <span :class="is_importable === '1' ? 'border-blue-500 bg-blue-500' : 'bg-transparent border-gray-300 dark:border-gray-700'"
-                          class="flex h-5 w-5 items-center justify-center rounded-full border-[1.25px] transition-all">
-                        <span :class="is_importable === '1' ? 'block' : 'hidden'"
-                              class="h-2 w-2 rounded-full bg-white"></span>
-                    </span>
-                    Yes
-                </label>
+
                 <label :class="is_importable === '0' ? 'text-gray-700 dark:text-white' : 'text-gray-500 dark:text-gray-400'"
                        class="relative flex cursor-pointer items-center gap-2 text-sm font-medium select-none">
                     <input class="sr-only" type="radio" name="is_importable" value="0"
@@ -257,12 +246,24 @@
                     </span>
                     No
                 </label>
+                <label :class="is_importable === '1' ? 'text-gray-700 dark:text-white' : 'text-gray-500 dark:text-gray-400'"
+                       class="relative flex cursor-pointer items-center gap-2 text-sm font-medium select-none">
+                    <input class="sr-only" type="radio" name="is_importable" value="1"
+                           @checked(old('is_importable', $product->is_importable ?? false) == true)
+                           @change="is_importable = '1'">
+                    <span :class="is_importable === '1' ? 'border-blue-500 bg-blue-500' : 'bg-transparent border-gray-300 dark:border-gray-700'"
+                          class="flex h-5 w-5 items-center justify-center rounded-full border-[1.25px] transition-all">
+                        <span :class="is_importable === '1' ? 'block' : 'hidden'"
+                              class="h-2 w-2 rounded-full bg-white"></span>
+                    </span>
+                    Yes
+                </label>
             </div>
         </div>
     </div>
 
     {{-- Status --}}
-    <div class="md:col-span-2">
+    <div>
         <label class="block text-sm font-medium mb-1 dark:text-white">
             Status <span class="text-red-500">*</span>
         </label>

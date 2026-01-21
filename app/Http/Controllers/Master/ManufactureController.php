@@ -11,7 +11,42 @@ class ManufactureController extends Controller
     public function index()
     {
         $manufactures = Manufacture::latest()->paginate(15);
-        return view('pages.master.manufactures.index', compact('manufactures'));
+
+        $columns = [
+            ['key' => 'code', 'label' => 'Code', 'type' => 'text'],
+            ['key' => 'name', 'label' => 'Name', 'type' => 'text'],
+            ['key' => 'country', 'label' => 'Country', 'type' => 'text'],
+            ['key' => 'city', 'label' => 'City', 'type' => 'text'],
+            ['key' => 'phone', 'label' => 'Phone', 'type' => 'text'],
+            ['key' => 'status', 'label' => 'Status', 'type' => 'badge'],
+        ];
+
+        $manufacturesData = $manufactures->getCollection()->map(function ($manufacture) {
+            return [
+                'id' => $manufacture->id,
+                'code' => $manufacture->code,
+                'name' => $manufacture->name,
+                'country' => $manufacture->country ?? '-',
+                'city' => $manufacture->city ?? '-',
+                'phone' => $manufacture->phone ?? '-',
+                'status' => [
+                    'value' => $manufacture->status,
+                    'label' => ucfirst($manufacture->status),
+                    'color' => match ($manufacture->status) {
+                        'active' => 'green',
+                        'inactive' => 'red',
+                        default => 'gray',
+                    }
+                ],
+                'actions' => [
+                    'show' => route('master.manufactures.show', $manufacture),
+                    'edit' => route('master.manufactures.edit', $manufacture),
+                    'delete' => route('master.manufactures.destroy', $manufacture),
+                ],
+            ];
+        })->toArray();
+
+        return view('pages.master.manufactures.index', compact('manufactures','columns', 'manufacturesData'));
     }
 
     public function create()

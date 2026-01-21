@@ -12,7 +12,43 @@ class VendorController extends Controller
     public function index()
     {
         $vendors = Vendor::with('paymentTerm')->latest()->paginate(15);
-        return view('pages.master.vendors.index', compact('vendors'));
+
+        $columns = [
+            ['key' => 'code', 'label' => 'Code', 'type' => 'text'],
+            ['key' => 'name', 'label' => 'Name', 'type' => 'text'],
+            ['key' => 'email', 'label' => 'Email', 'type' => 'text'],
+            ['key' => 'phone', 'label' => 'Phone', 'type' => 'text'],
+            ['key' => 'payment_term', 'label' => 'Payment Term', 'type' => 'text'],
+            ['key' => 'status', 'label' => 'Status', 'type' => 'badge'],
+        ];
+
+        $vendorsData = $vendors->getCollection()->map(function ($vendor) {
+            return [
+                'id' => $vendor->id,
+                'code' => $vendor->code,
+                'name' => $vendor->name,
+                'email' => $vendor->email ?? '-',
+                'phone' => $vendor->phone ?? '-',
+                'payment_term' => $vendor->paymentTerm?->name ?? '-',
+                'status' => [
+                    'value' => $vendor->status,
+                    'label' => ucfirst($vendor->status),
+                    'color' => match ($vendor->status) {
+                        'active' => 'green',
+                        'inactive' => 'red',
+                        'blocked' => 'yellow',
+                        default => 'gray',
+                    }
+                ],
+                'actions' => [
+                    'show' => route('master.vendors.show', $vendor),
+                    'edit' => route('master.vendors.edit', $vendor),
+                    'delete' => route('master.vendors.destroy', $vendor),
+                ],
+            ];
+        })->toArray();
+
+        return view('pages.master.vendors.index', compact('vendors', 'vendorsData', 'columns'));
     }
 
     public function create()

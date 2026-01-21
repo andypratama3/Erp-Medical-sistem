@@ -10,7 +10,7 @@
     <x-common.component-card
         title="Permission List"
         desc="Manage all permissions in your system"
-        link="{{ route('permissions.create') }}">
+        link="{{ route('master.permissions.create') }}">
 
         <x-table.table-component
             :data="$permissionsData"

@@ -1,26 +1,26 @@
 @extends('layouts.app')
 
 @section('content')
-<x-common.page-breadcrumb pageTitle="Master departments" />
+<x-common.page-breadcrumb pageTitle="Master Vendor" />
 
 <div class="space-y-6 sm:space-y-7">
     <x-flash-message.flash />
 
     <x-common.component-card
-        title="Office List"
-        desc="Manage all departments in your system"
-        link="{{ route('master.departments.create') }}">
+        title="Vendor List"
+        desc="Manage all vendors in your system"
+        link="{{ route('master.vendors.create') }}">
 
         <x-table.table-component
-            :data="$departmentsData"
+            :data="$vendorsData"
             :columns="$columns"
             :searchable="true"
             :filterable="false" />
     </x-common.component-card>
 
-    @if($departments->hasPages())
+    @if($vendors->hasPages())
         <div class="flex justify-start gap-2">
-            {{ $departments->links() }}
+            {{ $vendors->links() }}
         </div>
     @endif
 </div>

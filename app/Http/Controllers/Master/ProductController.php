@@ -208,4 +208,9 @@ class ProductController extends Controller
                 ->with('error', 'Failed to delete product. It may be in use.');
         }
     }
+
+    public function import (Request $request)
+    {
+        
+    }
 }
