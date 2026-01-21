@@ -18,7 +18,7 @@
             :data="$manufactures"
             :columns="$columns"
             :searchable="true"
-            :filterable="false" />
+            :filterable="true" />
     </x-common.component-card>
 
     {{-- Pagination --}}

@@ -2,23 +2,28 @@
 
 namespace Database\Seeders;
 
-use App\Models\Category;
 use Illuminate\Database\Seeder;
+use App\Models\Category;
 
 class CategorySeeder extends Seeder
 {
     public function run(): void
     {
         $categories = [
-            ['name' => 'BMHP', 'code' => 'BMHP', 'description' => 'Bahan Medis Habis Pakai', 'status' => 'active'],
-            ['name' => 'Alat Kesehatan', 'code' => 'ALKES', 'description' => 'Alat Kesehatan Medis', 'status' => 'active'],
-            ['name' => 'Obat-obatan', 'code' => 'OBT', 'description' => 'Obat dan Farmasi', 'status' => 'active'],
-            ['name' => 'Alat Diagnostik', 'code' => 'DIAG', 'description' => 'Alat Diagnostik dan Laboratorium', 'status' => 'active'],
-            ['name' => 'Peralatan Medis', 'code' => 'PRLTMED', 'description' => 'Peralatan Medis Umum', 'status' => 'active'],
+            ['code' => 'ALKES-A', 'name' => 'Alat Kesehatan Kelas A', 'description' => 'Alkes risiko rendah'],
+            ['code' => 'ALKES-B', 'name' => 'Alat Kesehatan Kelas B', 'description' => 'Alkes risiko sedang'],
+            ['code' => 'ALKES-C', 'name' => 'Alat Kesehatan Kelas C', 'description' => 'Alkes risiko tinggi'],
+            ['code' => 'ALKES-D', 'name' => 'Alat Kesehatan Kelas D', 'description' => 'Alkes risiko sangat tinggi'],
+            ['code' => 'PKRT', 'name' => 'Perbekalan Kesehatan Rumah Tangga', 'description' => 'PKRT'],
+            ['code' => 'IVD', 'name' => 'In Vitro Diagnostic', 'description' => 'Alat diagnostik in vitro'],
+            ['code' => 'ELEKTRO', 'name' => 'Elektromedik', 'description' => 'Peralatan elektromedik'],
+            ['code' => 'IMAGING', 'name' => 'Medical Imaging', 'description' => 'Peralatan pencitraan medis'],
         ];
 
         foreach ($categories as $category) {
             Category::create($category);
         }
+
+        $this->command->info('✅ Created ' . count($categories) . ' categories');
     }
 }

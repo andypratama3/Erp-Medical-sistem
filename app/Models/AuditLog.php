@@ -3,55 +3,72 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class AuditLog extends Model
 {
+    protected $table = 'erp_audit_log';
+
     protected $fillable = [
-        'user_type',
         'user_id',
-        'event',
-        'auditable_type',
-        'auditable_id',
+        'module',
+        'action',
+        'model_type',
+        'model_id',
+        'description',
         'old_values',
         'new_values',
-        'url',
         'ip_address',
         'user_agent',
-        'tags',
     ];
 
     protected $casts = [
         'old_values' => 'array',
         'new_values' => 'array',
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
     ];
 
-    public function user()
+    // Relationships
+    public function user(): BelongsTo
     {
-        return $this->morphTo();
+        return $this->belongsTo(\App\Models\User::class);
     }
 
-    public function auditable(): MorphTo
+    // Scopes
+    public function scopeModule($query, $module)
     {
-        return $this->morphTo();
+        return $query->where('module', $module);
     }
 
-    public static function log(string $event, $model, array $oldValues = null, array $newValues = null, string $tags = null)
+    public function scopeAction($query, $action)
     {
-        return static::create([
-            'user_type' => auth()->check() ? get_class(auth()->user()) : null,
-            'user_id' => auth()->id(),
-            'event' => $event,
-            'auditable_type' => get_class($model),
-            'auditable_id' => $model->id ?? null,
-            'old_values' => $oldValues,
-            'new_values' => $newValues,
-            'url' => request()->fullUrl(),
-            'ip_address' => request()->ip(),
-            'user_agent' => request()->userAgent(),
-            'tags' => $tags,
-        ]);
+        return $query->where('action', $action);
+    }
+
+    public function scopeByUser($query, $userId)
+    {
+        return $query->where('user_id', $userId);
+    }
+
+    // Accessors
+    public function getChangesAttribute(): array
+    {
+        $changes = [];
+
+        if (!$this->old_values || !$this->new_values) {
+            return $changes;
+        }
+
+        foreach ($this->new_values as $key => $newValue) {
+            $oldValue = $this->old_values[$key] ?? null;
+
+            if ($oldValue !== $newValue) {
+                $changes[$key] = [
+                    'old' => $oldValue,
+                    'new' => $newValue,
+                ];
+            }
+        }
+
+        return $changes;
     }
 }

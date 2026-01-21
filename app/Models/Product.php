@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
@@ -10,39 +11,36 @@ class Product extends Model
 {
     use SoftDeletes;
 
+    protected $table = 'master_products';
+
     protected $fillable = [
-        'sku',
-        'name',
-        'type',
-        'unit',
-        'barcode',
-        'manufacture_id',
         'category_id',
         'product_group_id',
-        'stock_qty',
-        'current_stock',
-        'akl_akd',
-        'akl_reg_no',
-        'expired_registration',
-        'general_name',
-        'licence_number',
-        'listing_level',
-        'status',
-        'photos',
-        'videos',
+        'manufacture_id',
+        'sku',
+        'name',
         'description',
-        'price',
-        'cost'
+        'unit',
+        'unit_price',
+        'cost_price',
+        'min_stock',
+        'max_stock',
+        'barcode',
+        'product_type',
+        'is_taxable',
+        'is_importable',
+        'status',
     ];
 
     protected $casts = [
-        'price' => 'decimal:2',
-        'cost' => 'decimal:2',
-        'stock_qty' => 'integer',
-        'current_stock' => 'integer',
-        'photos' => 'array',
-        'videos' => 'array',
-        'expired_registration' => 'date',
+        'unit_price' => 'decimal:2',
+        'cost_price' => 'decimal:2',
+        'min_stock' => 'integer',
+        'max_stock' => 'integer',
+        'is_taxable' => 'boolean',
+        'is_importable' => 'boolean',
+        'status' => 'string',
+        'product_type' => 'string',
     ];
 
     // Relationships
@@ -51,71 +49,41 @@ class Product extends Model
         return $this->belongsTo(Category::class);
     }
 
-    public function manufacture(): BelongsTo
-    {
-        return $this->belongsTo(Manufacture::class);
-    }
-
     public function productGroup(): BelongsTo
     {
         return $this->belongsTo(ProductGroup::class);
     }
 
-    public function priceLists(): HasMany
+    public function manufacture(): BelongsTo
     {
-        return $this->hasMany(PriceList::class);
+        return $this->belongsTo(Manufacture::class, 'manufacture_id');
     }
 
-    public function activePriceList()
+    public function salesDOItems(): HasMany
     {
-        return $this->hasOne(PriceList::class)->active()->effective()->latest();
+        return $this->hasMany(SalesDOItem::class);
     }
 
     // Scopes
-    public function scopeLowStock($query)
-    {
-        return $query->whereRaw('current_stock < stock_qty');
-    }
-
     public function scopeActive($query)
     {
         return $query->where('status', 'active');
     }
 
-    public function scopeInactive($query)
+    public function scopeMedicalDevice($query)
     {
-        return $query->where('status', 'inactive');
-    }
-
-    public function scopeByType($query, $type)
-    {
-        return $query->where('type', $type);
+        return $query->where('product_type', 'medical_device');
     }
 
     // Accessors
-    public function getFormattedPriceAttribute()
+    public function getFormattedPriceAttribute(): string
     {
-        return 'Rp ' . number_format($this->price, 0, ',', '.');
+        return 'Rp ' . number_format($this->unit_price, 0, ',', '.');
     }
 
-    public function getFormattedCostAttribute()
+    public function getMarginAttribute(): float
     {
-        return 'Rp ' . number_format($this->cost, 0, ',', '.');
-    }
-
-    // Audit logging
-    protected static function booted()
-    {
-        static::created(function ($product) {
-            AuditLog::log('created', $product, null, $product->toArray(), 'product');
-        });
-
-        static::updated(function ($product) {
-            AuditLog::log('updated', $product, $product->getOriginal(), $product->getChanges(), 'product');
-        });
-
-        static::deleted(function ($product) {
-            AuditLog::log('deleted', $product, $product->toArray(), null, 'product');
-        });
+        if ($this->cost_price == 0) return 0;
+        return (($this->unit_price - $this->cost_price) / $this->cost_price) * 100;
     }
 }

@@ -16,26 +16,22 @@ class MenuHelper
                 'icon' => 'ui-elements',
                 'name' => 'Data Master',
                 'subItems' => [
-                    ['name' => 'Manufacture', 'path' => route('manufactures.index')],
-                    ['name' => 'Category', 'path' => route('categories.index')],
-                    ['name' => 'Product Group', 'path' => route('product-groups.index')],
-                    ['name' => 'Produk', 'path' => route('products.index')],
-                    ['name' => 'Price List', 'path' => route('price-lists.index')],
+                    ['name' => 'Offices', 'path' => route('master.offices.index')],
+                    ['name'=> 'Departments', 'path'=> route('master.departments.index')],
+                    ['name'=> 'Products', 'path'=> route('master.products.index')],
+                    ['name'=> 'Customers', 'path'=> route('master.customers.index')],
+                    ['name'=> 'Vendors', 'path'=> route('master.vendors.index')],
+                    ['name'=> 'Manufactures', 'path'=> route('master.manufactures.index')],
                 ]
             ],
             [
                 'icon' => 'gear',
                 'name' => 'Pengaturan',
                 'subItems' => [
-                    ['name' => 'Pengguna', 'path' =>  route('users.index')],
-                    ['name' => 'Role', 'path' =>  route('roles.index')],
-                    ['name' => 'Permission', 'path' =>  route('permissions.index')],
+                    ['name' => 'Pengguna', 'path' =>  route('master.users.index')],
+                    ['name' => 'Role', 'path' =>  route('master.roles.index')],
+                    ['name' => 'Permission', 'path' =>  route('master.permissions.index')],
                 ]
-            ],
-            [
-                'icon' => 'user-profile',
-                'name' => 'User Profile',
-                'path' => route('profile.edit'),
             ],
         ];
     }

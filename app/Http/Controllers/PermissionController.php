@@ -1,9 +1,4 @@
 <?php
-
-/**
- * FILE: app/Http/Controllers/PermissionController.php
- */
-
 namespace App\Http\Controllers;
 
 use App\Models\Permission;
