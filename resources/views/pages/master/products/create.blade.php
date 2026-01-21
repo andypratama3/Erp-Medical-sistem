@@ -1,9 +1,9 @@
 @extends('layouts.app')
 
 @section('content')
-<x-common.page-breadcrumb pageTitle="Tambah Product" />
+<x-common.page-breadcrumb pageTitle="Create Product" />
 
-<x-common.component-card title="Tambah Product">
+<x-common.component-card title="Create Product">
     <x-flash-message.flash />
 
     <form method="POST" action="{{ route('master.products.store') }}" enctype="multipart/form-data">

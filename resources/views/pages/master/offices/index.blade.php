@@ -15,7 +15,7 @@
             :data="$officesData"
             :columns="$columns"
             :searchable="true"
-            :filterable="false" />
+            :filterable="true" />
     </x-common.component-card>
 
     @if($offices->hasPages())

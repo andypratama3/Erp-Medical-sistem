@@ -2,6 +2,10 @@
     $isEdit = isset($product);
 @endphp
 
+@push('css')
+
+@endpush
+
 <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
 
     {{-- SKU --}}
@@ -52,9 +56,10 @@
             {{-- <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm dark:text-gray-400">Rp</span> --}}
             <input type="text" id="unit_price_display" required
                    value="{{ old('unit_price', isset($product) ? number_format($product->unit_price, 0, ',', '.') : '0') }}"
-                   class="w-full h-11 rounded-lg border pl-10 pr-3 text-sm
-                          bg-white text-gray-900
-                          dark:bg-gray-800 dark:border-gray-700 dark:text-white">
+                     class="w-full h-11 rounded-lg border px-3 text-sm
+                      bg-white text-gray-900
+                      focus:ring-2 focus:ring-blue-500/20
+                      dark:bg-gray-800 dark:border-gray-700 dark:text-white">
             <input type="hidden" name="unit_price" id="unit_price_value"
                    value="{{ old('unit_price', $product->unit_price ?? 0) }}">
         </div>
@@ -69,9 +74,10 @@
             {{-- <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm dark:text-gray-400">Rp</span> --}}
             <input type="text" id="cost_price_display"
                    value="{{ old('cost_price', isset($product) ? number_format($product->cost_price ?? 0, 0, ',', '.') : '0') }}"
-                   class="w-full h-11 rounded-lg border pl-10 pr-3 text-sm
-                          bg-white text-gray-900
-                          dark:bg-gray-800 dark:border-gray-700 dark:text-white">
+                     class="w-full h-11 rounded-lg border px-3 text-sm
+                      bg-white text-gray-900
+                      focus:ring-2 focus:ring-blue-500/20
+                      dark:bg-gray-800 dark:border-gray-700 dark:text-white">
             <input type="hidden" name="cost_price" id="cost_price_value"
                    value="{{ old('cost_price', $product->cost_price ?? 0) }}">
         </div>

@@ -23,7 +23,7 @@ class TaskBoardController extends Controller
             });
         }
 
-        $tasks = $query->latest()->paginate(15);
+    $tasks = $query->latest()->paginate(15);
 
         $stats = [
             'pending' => TaskBoard::where('module', 'act')->where('task_status', 'pending')->count(),
