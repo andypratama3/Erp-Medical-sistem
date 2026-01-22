@@ -6,8 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\SalesDO;
 use App\Models\TaskBoard;
 use App\Models\WQSStockCheck;
-use App\Models\DocumentUpload;
-use App\Services\DocumentUploadService;
 use App\Services\AuditLogService;
 use App\Services\StateMachineService;
 use Illuminate\Http\Request;
@@ -17,16 +15,13 @@ use Illuminate\Support\Facades\DB;
 
 class TaskBoardController extends Controller implements HasMiddleware
 {
-    protected $documentUpload;
     protected $auditLog;
     protected $stateMachine;
 
     public function __construct(
-        DocumentUploadService $documentUpload,
         AuditLogService $auditLog,
         StateMachineService $stateMachine
     ) {
-        $this->documentUpload = $documentUpload;
         $this->auditLog = $auditLog;
         $this->stateMachine = $stateMachine;
     }
@@ -35,7 +30,7 @@ class TaskBoardController extends Controller implements HasMiddleware
     {
         return [
             new Middleware('permission:view_wqs', only: ['index', 'show']),
-            new Middleware('permission:process_wqs', only: ['process', 'ready', 'hold']),
+            new Middleware('permission:process_wqs', only: ['process', 'start', 'hold', 'complete']),
         ];
     }
 
@@ -44,276 +39,410 @@ class TaskBoardController extends Controller implements HasMiddleware
      */
     public function index(Request $request)
     {
-        $query = SalesDO::with(['customer', 'office', 'items'])
-            ->whereIn('status', ['crm_to_wqs', 'wqs_ready', 'wqs_on_hold']);
+        $query = TaskBoard::with([
+            'salesDO.customer',
+            'salesDO.office',
+            'assignedUser',
+        ])
+        ->byModule('wqs')
+        ->notCompleted();
 
-        // Search
+        /* ============================
+        FILTERS
+        ============================ */
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function($q) use ($search) {
-                $q->where('do_code', 'like', "%{$search}%")
-                  ->orWhereHas('customer', function($q) use ($search) {
-                      $q->where('name', 'like', "%{$search}%");
+                $q->where('task_description', 'like', "%{$search}%")
+                  ->orWhereHas('salesDO', function($q) use ($search) {
+                      $q->where('do_code', 'like', "%{$search}%")
+                        ->orWhereHas('customer', function($q) use ($search) {
+                            $q->where('name', 'like', "%{$search}%");
+                        });
                   });
             });
         }
 
-        // Filter by status
         if ($request->filled('status')) {
-            $query->where('status', $request->status);
+            $query->byStatus($request->status);
         }
 
-        $salesDOs = $query->latest('do_date')->paginate(15);
+        if ($request->filled('priority')) {
+            $query->byPriority($request->priority);
+        }
 
-        // Get statistics
-        $stats = [
-            'pending' => SalesDO::where('status', 'crm_to_wqs')->count(),
-            'ready' => SalesDO::where('status', 'wqs_ready')->count(),
-            'on_hold' => SalesDO::where('status', 'wqs_on_hold')->count(),
-        ];
+        if ($request->filled('assigned_to')) {
+            $query->assignedTo($request->assigned_to);
+        }
 
-        return view('pages.wqs.task_board.index', compact('salesDOs', 'stats'));
+        /* ============================
+        SORTING & PAGINATION
+        ============================ */
+        $sortBy = $request->get('sort', 'due_date');
+        $sortOrder = $request->get('order', 'asc');
+
+        if ($sortBy === 'priority') {
+            $query->orderByRaw("FIELD(priority, 'urgent', 'high', 'medium', 'low')");
+        } else {
+            $query->orderBy($sortBy, $sortOrder);
+        }
+
+        $tasks = $query->paginate(15);
+
+        /* ============================
+        STATISTICS
+        ============================ */
+        $stats = TaskBoard::getDashboardStats('wqs');
+        $stats['total'] = $stats['pending'] + $stats['in_progress'] + $stats['on_hold'];
+
+
+        return view('pages.wqs.task_board.index', compact('tasks', 'stats'));
     }
 
     /**
      * Show detailed task for WQS processing
      */
-    public function show(SalesDO $salesDo)
+    public function show(TaskBoard $taskBoard)
     {
-        // Check if DO is in WQS stage
-        if (!in_array($salesDo->status, ['crm_to_wqs', 'wqs_ready', 'wqs_on_hold'])) {
+        // Verify task is WQS module
+        if ($taskBoard->module !== 'wqs') {
             return redirect()
-                ->route('wqs.task-board.index')
-                ->with('error', 'This DO is not in WQS stage.');
+                ->route('wqs.task-board')
+                ->with('error', 'Invalid task.');
         }
 
-        $salesDo->load([
-            'customer',
-            'office',
-            'items.product',
-            'stockChecks',
-            'documents' => function($query) {
-                $query->where('stage', 'wqs_stok');
-            }
+        $taskBoard->load([
+            'salesDO.customer',
+            'salesDO.office',
+            'salesDO.items.product',
+            'assignedUser',
+            'documents',
         ]);
 
-        return view('pages.wqs.task_board.show', compact('salesDo'));
+        // Load related stock check if exists
+        $stockCheck = WQSStockCheck::where('sales_do_id', $taskBoard->sales_do_id)
+                                   ->latest()
+                                   ->first();
+
+        if ($stockCheck) {
+            $stockCheck->load('items.product');
+        }
+
+        return view('pages.wqs.task_board.show', compact('taskBoard', 'stockCheck'));
     }
 
     /**
-     * Process WQS task (stock check and ready)
+     * Start processing task
      */
-    public function process(Request $request, SalesDO $salesDo)
+    public function start(TaskBoard $taskBoard)
+    {
+        if (!$taskBoard->canStart()) {
+            return redirect()
+                ->back()
+                ->with('error', 'Task cannot be started from current status.');
+        }
+
+        if (!$taskBoard->start()) {
+            return redirect()
+                ->back()
+                ->with('error', 'Failed to start task.');
+        }
+
+        $this->auditLog->log('TASK_STARTED', 'WQS', [
+            'task_id' => $taskBoard->id,
+            'do_code' => $taskBoard->salesDO->do_code,
+            'task_type' => $taskBoard->task_type,
+        ]);
+
+        return redirect()
+            ->route('wqs.task-board.show', $taskBoard)
+            ->with('success', 'Task started.');
+    }
+
+    /**
+     * Hold task with reason
+     */
+    public function hold(Request $request, TaskBoard $taskBoard)
     {
         $validated = $request->validate([
-            'notes_wqs' => 'nullable|string',
-            'stock_checks' => 'required|array',
-            'stock_checks.*.product_id' => 'required|exists:master_products,id',
-            'stock_checks.*.stock_available' => 'required|boolean',
-            'stock_checks.*.stock_qty' => 'required|integer|min:0',
-            'stock_checks.*.notes' => 'nullable|string',
-            'photos_before.*' => 'nullable|image|max:2048',
-            'photos_after.*' => 'nullable|image|max:2048',
+            'reason' => 'required|string|max:255',
         ]);
+
+        if (!$taskBoard->canHold()) {
+            return redirect()
+                ->back()
+                ->with('error', 'Task cannot be held from current status.');
+        }
+
+        if (!$taskBoard->hold($validated['reason'])) {
+            return redirect()
+                ->back()
+                ->with('error', 'Failed to hold task.');
+        }
+
+        // Update related SO status if needed
+        if ($taskBoard->task_type === 'wqs_stock_check') {
+            $taskBoard->salesDO->update(['status' => 'wqs_on_hold']);
+        }
+
+        $this->auditLog->log('TASK_HELD', 'WQS', [
+            'task_id' => $taskBoard->id,
+            'do_code' => $taskBoard->salesDO->do_code,
+            'reason' => $validated['reason'],
+        ]);
+
+        return redirect()
+            ->back()
+            ->with('warning', 'Task placed on hold: ' . $validated['reason']);
+    }
+
+    /**
+     * Resume task from hold
+     */
+    public function resume(TaskBoard $taskBoard)
+    {
+        if (!$taskBoard->canResume()) {
+            return redirect()
+                ->back()
+                ->with('error', 'Task cannot be resumed from current status.');
+        }
+
+        if (!$taskBoard->resume()) {
+            return redirect()
+                ->back()
+                ->with('error', 'Failed to resume task.');
+        }
+
+        $this->auditLog->log('TASK_RESUMED', 'WQS', [
+            'task_id' => $taskBoard->id,
+            'do_code' => $taskBoard->salesDO->do_code,
+        ]);
+
+        return redirect()
+            ->route('wqs.task-board.show', $taskBoard)
+            ->with('success', 'Task resumed.');
+    }
+
+    /**
+     * Complete task (after stock check)
+     */
+    public function complete(Request $request, TaskBoard $taskBoard)
+    {
+        $validated = $request->validate([
+            'notes' => 'nullable|string',
+        ]);
+
+        if (!$taskBoard->canComplete()) {
+            return redirect()
+                ->back()
+                ->with('error', 'Task cannot be completed from current status.');
+        }
+
+        // For stock check task, verify stock check is completed
+        if ($taskBoard->task_type === 'wqs_stock_check') {
+            $stockCheck = WQSStockCheck::where('sales_do_id', $taskBoard->sales_do_id)
+                                       ->where('overall_status', 'completed')
+                                       ->exists();
+
+            if (!$stockCheck) {
+                return redirect()
+                    ->back()
+                    ->with('error', 'Please complete stock check first.');
+            }
+        }
 
         DB::beginTransaction();
         try {
-            // Save stock checks
-            foreach ($validated['stock_checks'] as $index => $check) {
-                WQSStockCheck::create([
-                    'sales_do_id' => $salesDo->id,
-                    'product_id' => $check['product_id'],
-                    'stock_available' => $check['stock_available'],
-                    'stock_qty' => $check['stock_qty'],
-                    'checked_by' => auth()->id(),
-                    'notes' => $check['notes'] ?? null,
-                ]);
+            if (!$taskBoard->complete()) {
+                throw new \Exception('Failed to complete task.');
             }
 
-            // Upload photos
-            if ($request->hasFile('photos_before')) {
-                foreach ($request->file('photos_before') as $photo) {
-                    $this->documentUpload->upload(
-                        'sales_do',
-                        $salesDo->do_code,
-                        'wqs_stok_before',
-                        $photo
-                    );
-                }
+            // Update notes if provided
+            if ($validated['notes']) {
+                $taskBoard->update(['notes' => ($taskBoard->notes ?? '') . "\nCOMPLETED: " . $validated['notes']]);
             }
 
-            if ($request->hasFile('photos_after')) {
-                foreach ($request->file('photos_after') as $photo) {
-                    $this->documentUpload->upload(
-                        'sales_do',
-                        $salesDo->do_code,
-                        'wqs_stok_after',
-                        $photo
-                    );
-                }
-            }
+            // Handle status transition for DO
+            $this->handleStatusTransition($taskBoard);
 
-            // Update DO notes
-            $salesDo->update([
-                'notes_wqs' => $validated['notes_wqs'],
-                'updated_by' => auth()->id(),
-            ]);
-
-            // Audit log
-            $this->auditLog->log('WQS_STOCK_CHECKED', 'WQS', [
-                'do_code' => $salesDo->do_code,
-                'checked_items' => count($validated['stock_checks']),
+            $this->auditLog->log('TASK_COMPLETED', 'WQS', [
+                'task_id' => $taskBoard->id,
+                'do_code' => $taskBoard->salesDO->do_code,
+                'task_type' => $taskBoard->task_type,
             ]);
 
             DB::commit();
 
             return redirect()
-                ->route('wqs.task-board.show', $salesDo)
-                ->with('success', 'Stock check completed successfully.');
+                ->route('wqs.task-board.index')
+                ->with('success', 'Task completed successfully.');
 
         } catch (\Exception $e) {
             DB::rollBack();
             return redirect()
                 ->back()
-                ->with('error', 'Failed to process: ' . $e->getMessage());
+                ->with('error', 'Failed to complete task: ' . $e->getMessage());
         }
     }
 
     /**
-     * Mark DO as ready for SCM
+     * Reject task
      */
-    public function ready(SalesDO $salesDo)
+    public function reject(Request $request, TaskBoard $taskBoard)
     {
-        // Validate state transition
-        if (!$this->stateMachine->canTransition('sales_do', $salesDo->status, 'wqs_ready')) {
+        $validated = $request->validate([
+            'reason' => 'required|string|max:255',
+        ]);
+
+        if (!$taskBoard->canHold()) {
             return redirect()
                 ->back()
-                ->with('error', 'Invalid status transition.');
+                ->with('error', 'Task cannot be rejected from current status.');
         }
 
-        // Check if all items have been stock checked
-        $checkedCount = $salesDo->stockChecks()->count();
-        $itemsCount = $salesDo->items()->count();
+        DB::beginTransaction();
+        try {
+            if (!$taskBoard->reject($validated['reason'])) {
+                throw new \Exception('Failed to reject task.');
+            }
 
-        if ($checkedCount < $itemsCount) {
+            // Update DO status to previous stage
+            $taskBoard->salesDO->update(['status' => 'crm_to_wqs']);
+
+            $this->auditLog->log('TASK_REJECTED', 'WQS', [
+                'task_id' => $taskBoard->id,
+                'do_code' => $taskBoard->salesDO->do_code,
+                'reason' => $validated['reason'],
+            ]);
+
+            DB::commit();
+
+            return redirect()
+                ->route('wqs.task-board.index')
+                ->with('error', 'Task rejected: ' . $validated['reason']);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
             return redirect()
                 ->back()
-                ->with('error', 'Please complete stock check for all items first.');
+                ->with('error', 'Failed to reject task: ' . $e->getMessage());
         }
+    }
 
-        $salesDo->update([
-            'status' => 'wqs_ready',
+    /**
+     * Handle status transition based on task completion
+     */
+    private function handleStatusTransition(TaskBoard $taskBoard): void
+    {
+        $salesDo = $taskBoard->salesDO;
+
+        switch ($taskBoard->task_type) {
+            case 'wqs_stock_check':
+                // Check if all items are available
+                $stockCheck = WQSStockCheck::where('sales_do_id', $salesDo->id)
+                                           ->latest()
+                                           ->first();
+
+                if ($stockCheck && $stockCheck->allAvailable()) {
+                    // All items available - proceed to SCM
+                    $salesDo->update(['status' => 'scm_on_delivery']);
+
+                    // Create SCM task
+                    TaskBoard::create([
+                        'sales_do_id' => $salesDo->id,
+                        'module' => 'scm',
+                        'task_type' => 'scm_pick_pack',
+                        'task_status' => 'pending',
+                        'task_description' => 'Pick & Pack for DO ' . $salesDo->do_code,
+                        'priority' => 'high',
+                        'due_date' => now()->addDays(1),
+                        'created_by' => auth()->id(),
+                    ]);
+                } else {
+                    // Some items not available - place on hold
+                    $salesDo->update(['status' => 'wqs_on_hold']);
+                }
+                break;
+
+            case 'wqs_quality_review':
+                // Quality review done - ready for SCM
+                $salesDo->update(['status' => 'scm_on_delivery']);
+
+                // Create SCM delivery task
+                TaskBoard::create([
+                    'sales_do_id' => $salesDo->id,
+                    'module' => 'scm',
+                    'task_type' => 'scm_delivery',
+                    'task_status' => 'pending',
+                    'task_description' => 'Delivery for DO ' . $salesDo->do_code,
+                    'priority' => 'high',
+                    'due_date' => now()->addDays(2),
+                    'created_by' => auth()->id(),
+                ]);
+                break;
+        }
+    }
+
+    /**
+     * Assign task to user
+     */
+    public function assign(Request $request, TaskBoard $taskBoard)
+    {
+        $validated = $request->validate([
+            'assigned_to' => 'required|exists:users,id',
+        ]);
+
+        $taskBoard->update([
+            'assigned_to' => $validated['assigned_to'],
             'updated_by' => auth()->id(),
         ]);
 
-        // Audit log
-        $this->auditLog->log('WQS_MARKED_READY', 'WQS', [
-            'do_code' => $salesDo->do_code,
+        $this->auditLog->log('TASK_ASSIGNED', 'WQS', [
+            'task_id' => $taskBoard->id,
+            'assigned_to' => $validated['assigned_to'],
         ]);
 
         return redirect()
-            ->route('wqs.task-board.index')
-            ->with('success', 'DO marked as ready for delivery.');
+            ->back()
+            ->with('success', 'Task assigned successfully.');
     }
 
     /**
-     * Hold DO (stock issue)
+     * Update task priority
      */
-    public function hold(Request $request, SalesDO $salesDo)
+    public function updatePriority(Request $request, TaskBoard $taskBoard)
     {
         $validated = $request->validate([
-            'hold_reason' => 'required|string',
+            'priority' => 'required|in:low,medium,high,urgent',
         ]);
 
-        $salesDo->update([
-            'status' => 'wqs_on_hold',
-            'notes_wqs' => ($salesDo->notes_wqs ?? '') . "\n\nHOLD: " . $validated['hold_reason'],
+        $taskBoard->update([
+            'priority' => $validated['priority'],
             'updated_by' => auth()->id(),
         ]);
 
-        // Audit log
-        $this->auditLog->log('WQS_MARKED_HOLD', 'WQS', [
-            'do_code' => $salesDo->do_code,
-            'reason' => $validated['hold_reason'],
+        $this->auditLog->log('TASK_PRIORITY_UPDATED', 'WQS', [
+            'task_id' => $taskBoard->id,
+            'priority' => $validated['priority'],
         ]);
 
         return redirect()
-            ->route('wqs.task-board.index')
-            ->with('warning', 'DO placed on hold.');
-    }
-}
-
-// ============================================
-// FILE: app/Http/Controllers/WQS/StockCheckController.php
-// ============================================
-
-namespace App\Http\Controllers\WQS;
-
-use App\Http\Controllers\Controller;
-use App\Models\WQSStockCheck;
-use App\Models\SalesDO;
-use App\Models\Product;
-use Illuminate\Http\Request;
-
-class StockCheckController extends Controller
-{
-    /**
-     * Store stock check result
-     */
-    public function store(Request $request, SalesDO $salesDo)
-    {
-        $validated = $request->validate([
-            'product_id' => 'required|exists:master_products,id',
-            'stock_available' => 'required|boolean',
-            'stock_qty' => 'required|integer|min:0',
-            'notes' => 'nullable|string',
-        ]);
-
-        $stockCheck = WQSStockCheck::create([
-            'sales_do_id' => $salesDo->id,
-            'product_id' => $validated['product_id'],
-            'stock_available' => $validated['stock_available'],
-            'stock_qty' => $validated['stock_qty'],
-            'checked_by' => auth()->id(),
-            'notes' => $validated['notes'],
-        ]);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Stock check recorded.',
-            'data' => $stockCheck
-        ]);
+            ->back()
+            ->with('success', 'Priority updated.');
     }
 
     /**
-     * Update stock check
+     * Get dashboard stats via AJAX
      */
-    public function update(Request $request, WQSStockCheck $stockCheck)
+    public function dashboardStats()
     {
-        $validated = $request->validate([
-            'stock_available' => 'required|boolean',
-            'stock_qty' => 'required|integer|min:0',
-            'notes' => 'nullable|string',
-        ]);
+        $stats = TaskBoard::getDashboardStats('wqs');
+        $stats['total'] = $stats['pending'] + $stats['in_progress'] + $stats['on_hold'];
 
-        $stockCheck->update($validated);
 
         return response()->json([
             'success' => true,
-            'message' => 'Stock check updated.',
-        ]);
-    }
-
-    /**
-     * Delete stock check
-     */
-    public function destroy(WQSStockCheck $stockCheck)
-    {
-        $stockCheck->delete();
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Stock check deleted.',
+            'data' => $stats,
         ]);
     }
 }

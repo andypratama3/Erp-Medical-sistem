@@ -41,8 +41,10 @@ class MenuHelper
                 'icon'=> 'ui-elements',
                 'name'=> 'WQS',
                 'subItems'=> [
-                    ['name'=> 'Task Board', 'path'=> route('wqs.task-board')],
-                    ['name'=> 'Stock Check', 'path'=> route('wqs.stock-checks.index')],
+                    // ['name'=> 'Task Board', 'path'=> route('wqs.task-board')],
+                    // ['name'=> 'Stock Check', 'path'=> route('wqs.stock-checks.index')],
+                    ['name'=> 'Task Board', 'path'=> '/wqs/task-board'],
+                    ['name'=> 'Stock Check', 'path'=> '/wqs/stock-checks'],
                 ]
             ],
             [

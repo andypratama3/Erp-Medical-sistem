@@ -2,20 +2,21 @@
 
 namespace App\Http\Controllers\CRM;
 
-use App\Http\Controllers\Controller;
-use App\Models\SalesDO;
-use App\Models\SalesDOItem;
-use App\Models\Customer;
-use App\Models\MasterOffice;
-use App\Models\Product;
 use App\Models\Tax;
+use App\Models\Product;
+use App\Models\SalesDO;
+use App\Models\Customer;
 use App\Models\PaymentTerm;
-use App\Services\DONumberGenerator;
-use App\Services\AuditLogService;
+use App\Models\SalesDOItem;
+use App\Models\MasterOffice;
 use Illuminate\Http\Request;
-use Illuminate\Routing\Controllers\HasMiddleware;
-use Illuminate\Routing\Controllers\Middleware;
+use App\Events\SalesDOSubmitted;
+use App\Services\AuditLogService;
 use Illuminate\Support\Facades\DB;
+use App\Services\DONumberGenerator;
+use App\Http\Controllers\Controller;
+use Illuminate\Routing\Controllers\Middleware;
+use Illuminate\Routing\Controllers\HasMiddleware;
 
 class SalesDOController extends Controller implements HasMiddleware
 {
@@ -556,7 +557,7 @@ class SalesDOController extends Controller implements HasMiddleware
             ]);
 
             // Dispatch event for WQS module to listen (optional)
-            // event(new SalesDOSubmitted($salesDo));
+            event(new SalesDOSubmitted($salesDo));
 
             DB::commit();
 
