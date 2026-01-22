@@ -233,10 +233,6 @@
             Back
         </a>
         @if(in_array($salesDo->status, ['crm_to_wqs', 'wqs_on_hold']))
-            <a href="{{ route('crm.sales-do.edit', $salesDo) }}"
-                class="inline-flex items-center justify-center font-medium gap-2 rounded-lg transition px-4 py-3 text-sm bg-brand-500 text-white shadow-theme-xs hover:bg-brand-600">
-                Edit
-            </a>
             <form method="POST" action="{{ route('crm.sales-do.destroy', $salesDo) }}" style="display: inline;">
                 @csrf
                 @method('DELETE')
@@ -245,7 +241,84 @@
                     Delete
                 </button>
             </form>
+
+            <a href="{{ route('crm.sales-do.edit', $salesDo) }}"
+                class="inline-flex items-center justify-center font-medium gap-2 rounded-lg transition px-4 py-3 text-sm bg-brand-500 text-white shadow-theme-xs hover:bg-brand-600">
+                Edit
+            </a>
+            <button type="button" onclick="openSubmitModal()" class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                Submit to WQS
+            </button>
         @endif
     </div>
+
+    <div id="submitModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+        <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+            <div class="p-6 border-b border-gray-200">
+                <h3 class="text-lg font-bold text-gray-900">Submit to WQS?</h3>
+            </div>
+
+            <div class="p-6 space-y-4">
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <p class="text-sm text-blue-900">
+                        <strong>Please confirm:</strong> You are about to submit this Sales DO to the WQS (Warehouse Quality System) module. This action will change the status from "CRM to WQS" to "WQS Ready" and cannot be undone.
+                    </p>
+                </div>
+
+                <div class="space-y-2">
+                    <h4 class="font-semibold text-gray-900 text-sm">Summary:</h4>
+                    <ul class="text-sm text-gray-600 space-y-1">
+                        <li>• DO Code: <span class="font-mono font-semibold">{{ $salesDo->do_code }}</span></li>
+                        <li>• Customer: <span class="font-semibold">{{ $salesDo->customer?->name ?? '-' }}</span></li>
+                        <li>• Total Items: <span class="font-semibold">{{ $salesDo->items->count() }}</span></li>
+                        <li>• Grand Total: <span class="font-semibold">Rp {{ number_format($salesDo->grand_total, 0, ',', '.') }}</span></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="p-6 border-t border-gray-200 flex gap-3">
+                <button type="button" onclick="closeSubmitModal()" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 font-semibold hover:bg-gray-50 transition">
+                    Cancel
+                </button>
+                <form id="submitForm" action="{{ route('crm.sales-do.submit', $salesDo) }}" method="POST" class="flex-1">
+                    @csrf
+                    <button type="submit" class="inline-flex items-center justify-center font-medium gap-2 rounded-lg transition px-4 py-3 text-sm bg-brand-500 text-white shadow-theme-xs hover:bg-brand-600">
+                        Confirm Submit
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
 </div>
+@push('scripts')
+<script>
+    function openSubmitModal() {
+        document.getElementById('submitModal').classList.remove('hidden');
+    }
+
+    function closeSubmitModal() {
+        document.getElementById('submitModal').classList.add('hidden');
+    }
+
+    function openDeleteModal() {
+        document.getElementById('deleteModal').classList.remove('hidden');
+    }
+
+    function closeDeleteModal() {
+        document.getElementById('deleteModal').classList.add('hidden');
+    }
+
+    // Close modal when clicking outside
+    document.getElementById('submitModal')?.addEventListener('click', function(e) {
+        if (e.target === this) closeSubmitModal();
+    });
+
+    document.getElementById('deleteModal')?.addEventListener('click', function(e) {
+        if (e.target === this) closeDeleteModal();
+    });
+    </script>
+@endpush
 @endsection

@@ -3,11 +3,16 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\MorphTo;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\{
+    MorphTo,
+    BelongsTo
+};
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class DocumentUpload extends Model
 {
+    use SoftDeletes;
+
     protected $fillable = [
         'documentable_type',
         'documentable_id',
@@ -23,10 +28,8 @@ class DocumentUpload extends Model
 
     protected $casts = [
         'file_size' => 'integer',
-        'document_category' => 'string',
     ];
 
-    // Relationships
     public function documentable(): MorphTo
     {
         return $this->morphTo();
@@ -34,20 +37,19 @@ class DocumentUpload extends Model
 
     public function uploader(): BelongsTo
     {
-        return $this->belongsTo(\App\Models\User::class, 'uploaded_by');
+        return $this->belongsTo(User::class, 'uploaded_by');
     }
 
-    // Accessors
     public function getFileSizeFormattedAttribute(): string
     {
-        $bytes = $this->file_size;
-        if ($bytes >= 1073741824) {
-            return number_format($bytes / 1073741824, 2) . ' GB';
-        } elseif ($bytes >= 1048576) {
-            return number_format($bytes / 1048576, 2) . ' MB';
-        } elseif ($bytes >= 1024) {
-            return number_format($bytes / 1024, 2) . ' KB';
-        }
-        return $bytes . ' bytes';
+        return match (true) {
+            $this->file_size >= 1_073_741_824 =>
+                number_format($this->file_size / 1_073_741_824, 2) . ' GB',
+            $this->file_size >= 1_048_576 =>
+                number_format($this->file_size / 1_048_576, 2) . ' MB',
+            $this->file_size >= 1024 =>
+                number_format($this->file_size / 1024, 2) . ' KB',
+            default => $this->file_size . ' bytes',
+        };
     }
 }

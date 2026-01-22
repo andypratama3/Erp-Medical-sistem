@@ -67,7 +67,7 @@
                     </p>
                 </div>
                 <div class="p-3 rounded-full bg-purple-100 dark:bg-purple-500/20">
-                    <svg class="w-6 h-6 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-6 h-6 text-purple-600 dark:text-white-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"/>
                     </svg>
                 </div>
@@ -116,7 +116,7 @@
         @else
             <div class="overflow-x-auto">
                 <table class="w-full text-sm text-left">
-                    <thead class="text-xs uppercase bg-gray-50 dark:bg-gray-700">
+                    <thead class="text-xs uppercase bg-gray-50 dark:bg-gray-800 dark:text-white">
                         <tr>
                             <th class="px-4 py-3">DO Number</th>
                             <th class="px-4 py-3">Customer</th>
@@ -128,16 +128,17 @@
                     </thead>
                     <tbody>
                         @foreach($recent_dos as $do)
-                        <tr class="border-b dark:border-gray-700">
-                            <td class="px-4 py-3 font-medium">{{ $do->do_number }}</td>
+                        <tr class="border-b dark:border-gray-800 dark:text-white">
+                            <td class="px-4 py-3 font-medium">{{ $do->do_code }}</td>
                             <td class="px-4 py-3">{{ $do->customer->name }}</td>
                             <td class="px-4 py-3">{{ $do->office->name }}</td>
-                            <td class="px-4 py-3">{{ $do->formatted_total }}</td>
+                            <td class="px-4 py-3">{{ number_format($do->grand_total, 0, ',', '.') }}</td>
                             <td class="px-4 py-3">
-                                <span class="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300">
+                                <span class="px-2 py-1 text-xs rounded-full {{ $do->status_badge_class }}">
                                     {{ $do->status_label }}
                                 </span>
                             </td>
+
                             <td class="px-4 py-3">{{ $do->do_date->format('d M Y') }}</td>
                         </tr>
                         @endforeach

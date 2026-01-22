@@ -102,50 +102,36 @@ class SalesDOController extends Controller implements HasMiddleware
         /* ============================
         FORMAT DATA FOR TABLE
         ============================ */
-        $salesDOsData = $salesDOs->getCollection()->map(function ($do) {
-            return [
-                'id' => $do->id,
-                'do_code' => $do->do_code,
-                'do_date' => $do->do_date->format('d-m-Y'),
-                'customer' => $do->customer?->name ?? '-',
-                'office' => $do->office?->name ?? '-',
-                'grand_total' => 'Rp ' . number_format($do->grand_total, 0, ',', '.'),
-                'status' => [
-                    'value' => $do->status,
-                    'label' => match($do->status) {
-                        'crm_to_wqs' => 'CRM to WQS',
-                        'wqs_ready' => 'WQS Ready',
-                        'wqs_on_hold' => 'WQS On Hold',
-                        'scm_on_delivery' => 'On Delivery',
-                        'scm_delivered' => 'Delivered',
-                        'act_tukar_faktur' => 'Tukar Faktur',
-                        'act_invoiced' => 'Invoiced',
-                        'fin_on_collect' => 'On Collection',
-                        'fin_paid' => 'Paid',
-                        'fin_overdue' => 'Overdue',
-                    },
-                    'color' => match ($do->status) {
-                        'crm_to_wqs' => 'yellow',
-                        'wqs_ready' => 'blue',
-                        'wqs_on_hold' => 'red',
-                        'scm_on_delivery' => 'indigo',
-                        'scm_delivered' => 'green',
-                        'act_tukar_faktur' => 'purple',
-                        'act_invoiced' => 'green',
-                        'fin_on_collect' => 'orange',
-                        'fin_paid' => 'green',
-                        'fin_overdue' => 'red',
-                        default => 'gray',
-                    }
-                ],
 
-                'actions' => [
-                    'show' => route('crm.sales-do.show', $do),
-                    'edit' => route('crm.sales-do.edit', $do),
-                    'delete' => route('crm.sales-do.destroy', $do),
-                ],
-            ];
-        })->toArray();
+
+
+
+        $salesDOsData = $salesDOs->getCollection()->map(function ($do) {
+        $status = $do->status_config;
+
+        return [
+            'id' => $do->id,
+            'do_code' => $do->do_code,
+            'do_date' => $do->do_date->format('d-m-Y'),
+            'customer' => $do->customer?->name ?? '-',
+            'office' => $do->office?->name ?? '-',
+            'grand_total' => $do->grand_total,
+
+            'status' => [
+                'value' => $do->status,
+                'label' => $status['label'],
+                'color' => $status['color'],
+                'badge_class' => $status['badge_class'],
+            ],
+
+            'actions' => [
+                'show' => route('crm.sales-do.show', $do),
+                'edit' => $do->canBeEdited() ? route('crm.sales-do.edit', $do) : null,
+                'delete' => $do->canBeDeleted() ? route('crm.sales-do.destroy', $do) : null,
+            ],
+        ];
+    })->toArray();
+
 
         /* ============================
         FILTER DATA
@@ -332,7 +318,7 @@ class SalesDOController extends Controller implements HasMiddleware
         // Only allow edit if status is still crm_to_wqs or wqs_on_hold
         if (!in_array($salesDo->status, ['crm_to_wqs', 'wqs_on_hold'])) {
             return redirect()
-                ->route('sales-do.show', $salesDo)
+                ->route('crm.sales-do.show', $salesDo)
                 ->with('error', 'Cannot edit DO with status: ' . $salesDo->status);
         }
 
@@ -361,7 +347,7 @@ class SalesDOController extends Controller implements HasMiddleware
         // Check if editable
         if (!in_array($salesDo->status, ['crm_to_wqs', 'wqs_on_hold'])) {
             return redirect()
-                ->route('sales-do.show', $salesDo)
+                ->route('crm.sales-do.show', $salesDo)
                 ->with('error', 'Cannot edit DO with status: ' . $salesDo->status);
         }
 
@@ -496,5 +482,93 @@ class SalesDOController extends Controller implements HasMiddleware
         $pdf->loadView('pages.crm.sales_do.pdf', compact('salesDo'));
 
         return $pdf->download('DO-' . $salesDo->do_code . '.pdf');
+    }
+
+    public function submit(SalesDO $salesDo)
+    {
+        // Check permission
+        if (!auth()->user()->can('submit_sales_do')) {
+            return redirect()
+                ->back()
+                ->with('error', 'You do not have permission to submit Sales DO.');
+        }
+
+        // Only allow submit if status is crm_to_wqs
+        if ($salesDo->status !== 'crm_to_wqs') {
+            return redirect()
+                ->back()
+                ->with('error', 'Cannot submit DO with status: ' . $salesDo->status . '. Only CRM to WQS status can be submitted.');
+        }
+
+        // Validate all items have proper data
+        $salesDo->load('items');
+
+        if ($salesDo->items->isEmpty()) {
+            return redirect()
+                ->back()
+                ->with('error', 'Cannot submit DO with no items.');
+        }
+
+        foreach ($salesDo->items as $item) {
+            if ($item->qty_ordered <= 0 || $item->qty_ordered === null) {
+                return redirect()
+                    ->back()
+                    ->with('error', 'All items must have valid quantity ordered.');
+            }
+
+            if ($item->unit_price <= 0 || $item->unit_price === null) {
+                return redirect()
+                    ->back()
+                    ->with('error', 'All items must have valid unit price.');
+            }
+        }
+
+        // Validate customer and office
+        if (!$salesDo->customer_id || !$salesDo->office_id) {
+            return redirect()
+                ->back()
+                ->with('error', 'Customer and Office must be selected.');
+        }
+
+        // Validate required shipping address
+        if (!$salesDo->shipping_address) {
+            return redirect()
+                ->back()
+                ->with('error', 'Shipping address is required.');
+        }
+
+        DB::beginTransaction();
+        try {
+            // Update status
+            $salesDo->update([
+                'status' => 'wqs_ready',
+                'submitted_by' => auth()->id(),
+                'submitted_at' => now(),
+                'updated_by' => auth()->id(),
+            ]);
+
+            // Log to audit trail
+            $this->auditLog->log('SALES_DO_SUBMITTED', 'CRM', [
+                'do_code' => $salesDo->do_code,
+                'customer_id' => $salesDo->customer_id,
+                'grand_total' => $salesDo->grand_total,
+                'submitted_by' => auth()->user()->name,
+            ]);
+
+            // Dispatch event for WQS module to listen (optional)
+            // event(new SalesDOSubmitted($salesDo));
+
+            DB::commit();
+
+            return redirect()
+                ->route('crm.sales-do.show', $salesDo)
+                ->with('success', 'Sales DO submitted successfully to WQS. Status changed to WQS Ready.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()
+                ->back()
+                ->with('error', 'Failed to submit Sales DO: ' . $e->getMessage());
+        }
     }
 }

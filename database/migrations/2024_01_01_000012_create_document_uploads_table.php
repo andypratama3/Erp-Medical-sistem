@@ -34,6 +34,8 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->foreignId('uploaded_by')->nullable()->constrained('users');
             $table->timestamps();
+                $table->softDeletes();
+
 
             $table->index(['documentable_type', 'documentable_id']);
             $table->index('document_category');

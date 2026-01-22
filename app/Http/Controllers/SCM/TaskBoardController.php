@@ -7,8 +7,8 @@ use App\Models\SalesDO;
 use App\Models\SCMDriver;
 use App\Models\SCMDelivery;
 use App\Services\DocumentUploadService;
-use App\Services\StateMachineService;
 use App\Services\AuditLogService;
+use App\Services\StateMachineService;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
@@ -17,17 +17,17 @@ use Illuminate\Support\Facades\DB;
 class TaskBoardController extends Controller implements HasMiddleware
 {
     protected $documentUpload;
-    protected $stateMachine;
     protected $auditLog;
+    protected $stateMachine;
 
     public function __construct(
         DocumentUploadService $documentUpload,
-        StateMachineService $stateMachine,
-        AuditLogService $auditLog
+        AuditLogService $auditLog,
+        StateMachineService $stateMachine
     ) {
         $this->documentUpload = $documentUpload;
-        $this->stateMachine = $stateMachine;
         $this->auditLog = $auditLog;
+        $this->stateMachine = $stateMachine;
     }
 
     public static function middleware(): array
@@ -43,8 +43,8 @@ class TaskBoardController extends Controller implements HasMiddleware
      */
     public function index(Request $request)
     {
-        $query = SalesDO::with(['customer', 'office', 'scmDelivery.driver'])
-            ->whereIn('status', ['wqs_ready', 'scm_on_delivery']);
+        $query = SalesDO::with(['customer', 'office', 'items', 'delivery'])
+            ->whereIn('status', ['wqs_ready', 'scm_on_delivery', 'scm_delivered']);
 
         // Search
         if ($request->filled('search')) {
@@ -64,7 +64,7 @@ class TaskBoardController extends Controller implements HasMiddleware
 
         // Filter by driver
         if ($request->filled('driver')) {
-            $query->whereHas('scmDelivery', function($q) use ($request) {
+            $query->whereHas('delivery', function($q) use ($request) {
                 $q->where('driver_id', $request->driver);
             });
         }
@@ -75,24 +75,22 @@ class TaskBoardController extends Controller implements HasMiddleware
         $stats = [
             'ready' => SalesDO::where('status', 'wqs_ready')->count(),
             'on_delivery' => SalesDO::where('status', 'scm_on_delivery')->count(),
-            'delivered_today' => SalesDO::where('status', 'scm_delivered')
-                ->whereDate('updated_at', today())
-                ->count(),
+            'delivered' => SalesDO::where('status', 'scm_delivered')->count(),
         ];
 
-        // Get available drivers
+        // Get drivers
         $drivers = SCMDriver::active()->get();
 
         return view('pages.scm.task_board.index', compact('salesDOs', 'stats', 'drivers'));
     }
 
     /**
-     * Show detailed delivery task
+     * Show detailed task for delivery
      */
     public function show(SalesDO $salesDo)
     {
         // Check if DO is in SCM stage
-        if (!in_array($salesDo->status, ['wqs_ready', 'scm_on_delivery'])) {
+        if (!in_array($salesDo->status, ['wqs_ready', 'scm_on_delivery', 'scm_delivered'])) {
             return redirect()
                 ->route('scm.task-board.index')
                 ->with('error', 'This DO is not in SCM stage.');
@@ -102,7 +100,7 @@ class TaskBoardController extends Controller implements HasMiddleware
             'customer',
             'office',
             'items.product',
-            'scmDelivery.driver',
+            'delivery.driver',
             'documents' => function($query) {
                 $query->whereIn('stage', ['scm_loading', 'scm_delivery', 'scm_proof']);
             }
@@ -120,44 +118,30 @@ class TaskBoardController extends Controller implements HasMiddleware
     {
         $validated = $request->validate([
             'driver_id' => 'required|exists:scm_drivers,id',
-            'vehicle_number' => 'required|string|max:20',
+            'vehicle_plate' => 'required|string|max:20',
             'scheduled_date' => 'required|date',
-            'scheduled_time' => 'nullable|date_format:H:i',
             'route_notes' => 'nullable|string',
         ]);
 
-        // Check if already has delivery
-        if ($salesDo->scmDelivery) {
-            return redirect()
-                ->back()
-                ->with('error', 'Driver already assigned to this DO.');
-        }
-
         DB::beginTransaction();
         try {
-            // Create delivery record
-            SCMDelivery::create([
-                'sales_do_id' => $salesDo->id,
-                'driver_id' => $validated['driver_id'],
-                'vehicle_number' => $validated['vehicle_number'],
-                'scheduled_date' => $validated['scheduled_date'],
-                'scheduled_time' => $validated['scheduled_time'],
-                'route_notes' => $validated['route_notes'],
-                'status' => 'assigned',
-            ]);
-
-            // Update DO notes
-            $driver = SCMDriver::find($validated['driver_id']);
-            $salesDo->update([
-                'notes_scm' => "Driver assigned: {$driver->name} - {$validated['vehicle_number']}",
-                'updated_by' => auth()->id(),
-            ]);
+            // Create or update delivery record
+            $delivery = SCMDelivery::updateOrCreate(
+                ['sales_do_id' => $salesDo->id],
+                [
+                    'driver_id' => $validated['driver_id'],
+                    'vehicle_plate' => $validated['vehicle_plate'],
+                    'scheduled_date' => $validated['scheduled_date'],
+                    'route_notes' => $validated['route_notes'],
+                    'assigned_by' => auth()->id(),
+                ]
+            );
 
             // Audit log
             $this->auditLog->log('SCM_DRIVER_ASSIGNED', 'SCM', [
                 'do_code' => $salesDo->do_code,
                 'driver_id' => $validated['driver_id'],
-                'vehicle' => $validated['vehicle_number'],
+                'scheduled_date' => $validated['scheduled_date'],
             ]);
 
             DB::commit();
@@ -179,11 +163,6 @@ class TaskBoardController extends Controller implements HasMiddleware
      */
     public function startDelivery(Request $request, SalesDO $salesDo)
     {
-        $validated = $request->validate([
-            'photos_loading.*' => 'nullable|image|max:2048',
-            'departure_time' => 'nullable|date_format:H:i',
-        ]);
-
         // Validate state transition
         if (!$this->stateMachine->canTransition('sales_do', $salesDo->status, 'scm_on_delivery')) {
             return redirect()
@@ -192,17 +171,36 @@ class TaskBoardController extends Controller implements HasMiddleware
         }
 
         // Check if driver assigned
-        if (!$salesDo->scmDelivery) {
+        if (!$salesDo->delivery) {
             return redirect()
                 ->back()
                 ->with('error', 'Please assign driver first.');
         }
 
+        $validated = $request->validate([
+            'actual_departure' => 'required|date',
+            'loading_photos.*' => 'nullable|image|max:2048',
+            'notes_scm' => 'nullable|string',
+        ]);
+
         DB::beginTransaction();
         try {
+            // Update delivery
+            $salesDo->delivery->update([
+                'actual_departure' => $validated['actual_departure'],
+                'status' => 'on_delivery',
+            ]);
+
+            // Update DO status
+            $salesDo->update([
+                'status' => 'scm_on_delivery',
+                'notes_scm' => $validated['notes_scm'],
+                'updated_by' => auth()->id(),
+            ]);
+
             // Upload loading photos
-            if ($request->hasFile('photos_loading')) {
-                foreach ($request->file('photos_loading') as $photo) {
+            if ($request->hasFile('loading_photos')) {
+                foreach ($request->file('loading_photos') as $photo) {
                     $this->documentUpload->upload(
                         'sales_do',
                         $salesDo->do_code,
@@ -212,28 +210,18 @@ class TaskBoardController extends Controller implements HasMiddleware
                 }
             }
 
-            // Update delivery record
-            $salesDo->scmDelivery->update([
-                'actual_departure_time' => now(),
-                'status' => 'on_delivery',
-            ]);
-
-            // Update DO status
-            $salesDo->update([
-                'status' => 'scm_on_delivery',
-                'updated_by' => auth()->id(),
-            ]);
-
             // Audit log
             $this->auditLog->log('SCM_DELIVERY_STARTED', 'SCM', [
                 'do_code' => $salesDo->do_code,
+                'driver_id' => $salesDo->delivery->driver_id,
+                'departure' => $validated['actual_departure'],
             ]);
 
             DB::commit();
 
             return redirect()
-                ->route('scm.task-board.show', $salesDo)
-                ->with('success', 'Delivery started. Safe journey!');
+                ->route('scm.task-board.index')
+                ->with('success', 'Delivery started successfully.');
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -248,17 +236,6 @@ class TaskBoardController extends Controller implements HasMiddleware
      */
     public function completeDelivery(Request $request, SalesDO $salesDo)
     {
-        $validated = $request->validate([
-            'photos_proof.*' => 'required|image|max:2048',
-            'signature' => 'required|string', // base64 encoded signature
-            'recipient_name' => 'required|string|max:100',
-            'recipient_phone' => 'nullable|string|max:20',
-            'delivery_notes' => 'nullable|string',
-            'arrival_time' => 'nullable|date_format:H:i',
-            'latitude' => 'nullable|numeric',
-            'longitude' => 'nullable|numeric',
-        ]);
-
         // Validate state transition
         if (!$this->stateMachine->canTransition('sales_do', $salesDo->status, 'scm_delivered')) {
             return redirect()
@@ -266,11 +243,41 @@ class TaskBoardController extends Controller implements HasMiddleware
                 ->with('error', 'Invalid status transition.');
         }
 
+        $validated = $request->validate([
+            'actual_arrival' => 'required|date',
+            'received_by' => 'required|string|max:100',
+            'received_position' => 'nullable|string|max:100',
+            'delivery_photos.*' => 'nullable|image|max:2048',
+            'signature_data' => 'required|string', // Base64 signature
+            'delivery_notes' => 'nullable|string',
+            'gps_latitude' => 'nullable|numeric',
+            'gps_longitude' => 'nullable|numeric',
+        ]);
+
         DB::beginTransaction();
         try {
-            // Upload proof photos
-            if ($request->hasFile('photos_proof')) {
-                foreach ($request->file('photos_proof') as $photo) {
+            // Update delivery
+            $salesDo->delivery->update([
+                'actual_arrival' => $validated['actual_arrival'],
+                'received_by' => $validated['received_by'],
+                'received_position' => $validated['received_position'],
+                'delivery_notes' => $validated['delivery_notes'],
+                'gps_latitude' => $validated['gps_latitude'],
+                'gps_longitude' => $validated['gps_longitude'],
+                'status' => 'delivered',
+                'completed_at' => now(),
+            ]);
+
+            // Update DO status
+            $salesDo->update([
+                'status' => 'scm_delivered',
+                'notes_scm' => ($salesDo->notes_scm ?? '') . "\n\nDelivery completed: " . now(),
+                'updated_by' => auth()->id(),
+            ]);
+
+            // Upload delivery proof photos
+            if ($request->hasFile('delivery_photos')) {
+                foreach ($request->file('delivery_photos') as $photo) {
                     $this->documentUpload->upload(
                         'sales_do',
                         $salesDo->do_code,
@@ -280,42 +287,30 @@ class TaskBoardController extends Controller implements HasMiddleware
                 }
             }
 
-            // Save signature as image
-            $signatureData = base64_decode(preg_replace('#^data:image/\w+;base64,#i', '', $validated['signature']));
-            $signaturePath = 'signatures/' . $salesDo->do_code . '_' . time() . '.png';
-            \Storage::disk('local')->put($signaturePath, $signatureData);
+            // Save signature
+            if ($validated['signature_data']) {
+                $signatureImage = $this->saveSignature(
+                    $validated['signature_data'],
+                    $salesDo->do_code
+                );
 
-            // Update delivery record
-            $salesDo->scmDelivery->update([
-                'actual_arrival_time' => now(),
-                'recipient_name' => $validated['recipient_name'],
-                'recipient_phone' => $validated['recipient_phone'],
-                'signature_path' => $signaturePath,
-                'delivery_notes' => $validated['delivery_notes'],
-                'latitude' => $validated['latitude'],
-                'longitude' => $validated['longitude'],
-                'status' => 'delivered',
-                'completed_at' => now(),
-            ]);
-
-            // Update DO status
-            $salesDo->update([
-                'status' => 'scm_delivered',
-                'notes_scm' => ($salesDo->notes_scm ?? '') . "\n\nDelivered to: {$validated['recipient_name']}",
-                'updated_by' => auth()->id(),
-            ]);
+                $salesDo->delivery->update([
+                    'signature_path' => $signatureImage
+                ]);
+            }
 
             // Audit log
             $this->auditLog->log('SCM_DELIVERY_COMPLETED', 'SCM', [
                 'do_code' => $salesDo->do_code,
-                'recipient' => $validated['recipient_name'],
+                'received_by' => $validated['received_by'],
+                'arrival' => $validated['actual_arrival'],
             ]);
 
             DB::commit();
 
             return redirect()
                 ->route('scm.task-board.index')
-                ->with('success', 'Delivery completed successfully!');
+                ->with('success', 'Delivery completed successfully.');
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -326,12 +321,44 @@ class TaskBoardController extends Controller implements HasMiddleware
     }
 
     /**
-     * View delivery tracking
+     * Save signature as image
      */
-    public function tracking(SalesDO $salesDo)
+    private function saveSignature($base64Data, $doCode)
     {
-        $salesDo->load(['scmDelivery.driver', 'customer', 'office']);
+        // Remove data:image/png;base64, prefix
+        $image = str_replace('data:image/png;base64,', '', $base64Data);
+        $image = str_replace(' ', '+', $image);
+        $imageData = base64_decode($image);
 
-        return view('pages.scm.tracking', compact('salesDo'));
+        // Create filename
+        $filename = 'signature_' . $doCode . '_' . time() . '.png';
+        $path = 'documents/sales_do/signatures/' . $filename;
+
+        // Save to storage
+        \Storage::disk('local')->put($path, $imageData);
+
+        return $path;
+    }
+
+    /**
+     * Update delivery location (for real-time tracking)
+     */
+    public function updateLocation(Request $request, SalesDO $salesDo)
+    {
+        $validated = $request->validate([
+            'latitude' => 'required|numeric',
+            'longitude' => 'required|numeric',
+        ]);
+
+        $salesDo->delivery->update([
+            'current_latitude' => $validated['latitude'],
+            'current_longitude' => $validated['longitude'],
+            'last_location_update' => now(),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Location updated.',
+        ]);
     }
 }

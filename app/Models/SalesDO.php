@@ -2,26 +2,30 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\{
+    BelongsTo,
+    HasMany,
+    MorphMany
+};
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\MorphMany;
+use App\Helpers\SalesDOHelper;
 
 class SalesDO extends Model
 {
-    use SoftDeletes;
+    use HasFactory, SoftDeletes;
 
     protected $table = 'sales_do';
 
     protected $fillable = [
         'do_code',
         'tracking_code',
-        'do_date',
         'customer_id',
         'office_id',
-        'shipping_address',
+        'do_date',
         'pic_customer',
+        'shipping_address',
         'payment_term_id',
         'tax_id',
         'subtotal',
@@ -31,17 +35,20 @@ class SalesDO extends Model
         'notes_crm',
         'created_by',
         'updated_by',
+        'submitted_by',
+        'submitted_at',
     ];
 
     protected $casts = [
         'do_date' => 'date',
+        'submitted_at' => 'datetime',
         'subtotal' => 'decimal:2',
         'tax_amount' => 'decimal:2',
         'grand_total' => 'decimal:2',
-        'status' => 'string',
     ];
 
-    // Relationships
+    /* ================= RELATIONSHIPS ================= */
+
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class);
@@ -64,7 +71,7 @@ class SalesDO extends Model
 
     public function items(): HasMany
     {
-        return $this->hasMany(SalesDOItem::class,'sales_do_id','id');
+        return $this->hasMany(SalesDOItem::class, 'sales_do_id');
     }
 
     public function documents(): MorphMany
@@ -72,9 +79,8 @@ class SalesDO extends Model
         return $this->morphMany(DocumentUpload::class, 'documentable');
     }
 
-    public function taskBoards(): HasMany
-    {
-        return $this->hasMany(TaskBoard::class, 'sales_do_id','id');
+    public function taskBoards(): HasMany {
+        return $this->hasMany(TaskBoard::class, 'sales_do_id');
     }
 
     public function createdBy(): BelongsTo
@@ -87,37 +93,99 @@ class SalesDO extends Model
         return $this->belongsTo(User::class, 'updated_by');
     }
 
-    // Scopes
-    public function scopeStatus($query, $status)
+    public function submittedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'submitted_by');
+    }
+
+    /* ================= SCOPES ================= */
+
+    public function scopeByStatus($query, string $status)
     {
         return $query->where('status', $status);
     }
 
-    public function scopePending($query)
+    public function scopeUnsubmitted($query)
     {
-        return $query->whereIn('status', ['crm_to_wqs', 'wqs_ready']);
+        return $query->whereNull('submitted_at');
     }
 
-    // Accessors
-    public function getFormattedGrandTotalAttribute(): string
+    public function scopeSubmitted($query)
     {
-        return 'Rp ' . number_format($this->grand_total, 0, ',', '.');
+        return $query->whereNotNull('submitted_at');
+    }
+
+    /* ================= ACCESSORS ================= */
+
+    public function getStatusConfigAttribute(): array
+    {
+        return SalesDOHelper::getStatusConfigByKey($this->status);
     }
 
     public function getStatusLabelAttribute(): string
     {
-        return match($this->status) {
-            'crm_to_wqs' => 'CRM to WQS',
-            'wqs_ready' => 'WQS Ready',
-            'wqs_on_hold' => 'WQS On Hold',
-            'scm_on_delivery' => 'On Delivery',
-            'scm_delivered' => 'Delivered',
-            'act_tukar_faktur' => 'Tukar Faktur',
-            'act_invoiced' => 'Invoiced',
-            'fin_on_collect' => 'On Collection',
-            'fin_paid' => 'Paid',
-            'fin_overdue' => 'Overdue',
-            default => $this->status,
-        };
+        return $this->status_config['label'];
+    }
+
+    public function getStatusBadgeClassAttribute(): string
+    {
+        return $this->status_config['badge_class'];
+    }
+
+    public function getProgressPercentageAttribute(): int
+    {
+        return $this->status_config['progress'] ?? 0;
+    }
+
+    public function getFormattedGrandTotalAttribute(): string
+    {
+        return SalesDOHelper::formatCurrency($this->grand_total);
+    }
+
+    /* ================= BUSINESS LOGIC ================= */
+
+    public function canBeSubmitted(): bool
+    {
+        return SalesDOHelper::isSubmittable($this->status)
+            && $this->items()->exists();
+    }
+
+    public function canBeEdited(): bool
+    {
+        return SalesDOHelper::isEditable($this->status);
+    }
+
+    public function canBeDeleted(): bool
+    {
+        return SalesDOHelper::isDeletable($this->status);
+    }
+
+    /* ================= EVENTS ================= */
+
+    protected static function booted()
+    {
+        static::creating(function ($model) {
+            if (auth()->check()) {
+                $model->created_by ??= auth()->id();
+            }
+        });
+
+        static::updating(function ($model) {
+            if (auth()->check()) {
+                $model->updated_by = auth()->id();
+            }
+        });
+
+        static::deleting(function ($model) {
+            if ($model->isForceDeleting()) {
+                $model->items()->forceDelete();
+                $model->documents()->forceDelete();
+            }
+        });
+
+        static::restoring(function ($model) {
+            $model->items()->withTrashed()->restore();
+            $model->documents()->withTrashed()->restore();
+        });
     }
 }
