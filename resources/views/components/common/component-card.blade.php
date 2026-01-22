@@ -24,12 +24,12 @@
 
         @if($link)
             <div class="flex-shrink-0">
-                <a href="{{ $link }}" class="inline-flex items-center gap-2 h-11 px-4 py-2.5 text-sm font-medium dark:text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-theme-xs transition-colors">
+                <a href="{{ $link }}" class="inline-flex items-center justify-center font-medium gap-2 rounded-lg transition px-4 py-3 text-sm bg-brand-500 text-white shadow-theme-xs hover:bg-brand-600">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                     </svg>
-                    <span class="hidden sm:inline">Tambah Data</span>
-                    <span class="sm:hidden">Tambah</span>
+                    <span class="hidden sm:inline">Create Data</span>
+                    <span class="sm:hidden">+</span>
                 </a>
             </div>
         @endif

@@ -25,6 +25,7 @@ class DatabaseSeeder extends Seeder
             VendorSeeder::class,
             TaxSeeder::class,
             PaymentTermSeeder::class,
+            SalesDOSeeder::class,
         ]);
 
         $this->command->info('✅ All seeders completed successfully!');

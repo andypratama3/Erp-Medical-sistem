@@ -155,7 +155,7 @@
                             <td class="px-6 py-4">
 
                                 <template x-if="column.type === 'text'">
-                                    <p class="text-sm text-gray-700 dark:text-gray-400"
+                                    <p class="text-sm text-gray-700 dark:text-white"
                                        x-text="item[column.key]"></p>
                                 </template>
 
@@ -165,7 +165,7 @@
                                 </template>
 
                                 <template x-if="column.type === 'date'">
-                                    <p class="text-sm text-gray-600 dark:text-gray-400"
+                                    <p class="text-sm text-gray-700 dark:text-white"
                                        x-text="item[column.key]"></p>
                                 </template>
                                <template x-if="column.type === 'badge' && item[column.key]">
@@ -181,59 +181,69 @@
                                         x-text="item[column.key]?.label">
                                     </span>
                                 </template>
-
-
-
                             </td>
                         </template>
 
-                        <td class="px-6 py-4">
-                            <div x-data="{ open: false }" class="relative inline-block justify-items-center">
-                                <button
-                                    @click="open = !open"
-                                    class="text-gray-500 hover:text-gray-700"
-                                >
-                                    ⋮
-                                </button>
-
-                                <div
-                                    x-show="open"
-                                    @click.outside="open = false"
-                                    x-transition
-                                    class="absolute right-0 z-50 mt-2 w-40 rounded-xl border  shadow-lg"
-                                >
-                                   <template x-if="item.actions?.show">
-                                        <a
-                                            :href="item.actions.show"
-                                            class="block px-4 py-2 text-sm dark:text-white dark:hover:bg-white/[0.05]"
-                                        >
-                                            Lihat
-                                        </a>
-                                    </template>
-
-                                    <template x-if="item.actions?.edit">
-                                        <a
-                                            :href="item.actions.edit"
-                                            class="block px-4 py-2 text-sm dark:text-white dark:hover:bg-white/[0.05]:text-blue-600"
-                                        >
-                                            Edit
-                                        </a>
-                                    </template>
-
-                                    <template x-if="item.actions?.delete">
+                        <td class="px-4 py-4 text-sm font-medium text-right whitespace-nowrap">
+                            <div class="flex justify-center relative">
+                                <x-common.table-dropdown>
+                                    {{-- BUTTON --}}
+                                    <x-slot name="button">
                                         <button
                                             type="button"
-                                            class="w-full text-left px-4 py-2 text-sm text-red-600
-                                                hover:bg-red-50 dark:hover:bg-red-500/10
-                                                js-confirm-delete"
-                                            :data-url="item.actions.delete"
+                                            class="text-gray-800 hover:text-gray-700 dark:text-gray-400"
                                         >
-                                            Delete
+                                            <svg class="fill-current" width="24" height="24" viewBox="0 0 24 24">
+                                                <path fill-rule="evenodd" clip-rule="evenodd"
+                                                    d="M5.99902 10.245C6.96552 10.245 7.74902 11.0285 7.74902 11.995V12.005C7.74902 12.9715 6.96552 13.755 5.99902 13.755C5.03253 13.755 4.24902 12.9715 4.24902 12.005V11.995C4.24902 11.0285 5.03253 10.245 5.99902 10.245ZM17.999 10.245C18.9655 10.245 19.749 11.0285 19.749 11.995V12.005C19.749 12.9715 18.9655 13.755 17.999 13.755C17.0325 13.755 16.249 12.9715 16.249 12.005V11.995C16.249 11.0285 17.0325 10.245 17.999 10.245ZM13.749 11.995C13.749 11.0285 12.9655 10.245 11.999 10.245C11.0325 10.245 10.249 11.0285 10.249 11.995V12.005C10.249 12.9715 11.0325 13.755 11.999 13.755C12.9655 13.755 13.749 12.9715 13.749 12.005V11.995Z" />
+                                            </svg>
                                         </button>
-                                    </template>
-                                </div>
+                                    </x-slot>
+
+                                    {{-- CONTENT --}}
+                                    <x-slot name="content">
+                                        {{-- SHOW --}}
+                                        <template x-if="item.actions?.show">
+                                            <a
+                                                :href="item.actions.show"
+                                                class="flex w-full px-3 py-2 text-theme-xs font-medium
+                                                    text-gray-800 hover:bg-gray-100 hover:text-gray-700
+                                                    dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
+                                            >
+                                                Lihat
+                                            </a>
+                                        </template>
+
+                                        {{-- EDIT --}}
+                                        <template x-if="item.actions?.edit">
+                                            <a
+                                                :href="item.actions.edit"
+                                                class="flex w-full px-3 py-2 text-theme-xs font-medium
+                                                    text-gray-500 hover:bg-gray-100 hover:text-blue-600
+                                                    dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-blue-400"
+                                            >
+                                                Edit
+                                            </a>
+                                        </template>
+
+                                        {{-- DELETE --}}
+                                        <template x-if="item.actions?.delete">
+                                            <button
+                                                type="button"
+                                                class="flex w-full px-3 py-2 text-theme-xs font-medium text-left
+                                                    text-red-600 hover:bg-red-50
+                                                    dark:hover:bg-red-500/10
+                                                    js-confirm-delete"
+                                                :data-url="item.actions.delete"
+                                            >
+                                                Delete
+                                            </button>
+                                        </template>
+                                    </x-slot>
+                                </x-common.table-dropdown>
                             </div>
                         </td>
+
 
                     </tr>
                 </template>

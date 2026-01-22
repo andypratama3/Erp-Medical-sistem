@@ -43,92 +43,113 @@ class SalesDOController extends Controller implements HasMiddleware
      */
     public function index(Request $request)
     {
-        $query = SalesDO::with(['customer', 'office', 'tax', 'paymentTerm', 'createdBy']);
+        $query = SalesDO::with([
+            'customer',
+            'office',
+            'tax',
+            'paymentTerm',
+            'createdBy'
+        ]);
 
-        // Search
+        /* ============================
+        FILTERS
+        ============================ */
         if ($request->filled('search')) {
             $search = $request->search;
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('do_code', 'like', "%{$search}%")
-                  ->orWhere('tracking_code', 'like', "%{$search}%")
-                  ->orWhereHas('customer', function($q) use ($search) {
-                      $q->where('name', 'like', "%{$search}%");
-                  });
+                ->orWhere('tracking_code', 'like', "%{$search}%")
+                ->orWhereHas('customer', function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%");
+                });
             });
         }
 
-        // Filter by status
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
 
-        // Filter by office
-        if ($request->filled('office')) {
-            $query->where('office_id', $request->office);
+        if ($request->filled('office_id')) {
+            $query->where('office_id', $request->office_id);
         }
 
-        // Filter by customer
-        if ($request->filled('customer')) {
-            $query->where('customer_id', $request->customer);
+        if ($request->filled('customer_id')) {
+            $query->where('customer_id', $request->customer_id);
         }
 
-        // Filter by date range
         if ($request->filled('date_from')) {
             $query->whereDate('do_date', '>=', $request->date_from);
         }
+
         if ($request->filled('date_to')) {
             $query->whereDate('do_date', '<=', $request->date_to);
         }
 
-        // Table columns for display
+        $salesDOs = $query->latest()->paginate(15);
+
+        /* ============================
+        TABLE COLUMNS
+        ============================ */
         $columns = [
-            [
-                'key' => 'do_code',
-                'label' => 'DO Number',
-                'type' => 'text',
-            ],
-            [
-                'key' => 'do_date',
-                'label' => 'DO Date',
-                'type' => 'date',
-            ],
-            [
-                'key' => 'customer.name',
-                'label' => 'Customer',
-                'type' => 'text',
-            ],
-            [
-                'key' => 'office.name',
-                'label' => 'Office',
-                'type' => 'text',
-            ],
-            [
-                'key' => 'grand_total',
-                'label' => 'Grand Total',
-                'type' => 'currency',
-            ],
-            [
-                'key' => 'status',
-                'label' => 'Status',
-                'type' => 'badge',
-                'options' => [
-                    'crm_to_wqs' => 'warning',
-                    'wqs_ready' => 'info',
-                    'wqs_on_hold' => 'danger',
-                    'scm_on_delivery' => 'primary',
-                    'scm_delivered' => 'success',
-                    'act_tukar_faktur' => 'info',
-                    'act_invoiced' => 'success',
-                    'fin_on_collect' => 'warning',
-                    'fin_paid' => 'success',
-                    'fin_overdue' => 'danger',
-                ],
-            ],
+            ['key' => 'do_code', 'label' => 'DO Code', 'type' => 'text'],
+            ['key' => 'do_date', 'label' => 'DO Date', 'type' => 'date'],
+            ['key' => 'customer', 'label' => 'Customer', 'type' => 'text'],
+            ['key' => 'office', 'label' => 'Office', 'type' => 'text'],
+            ['key' => 'grand_total', 'label' => 'Grand Total', 'type' => 'text'],
+            ['key' => 'status', 'label' => 'Status', 'type' => 'badge'],
         ];
 
-        $salesDOs = $query->latest()->paginate(10);
+        /* ============================
+        FORMAT DATA FOR TABLE
+        ============================ */
+        $salesDOsData = $salesDOs->getCollection()->map(function ($do) {
+            return [
+                'id' => $do->id,
+                'do_code' => $do->do_code,
+                'do_date' => $do->do_date->format('d-m-Y'),
+                'customer' => $do->customer?->name ?? '-',
+                'office' => $do->office?->name ?? '-',
+                'grand_total' => 'Rp ' . number_format($do->grand_total, 0, ',', '.'),
+                'status' => [
+                    'value' => $do->status,
+                    'label' => match($do->status) {
+                        'crm_to_wqs' => 'CRM to WQS',
+                        'wqs_ready' => 'WQS Ready',
+                        'wqs_on_hold' => 'WQS On Hold',
+                        'scm_on_delivery' => 'On Delivery',
+                        'scm_delivered' => 'Delivered',
+                        'act_tukar_faktur' => 'Tukar Faktur',
+                        'act_invoiced' => 'Invoiced',
+                        'fin_on_collect' => 'On Collection',
+                        'fin_paid' => 'Paid',
+                        'fin_overdue' => 'Overdue',
+                    },
+                    'color' => match ($do->status) {
+                        'crm_to_wqs' => 'yellow',
+                        'wqs_ready' => 'blue',
+                        'wqs_on_hold' => 'red',
+                        'scm_on_delivery' => 'indigo',
+                        'scm_delivered' => 'green',
+                        'act_tukar_faktur' => 'purple',
+                        'act_invoiced' => 'green',
+                        'fin_on_collect' => 'orange',
+                        'fin_paid' => 'green',
+                        'fin_overdue' => 'red',
+                        default => 'gray',
+                    }
+                ],
 
-        // For filters
+                'actions' => [
+                    'show' => route('crm.sales-do.show', $do),
+                    'edit' => route('crm.sales-do.edit', $do),
+                    'delete' => route('crm.sales-do.destroy', $do),
+                ],
+            ];
+        })->toArray();
+
+        /* ============================
+        FILTER DATA
+        ============================ */
         $offices = MasterOffice::active()->get();
         $customers = Customer::active()->get();
         $statuses = [
@@ -145,13 +166,15 @@ class SalesDOController extends Controller implements HasMiddleware
         ];
 
         return view('pages.crm.sales_do.index', compact(
-            'salesDOs',
             'columns',
+            'salesDOs',
+            'salesDOsData',
             'offices',
             'customers',
             'statuses'
         ));
     }
+
 
     /**
      * Show the form for creating a new Sales DO
@@ -269,7 +292,7 @@ class SalesDOController extends Controller implements HasMiddleware
             DB::commit();
 
             return redirect()
-                ->route('sales-do.show', $salesDO)
+                ->route('crm.sales-do.show', $salesDO)
                 ->with('success', 'Sales DO created successfully. DO Number: ' . $doCode);
 
         } catch (\Exception $e) {
@@ -426,7 +449,7 @@ class SalesDOController extends Controller implements HasMiddleware
             DB::commit();
 
             return redirect()
-                ->route('sales-do.show', $salesDo)
+                ->route('crm.sales-do.show', $salesDo)
                 ->with('success', 'Sales DO updated successfully.');
 
         } catch (\Exception $e) {
@@ -458,7 +481,7 @@ class SalesDOController extends Controller implements HasMiddleware
         ]);
 
         return redirect()
-            ->route('sales-do.index')
+            ->route('crm.sales-do.index')
             ->with('success', 'Sales DO deleted successfully.');
     }
 

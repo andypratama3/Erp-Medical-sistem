@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Spatie\Permission\Models\Role as SpatieRole;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+
 class Role extends SpatieRole
 {
     use HasFactory;
@@ -15,28 +15,4 @@ class Role extends SpatieRole
         'name',
         'guard_name',
     ];
-
-    /**
-     * Permissions relation
-     */
-    public function permissions(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
-    {
-        return $this->belongsToMany(
-            Permission::class,
-            'role_has_permissions'
-        );
-    }
-
-    /**
-     * Users relation
-     */
-    public function users(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
-    {
-        return $this->belongsToMany(
-            User::class,
-            'model_has_roles',
-            'role_id',
-            'model_id'
-        );
-    }
 }

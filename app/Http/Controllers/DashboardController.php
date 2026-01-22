@@ -4,13 +4,15 @@ namespace App\Http\Controllers;
 
 use App\Models\SalesDO;
 use App\Models\ACTInvoice;
-use App\Models\FINCollection;
 use Illuminate\Http\Request;
+use App\Models\FINCollection;
+use Illuminate\Support\Facades\Auth;
 
 class DashboardController extends Controller
 {
     public function index()
     {
+
         $stats = [
             'total_do' => SalesDO::count(),
             'pending_do' => SalesDO::whereIn('status', ['crm_to_wqs', 'wqs_ready'])->count(),

@@ -7,18 +7,38 @@ use Carbon\Carbon;
 
 class DONumberGenerator
 {
-    public function generate(): string
+    /**
+     * Generate a unique DO number based on office code and date
+     * Format: DO/OFFICE_CODE/YYYY/MM/0001
+     * Example: DO/JKT/2024/01/0001
+     */
+    public function generate(string $officeCode, string $doDate): string
     {
-        $year = Carbon::now()->format('Y');
-        $month = Carbon::now()->format('m');
+        $date = Carbon::parse($doDate);
+        $year = $date->format('Y');
+        $month = $date->format('m');
 
-        $lastDO = SalesDO::whereYear('created_at', $year)
-            ->whereMonth('created_at', $month)
+        // Find the last DO for this office in this month
+        $lastDO = SalesDO::where('office_id', function ($query) use ($officeCode) {
+                $query->select('id')
+                    ->from('master_offices')
+                    ->where('code', $officeCode);
+            })
+            ->whereYear('do_date', $year)
+            ->whereMonth('do_date', $month)
             ->orderBy('id', 'desc')
             ->first();
 
-        $sequence = $lastDO ? intval(substr($lastDO->do_number, -4)) + 1 : 1;
+        // Get sequence number
+        $sequence = 1;
+        if ($lastDO && $lastDO->do_code) {
+            // Extract sequence from last DO code
+            $parts = explode('/', $lastDO->do_code);
+            if (count($parts) > 0) {
+                $sequence = intval(end($parts)) + 1;
+            }
+        }
 
-        return sprintf('DO/%s/%s/%04d', $year, $month, $sequence);
+        return sprintf('DO/%s/%s/%s/%04d', $officeCode, $year, $month, $sequence);
     }
 }

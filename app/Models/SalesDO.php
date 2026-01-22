@@ -15,21 +15,20 @@ class SalesDO extends Model
     protected $table = 'sales_do';
 
     protected $fillable = [
-        'do_number',
+        'do_code',
+        'tracking_code',
         'do_date',
         'customer_id',
         'office_id',
-        'customer_address',
-        'customer_phone',
-        'customer_pic',
+        'shipping_address',
+        'pic_customer',
         'payment_term_id',
+        'tax_id',
         'subtotal',
-        'discount_percent',
-        'discount_amount',
         'tax_amount',
-        'total',
+        'grand_total',
         'status',
-        'notes',
+        'notes_crm',
         'created_by',
         'updated_by',
     ];
@@ -37,10 +36,8 @@ class SalesDO extends Model
     protected $casts = [
         'do_date' => 'date',
         'subtotal' => 'decimal:2',
-        'discount_percent' => 'decimal:2',
-        'discount_amount' => 'decimal:2',
         'tax_amount' => 'decimal:2',
-        'total' => 'decimal:2',
+        'grand_total' => 'decimal:2',
         'status' => 'string',
     ];
 
@@ -55,6 +52,11 @@ class SalesDO extends Model
         return $this->belongsTo(MasterOffice::class);
     }
 
+    public function tax(): BelongsTo
+    {
+        return $this->belongsTo(Tax::class);
+    }
+
     public function paymentTerm(): BelongsTo
     {
         return $this->belongsTo(PaymentTerm::class);
@@ -62,7 +64,7 @@ class SalesDO extends Model
 
     public function items(): HasMany
     {
-        return $this->hasMany(SalesDOItem::class);
+        return $this->hasMany(SalesDOItem::class,'sales_do_id','id');
     }
 
     public function documents(): MorphMany
@@ -72,37 +74,17 @@ class SalesDO extends Model
 
     public function taskBoards(): HasMany
     {
-        return $this->hasMany(TaskBoard::class);
-    }
-
-    public function wqsStockCheck(): HasMany
-    {
-        return $this->hasMany(WQSStockCheck::class);
-    }
-
-    public function scmDelivery(): HasMany
-    {
-        return $this->hasMany(SCMDelivery::class);
-    }
-
-    public function actInvoice(): HasMany
-    {
-        return $this->hasMany(ACTInvoice::class);
-    }
-
-    public function finCollections(): HasMany
-    {
-        return $this->hasMany(FINCollection::class);
+        return $this->hasMany(TaskBoard::class, 'sales_do_id','id');
     }
 
     public function createdBy(): BelongsTo
     {
-        return $this->belongsTo(\App\Models\User::class, 'created_by');
+        return $this->belongsTo(User::class, 'created_by');
     }
 
     public function updatedBy(): BelongsTo
     {
-        return $this->belongsTo(\App\Models\User::class, 'updated_by');
+        return $this->belongsTo(User::class, 'updated_by');
     }
 
     // Scopes
@@ -117,33 +99,25 @@ class SalesDO extends Model
     }
 
     // Accessors
-    public function getFormattedTotalAttribute(): string
+    public function getFormattedGrandTotalAttribute(): string
     {
-        return 'Rp ' . number_format($this->total, 0, ',', '.');
+        return 'Rp ' . number_format($this->grand_total, 0, ',', '.');
     }
 
     public function getStatusLabelAttribute(): string
     {
         return match($this->status) {
-            'crm_to_wqs' => 'To WQS',
-            'wqs_ready' => 'Stock Ready',
+            'crm_to_wqs' => 'CRM to WQS',
+            'wqs_ready' => 'WQS Ready',
+            'wqs_on_hold' => 'WQS On Hold',
             'scm_on_delivery' => 'On Delivery',
             'scm_delivered' => 'Delivered',
             'act_tukar_faktur' => 'Tukar Faktur',
             'act_invoiced' => 'Invoiced',
             'fin_on_collect' => 'On Collection',
             'fin_paid' => 'Paid',
-            'cancelled' => 'Cancelled',
+            'fin_overdue' => 'Overdue',
             default => $this->status,
         };
-    }
-
-    // Methods
-    public function calculateTotals(): void
-    {
-        $this->subtotal = $this->items->sum('subtotal');
-        $this->tax_amount = $this->items->sum('tax_amount');
-        $this->total = $this->subtotal + $this->tax_amount - $this->discount_amount;
-        $this->save();
     }
 }

@@ -52,7 +52,7 @@ class OfficeController extends Controller
 
     public function create()
     {
-        
+
         return view('pages.master.offices.create');
     }
 

@@ -7,30 +7,25 @@
     <!-- Header -->
     <x-common.page-breadcrumb pageTitle="Products" />
     <!-- Filters -->
-    <form method="GET" class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+    <form method="GET" class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 dark:bg-white/[0.03]">
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Search</label>
-                <input type="text" name="search" value="{{ request('search') }}" placeholder="SKU / nama / barcode / AKL"class="w-full h-11 rounded-lg border px-3 text-sm
-                      bg-white text-gray-900
-                      dark:bg-gray-800 dark:border-gray-700 dark:text-white">
+                <input type="text" name="search" value="{{ request('search') }}" placeholder="SKU / nama / barcode / AKL"class="h-11 w-full flex items-center justify-between rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 dark:text-white dark:border-gray-700 dark:bg-gray-900 focus:border-blue-300 focus:ring-3 focus:ring-blue-500/10 transition">
             </div>
             <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Manufacture</label>
-                <select name="manufacture" class="w-full h-11 rounded-lg border px-3 text-sm
-                       bg-white text-gray-900
-                       dark:bg-gray-800 dark:border-gray-700 dark:text-white">
-                    <option value="">All</option>
-                    @foreach($manufactures as $manufacture)
-                        <option value="{{ $manufacture->id }}" {{ request('manufacture') == $manufacture->id ? 'selected' : '' }}>{{ $manufacture->name }}</option>
-                    @endforeach
-                </select>
+                <x-form.select.searchable-select
+                    name="manufacture_id"
+                    :options="$manufactures->map(fn($o) => ['value' => $o->id, 'label' => $o->name])->toArray()"
+                    :selected="old('manufacture_id', request('manufacture_id') ?: '')"
+                    placeholder="-- Select Manufacture --"
+                    searchPlaceholder="Search manufacture..."
+                    :required="true" />
             </div>
             <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Status</label>
-                <select name="status" class="w-full h-11 rounded-lg border px-3 text-sm
-                       bg-white text-gray-900
-                       dark:bg-gray-800 dark:border-gray-700 dark:text-white">
+                <select name="status" class="h-11 w-full flex items-center justify-between rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 dark:text-white dark:border-gray-700 dark:bg-gray-900 focus:border-blue-300 focus:ring-3 focus:ring-blue-500/10 transition">
                     <option value="">ALL</option>
                     <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>active</option>
                     <option value="inactive" {{ request('status') == 'inactive' ? 'selected' : '' }}>inactive</option>
@@ -38,19 +33,22 @@
             </div>
             <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Type</label>
-                <select name="type" class="w-full h-11 rounded-lg border px-3 text-sm
-                       bg-white text-gray-900
-                       dark:bg-gray-800 dark:border-gray-700 dark:text-white">
+                <select name="type" class="h-11 w-full flex items-center justify-between rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 dark:text-white dark:border-gray-700 dark:bg-gray-900 focus:border-blue-300 focus:ring-3 focus:ring-blue-500/10 transition">
                     <option value="">ALL</option>
                     <option value="SINGLE" {{ request('type') == 'SINGLE' ? 'selected' : '' }}>SINGLE</option>
                     <option value="BUNDLE" {{ request('type') == 'BUNDLE' ? 'selected' : '' }}>BUNDLE</option>
                 </select>
             </div>
         </div>
-        <div class="mt-4 flex gap-2 align-end">
-            <a href="{{ route('master.products.index') }}" class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg">Reset</a>
-            <button type="submit" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg">Apply</button>
-            {{-- <button type="button" id="importButton" class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg text-end">Import Excel</button> --}}
+        <div class="flex items-end gap-2 mt-4">
+                <a href="{{ route('crm.sales-do.index') }}"
+                class="inline-flex items-center justify-center font-medium gap-2 rounded-lg transition px-4 py-3 text-sm bg-red-500 text-white shadow-theme-xs hover:bg-red-600">
+                Reset
+            </a>
+            <button type="submit"
+                class="inline-flex items-center justify-center font-medium gap-2 rounded-lg transition px-4 py-3 text-sm bg-brand-500 text-white shadow-theme-xs hover:bg-brand-600">
+                Apply
+            </button>
         </div>
     </form>
 

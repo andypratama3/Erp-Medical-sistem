@@ -12,6 +12,7 @@ Route::middleware(['auth'])->group(function () {
     Route::prefix('crm')->name('crm.')->group(function () {
         Route::resource('sales-do', SalesDOController::class);
         Route::post('sales-do/{salesDo}/submit', [SalesDOController::class, 'submit'])->name('sales-do.submit');
+        Route::get('/sales-do/{salesDo}/pdf', [SalesDOController::class, 'exportPDF'])->name('sales-do.exportPDF');
     });
 
     // WQS Module
