@@ -31,12 +31,11 @@ class ManufactureController extends Controller
                 'phone' => $manufacture->phone ?? '-',
                 'status' => [
                     'value' => $manufacture->status,
-                    'label' => ucfirst($manufacture->status),
-                    'color' => match ($manufacture->status) {
-                        'active' => 'green',
-                        'inactive' => 'red',
-                        default => 'gray',
-                    }
+                    'label' => match($manufacture->status) {
+                        'active' => 'Active',
+                        'inactive' => 'Inactive',
+                    },
+                    'color' => $manufacture->status,
                 ],
                 'actions' => [
                     'show' => route('master.manufactures.show', $manufacture),

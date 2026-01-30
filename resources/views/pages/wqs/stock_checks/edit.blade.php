@@ -1,40 +1,44 @@
 @extends('layouts.app')
 
-@section('title', 'Stock Check - ' . $salesDo->do_code)
+@section('title', 'Edit Stock Check - ' . $stockCheck->salesDO->do_code)
 
 @section('content')
 <div class="container-fluid px-4 py-6">
     <!-- Header -->
     <div class="mb-6">
-        <h1 class="text-4xl font-bold text-gray-900 dark:text-white">✓ Stock Check</h1>
-        <p class="text-gray-600 dark:text-gray-400 mt-2">DO: <span class="font-mono font-semibold">{{ $salesDo->do_code }}</span> | Customer: <span class="font-semibold">{{ $salesDo->customer?->name }}</span></p>
+        <h1 class="text-4xl font-bold text-gray-900 dark:text-white">✏️ Edit Stock Check</h1>
+        <p class="text-gray-600 dark:text-gray-400 mt-2">DO: <span class="font-mono font-semibold">{{ $stockCheck->salesDO->do_code }}</span> | Customer: <span class="font-semibold">{{ $stockCheck->salesDO->customer?->name }}</span></p>
     </div>
 
     <!-- Back Button -->
     <div class="mb-6">
-        <a href="{{ route('wqs.task-board') }}" class="inline-flex items-center gap-2 px-4 py-2 bg-gray-400 dark:bg-gray-700 hover:bg-gray-500 dark:hover:bg-gray-600 text-white rounded-lg font-semibold transition">
-            Back to Task Board
+        <a href="{{ route('wqs.stock-checks.show', $stockCheck) }}" class="inline-flex items-center gap-2 px-4 py-2 bg-gray-400 dark:bg-gray-700 hover:bg-gray-500 dark:hover:bg-gray-600 text-white rounded-lg font-semibold transition">
+            ← Back to Details
         </a>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <x-flash-message.flash />
-        <!-- Left: Form -->
-        <div class="lg:col-span-2">
-            <form method="POST" action="{{ route('wqs.stock-checks.store') }}" class="space-y-6">
-                @csrf
 
-                <!-- DO Summary Card -->
+        <!-- Left: Form (2 columns) -->
+        <div class="lg:col-span-2">
+            <form method="POST" action="{{ route('wqs.stock-checks.update', $stockCheck) }}" class="space-y-6">
+                @csrf
+                @method('PUT')
+
+                <!-- Check Information Card -->
                 <div class="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-xl p-6">
-                    <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-4">📋 DO Summary</h2>
+                    <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-4">ℹ️ Check Information</h2>
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <p class="text-sm text-gray-600 dark:text-gray-400">Total Items</p>
-                            <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ $salesDo->items->count() }}</p>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">Check Date</p>
+                            <p class="text-lg font-bold text-gray-900 dark:text-white">{{ $stockCheck->check_date->format('d M Y') }}</p>
                         </div>
                         <div>
-                            <p class="text-sm text-gray-600 dark:text-gray-400">Grand Total</p>
-                            <p class="text-2xl font-bold text-gray-900 dark:text-white">Rp {{ number_format($salesDo->grand_total, 0, ',', '.') }}</p>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">Current Status</p>
+                            <span class="inline-block mt-1 px-3 py-1 bg-{{ $stockCheck->status_color }}-100 dark:bg-{{ $stockCheck->status_color }}-900 text-{{ $stockCheck->status_color }}-800 dark:text-{{ $stockCheck->status_color }}-200 rounded text-sm font-bold">
+                                {{ $stockCheck->status_label }}
+                            </span>
                         </div>
                     </div>
                 </div>
@@ -47,43 +51,45 @@
                         rows="4"
                         placeholder="Tambahkan catatan pengecekan stock..."
                         class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
-                    ></textarea>
+                    >{{ old('check_notes', $stockCheck->check_notes) }}</textarea>
                 </div>
 
                 <!-- Items Section -->
                 <div class="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-xl p-6">
-                    <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-4">📦 Items to Check</h2>
-
-                    <input type="hidden" name="sales_do_id" value="{{ $salesDo->id }}">
+                    <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-4">📦 Items to Update</h2>
 
                     <div id="itemsContainer" class="space-y-4">
-                        @foreach($salesDo->items as $index => $item)
-                            <div class=" dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded-lg p-4" data-item-index="{{ $index }}">
+                        @foreach($stockCheck->items as $index => $checkItem)
+                            @php
+                                $doItem = $stockCheck->salesDO->items->firstWhere('product_id', $checkItem->product_id);
+                            @endphp
+                            <div class="dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded-lg p-4" data-item-index="{{ $index }}">
                                 <div class="flex justify-between items-start mb-3">
                                     <div>
-                                        <h3 class="font-bold text-gray-900 dark:text-white">{{ $item->product->name }}</h3>
-                                        <p class="text-sm text-gray-600 dark:text-gray-400">SKU: {{ $item->product->sku }}</p>
-                                        <p class="text-sm text-gray-600 dark:text-gray-400">Ordered Qty: <span class="font-bold">{{ $item->qty_ordered }}</span> {{ $item->unit }}</p>
+                                        <h3 class="font-bold text-gray-900 dark:text-white">{{ $checkItem->product->name }}</h3>
+                                        <p class="text-sm text-gray-600 dark:text-gray-400">SKU: {{ $checkItem->product->sku }}</p>
+                                        <p class="text-sm text-gray-600 dark:text-gray-400">Ordered Qty: <span class="font-bold">{{ $doItem?->qty_ordered ?? 0 }}</span> {{ $doItem?->unit ?? '' }}</p>
                                     </div>
                                 </div>
 
                                 <div class="space-y-3">
-                                    <input type="hidden" name="items[{{ $index }}][product_id]" value="{{ $item->product_id }}">
+                                    <input type="hidden" name="items[{{ $index }}][stock_check_item_id]" value="{{ $checkItem->id }}">
+                                    <input type="hidden" name="items[{{ $index }}][product_id]" value="{{ $checkItem->product_id }}">
 
                                     <!-- Stock Status -->
                                     <div>
                                         <label class="block text-sm text-gray-700 dark:text-gray-300 font-semibold mb-2">Stock Status</label>
                                         <div class="grid grid-cols-3 gap-2">
                                             <label class="flex items-center p-2 border border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 transition">
-                                                <input type="radio" name="items[{{ $index }}][stock_status]" value="available" checked class="mr-2">
+                                                <input type="radio" name="items[{{ $index }}][stock_status]" value="available" {{ old("items.$index.stock_status", $checkItem->stock_status) === 'available' ? 'checked' : '' }} class="mr-2">
                                                 <span class="text-sm text-gray-700 dark:text-gray-300 font-semibold">✓ Available</span>
                                             </label>
                                             <label class="flex items-center p-2 border border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 transition">
-                                                <input type="radio" name="items[{{ $index }}][stock_status]" value="partial" class="mr-2">
+                                                <input type="radio" name="items[{{ $index }}][stock_status]" value="partial" {{ old("items.$index.stock_status", $checkItem->stock_status) === 'partial' ? 'checked' : '' }} class="mr-2">
                                                 <span class="text-sm text-gray-700 dark:text-gray-300 font-semibold">⚠️ Partial</span>
                                             </label>
                                             <label class="flex items-center p-2 border border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 transition">
-                                                <input type="radio" name="items[{{ $index }}][stock_status]" value="not_available" class="mr-2">
+                                                <input type="radio" name="items[{{ $index }}][stock_status]" value="not_available" {{ old("items.$index.stock_status", $checkItem->stock_status) === 'not_available' ? 'checked' : '' }} class="mr-2">
                                                 <span class="text-sm text-gray-700 dark:text-gray-300 font-semibold">✕ Not Available</span>
                                             </label>
                                         </div>
@@ -95,7 +101,7 @@
                                         <input
                                             type="number"
                                             name="items[{{ $index }}][available_qty]"
-                                            value="{{ $item->qty_ordered }}"
+                                            value="{{ old("items.$index.available_qty", $checkItem->available_qty) }}"
                                             min="0"
                                             class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
                                             required
@@ -108,6 +114,7 @@
                                         <input
                                             type="text"
                                             name="items[{{ $index }}][notes]"
+                                            value="{{ old("items.$index.notes", $checkItem->notes) }}"
                                             placeholder="e.g., Damaged, Expired, Location..."
                                             class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
                                         >
@@ -120,11 +127,11 @@
 
                 <!-- Action Buttons -->
                 <div class="flex gap-3">
-                    <a href="{{ route('wqs.task-board') }}" class="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg font-bold hover:bg-gray-50 dark:hover:bg-gray-700 transition text-center">
+                    <a href="{{ route('wqs.stock-checks.show', $stockCheck) }}" class="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg font-bold hover:bg-gray-50 dark:hover:bg-gray-700 transition text-center">
                         Cancel
                     </a>
-                    <button type="submit" class="flex-1 px-4 py-3 bg-green-600 dark:bg-green-700 hover:bg-green-700 dark:hover:bg-green-800 text-white rounded-lg font-bold transition">
-                        ✓ Complete Stock Check
+                    <button type="submit" class="flex-1 px-4 py-3 bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-800 text-white rounded-lg font-bold transition">
+                        💾 Update Stock Check
                     </button>
                 </div>
             </form>
@@ -136,11 +143,10 @@
             <div class="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded-lg p-6">
                 <h3 class="font-bold text-blue-900 dark:text-blue-200 mb-3">ℹ️ Instructions</h3>
                 <ul class="space-y-2 text-sm text-blue-800 dark:text-blue-300">
-                    <li>✓ Check setiap item dari DO</li>
-                    <li>✓ Tentukan status ketersediaan</li>
-                    <li>✓ Input jumlah yang tersedia</li>
-                    <li>✓ Tambahkan catatan jika perlu</li>
-                    <li>✓ Submit untuk validasi</li>
+                    <li>✓ Review dan update status item</li>
+                    <li>✓ Perbarui jumlah yang tersedia</li>
+                    <li>✓ Tambahkan catatan tambahan</li>
+                    <li>✓ Save untuk menyimpan perubahan</li>
                 </ul>
             </div>
 
@@ -157,13 +163,36 @@
                 </div>
             </div>
 
+            <!-- Current Statistics -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-xl p-6">
+                <h3 class="font-bold text-gray-900 dark:text-white mb-3">📊 Current Statistics</h3>
+                <div class="space-y-2 text-sm">
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-600 dark:text-gray-400">Total Items</span>
+                        <span class="font-bold text-gray-900 dark:text-white">{{ $stockCheck->total_items }}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-600 dark:text-gray-400">Available</span>
+                        <span class="font-bold text-green-600 dark:text-green-400">{{ $stockCheck->available_items }}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-600 dark:text-gray-400">Partial</span>
+                        <span class="font-bold text-yellow-600 dark:text-yellow-400">{{ $stockCheck->partial_items }}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-600 dark:text-gray-400">Not Available</span>
+                        <span class="font-bold text-red-600 dark:text-red-400">{{ $stockCheck->not_available_items }}</span>
+                    </div>
+                </div>
+            </div>
+
             <!-- Status Legend -->
             <div class="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-xl p-6">
-                <h3 class="font-bold dark:text-white text-black mb-3">📊 Status Legend</h3>
+                <h3 class="font-bold text-gray-900 dark:text-white mb-3">📊 Status Legend</h3>
                 <div class="space-y-2 text-sm">
                     <div class="flex items-center gap-2">
                         <span class="px-2 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-white rounded text-xs font-bold">Available</span>
-                        <span class="text-gray-600 dark:text-gray-400">Semua stock tersedia</span>
+                        <span class="text-gray-600 dark:text-gray-400">Stock tersedia</span>
                     </div>
                     <div class="flex items-center gap-2">
                         <span class="px-2 py-1 bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-white rounded text-xs font-bold">Partial</span>
@@ -172,6 +201,25 @@
                     <div class="flex items-center gap-2">
                         <span class="px-2 py-1 bg-red-100 dark:bg-red-900 text-red-800 dark:text-white rounded text-xs font-bold">Not Available</span>
                         <span class="text-gray-600 dark:text-gray-400">Stock tidak ada</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DO Information -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-xl p-6">
+                <h3 class="font-bold text-gray-900 dark:text-white mb-3">📋 DO Information</h3>
+                <div class="space-y-2 text-sm">
+                    <div>
+                        <p class="text-gray-600 dark:text-gray-400">DO Code</p>
+                        <p class="text-gray-900 dark:text-white font-mono font-semibold">{{ $stockCheck->salesDO->do_code }}</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-600 dark:text-gray-400">Customer</p>
+                        <p class="text-gray-900 dark:text-white font-semibold">{{ $stockCheck->salesDO->customer?->name ?? '-' }}</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-600 dark:text-gray-400">Grand Total</p>
+                        <p class="text-gray-900 dark:text-white font-bold">Rp {{ number_format($stockCheck->salesDO->grand_total, 0, ',', '.') }}</p>
                     </div>
                 </div>
             </div>
@@ -187,10 +235,12 @@ function setAllAvailable() {
     });
     document.querySelectorAll('input[name*="[available_qty]"]').forEach(input => {
         const container = input.closest('[data-item-index]');
-        const originalQty = container.querySelector('p:nth-child(4)')?.textContent;
-        if (originalQty) {
-            const qty = parseInt(originalQty.match(/\d+/)[0]);
-            input.value = qty;
+        const orderedQtyText = container.querySelector('p:nth-of-type(3)')?.textContent;
+        if (orderedQtyText) {
+            const match = orderedQtyText.match(/Ordered Qty:\s*(\d+)/);
+            if (match) {
+                input.value = parseInt(match[1]);
+            }
         }
     });
 }
@@ -206,4 +256,4 @@ function markAllZero() {
 </script>
 @endsection
 
-@endsection
+@endsection 

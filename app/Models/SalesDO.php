@@ -98,6 +98,11 @@ class SalesDO extends Model
         return $this->belongsTo(User::class, 'submitted_by');
     }
 
+    public function delivery(): BelongsTo
+    {
+        return $this->belongsTo(SCMDelivery::class, 'delivery_id');
+    }
+
     /* ================= SCOPES ================= */
 
     public function scopeByStatus($query, string $status)

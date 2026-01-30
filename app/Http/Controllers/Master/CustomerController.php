@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers\Master;
 
-use App\Http\Controllers\Controller;
 use App\Models\Customer;
 use App\Models\PaymentTerm;
 use Illuminate\Http\Request;
+use App\Helpers\StatusBadgeHelper;
+use App\Http\Controllers\Controller;
 
 class CustomerController extends Controller
 {
@@ -42,25 +43,21 @@ class CustomerController extends Controller
                     'value' => $customer->customer_type,
                     'label' => ucwords(str_replace('_', ' ', $customer->customer_type)),
                     'color' => match ($customer->customer_type) {
-                        'hospital' => 'green',
-                        'clinic' => 'blue',
-                        'pharmacy' => 'orange',
-                        'distributor' => 'yellow',
-                        'retail' => 'purple',
-                        'government' => 'gray',
+                        'hospital' => 'primary',
+                        'clinic' => 'active',
+                        'pharmacy' => 'warning',
+                        'distributor' => 'success',
+                        'retail' => 'info',
+                        'government' => 'brand',
                         'other' => 'red',
                         default => 'red',
                     },
                 ],
                 'status' => [
                     'value' => $customer->status,
-                    'label' => ucwords(str_replace('_', ' ', $customer->status)),
-                    'color' => match ($customer->status) {
-                    'active' => 'green',
-                    'inactive' => 'red',
-                    'blocked' => 'orange',
-                    default => 'red',
-                }],
+                    'label' => StatusBadgeHelper::getStatusLabel($customer->status),
+                    'color' => StatusBadgeHelper::getStatusColor($customer->status),
+                ],
                 'actions' => [
                     'show' => route('master.customers.show', $customer),
                     'edit' => route('master.customers.edit', $customer),

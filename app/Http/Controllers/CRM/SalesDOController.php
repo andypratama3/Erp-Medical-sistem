@@ -12,9 +12,11 @@ use App\Models\MasterOffice;
 use Illuminate\Http\Request;
 use App\Events\SalesDOSubmitted;
 use App\Services\AuditLogService;
+use App\Helpers\StatusBadgeHelper;
 use Illuminate\Support\Facades\DB;
 use App\Services\DONumberGenerator;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Routing\Controllers\HasMiddleware;
 
@@ -105,33 +107,26 @@ class SalesDOController extends Controller implements HasMiddleware
         ============================ */
 
 
-
-
         $salesDOsData = $salesDOs->getCollection()->map(function ($do) {
-        $status = $do->status_config;
-
-        return [
-            'id' => $do->id,
-            'do_code' => $do->do_code,
-            'do_date' => $do->do_date->format('d-m-Y'),
-            'customer' => $do->customer?->name ?? '-',
-            'office' => $do->office?->name ?? '-',
-            'grand_total' => $do->grand_total,
-
-            'status' => [
-                'value' => $do->status,
-                'label' => $status['label'],
-                'color' => $status['color'],
-                'badge_class' => $status['badge_class'],
-            ],
-
-            'actions' => [
-                'show' => route('crm.sales-do.show', $do),
-                'edit' => $do->canBeEdited() ? route('crm.sales-do.edit', $do) : null,
-                'delete' => $do->canBeDeleted() ? route('crm.sales-do.destroy', $do) : null,
-            ],
-        ];
-    })->toArray();
+            return [
+                'id' => $do->id,
+                'do_code' => $do->do_code,
+                'do_date' => $do->do_date->format('d-m-Y'),
+                'customer' => $do->customer?->name ?? '-',
+                'office' => $do->office?->name ?? '-',
+                'grand_total' => $do->grand_total,
+               'status' => [
+                    'value' => $do->status,
+                    'label' => StatusBadgeHelper::getStatusLabel($do->status),
+                    'color' => StatusBadgeHelper::getStatusColor($do->status),
+                ],
+                'actions' => [
+                    'show' => route('crm.sales-do.show', $do),
+                    'edit' => $do->canBeEdited() ? route('crm.sales-do.edit', $do) : null,
+                    'delete' => $do->canBeDeleted() ? route('crm.sales-do.destroy', $do) : null,
+                ],
+            ];
+        })->toArray();
 
 
         /* ============================
@@ -307,7 +302,7 @@ class SalesDOController extends Controller implements HasMiddleware
             'documents',
             'taskBoards'
         ]);
-
+        
         return view('pages.crm.sales_do.show', compact('salesDo'));
     }
 

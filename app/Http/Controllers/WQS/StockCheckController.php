@@ -127,6 +127,7 @@ class StockCheckController extends Controller implements HasMiddleware
      */
     public function store(Request $request)
     {
+
         $validated = $request->validate([
             'sales_do_id' => 'required|exists:sales_do,id',
             'check_notes' => 'nullable|string',
@@ -144,7 +145,7 @@ class StockCheckController extends Controller implements HasMiddleware
             // Create stock check record
             $stockCheck = WQSStockCheck::create([
                 'sales_do_id' => $salesDo->id,
-                'check_date' => now()->date(),
+                'check_date' => today(),
                 'overall_status' => 'checked',
                 'check_notes' => $validated['check_notes'],
                 'checked_by' => auth()->id(),

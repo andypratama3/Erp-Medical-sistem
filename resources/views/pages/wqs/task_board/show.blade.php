@@ -29,20 +29,20 @@
         @if($taskBoard->canStart())
             <form method="POST" action="{{ route('wqs.task-board.start', $taskBoard) }}" style="display:inline;">
                 @csrf
-                <button class="px-4 py-2 bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-800 text-white rounded-lg font-semibold transition inline-flex items-center gap-2">
+                <button class="px-4 py-2 bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-800 text-black dark:text-white rounded-lg font-semibold transition inline-flex items-center gap-2">
                     ▶️ Start Task
                 </button>
             </form>
         @endif
 
         @if($taskBoard->canComplete())
-            <button onclick="openCompleteModal()" class="px-4 py-2 bg-green-600 dark:bg-green-700 hover:bg-green-700 dark:hover:bg-green-800 text-white rounded-lg font-semibold transition inline-flex items-center gap-2">
+            <button onclick="openCompleteModal()" class="px-4 py-2 bg-green-600 dark:bg-green-700 hover:bg-green-700 dark:hover:bg-green-800 text-black dark:text-white rounded-lg font-semibold transition inline-flex items-center gap-2">
                 ✓ Complete Task
             </button>
         @endif
 
         @if($taskBoard->canHold())
-            <button onclick="openHoldModal()" class="px-4 py-2 bg-yellow-600 dark:bg-yellow-700 hover:bg-yellow-700 dark:hover:bg-yellow-800 text-white rounded-lg font-semibold transition inline-flex items-center gap-2">
+            <button onclick="openHoldModal()" class="px-4 py-2 bg-yellow-600 dark:bg-yellow-700 hover:bg-yellow-700 dark:hover:bg-yellow-800 text-black dark:text-white rounded-lg font-semibold transition inline-flex items-center gap-2">
                 ⏸️ Hold Task
             </button>
         @endif
@@ -50,23 +50,23 @@
         @if($taskBoard->canResume())
             <form method="POST" action="{{ route('wqs.task-board.resume', $taskBoard) }}" style="display:inline;">
                 @csrf
-                <button class="px-4 py-2 bg-purple-600 dark:bg-purple-700 hover:bg-purple-700 dark:hover:bg-purple-800 text-white rounded-lg font-semibold transition inline-flex items-center gap-2">
+                <button class="px-4 py-2 bg-purple-600 dark:bg-purple-700 hover:bg-purple-700 dark:hover:bg-purple-800 text-black dark:text-white rounded-lg font-semibold transition inline-flex items-center gap-2">
                     ▶️ Resume Task
                 </button>
             </form>
         @endif
 
-        <button onclick="openRejectModal()" class="px-4 py-2 bg-red-600 dark:bg-red-700 hover:bg-red-700 dark:hover:bg-red-800 text-white rounded-lg font-semibold transition inline-flex items-center gap-2">
+        <button onclick="openRejectModal()" class="px-4 py-2 bg-red-600 dark:bg-red-700 hover:bg-red-700 dark:hover:bg-red-800 text-black dark:text-white rounded-lg font-semibold transition inline-flex items-center gap-2">
             ✕ Reject
         </button>
 
-        <a href="{{ route('wqs.task-board') }}" class="px-4 py-2 bg-gray-400 dark:bg-gray-700 hover:bg-gray-500 dark:hover:bg-gray-600 text-white rounded-lg font-semibold transition inline-flex items-center gap-2">
+        <a href="{{ route('wqs.task-board') }}" class="px-4 py-2 bg-gray-400 dark:bg-gray-700 hover:bg-gray-500 dark:hover:bg-gray-600 text-black dark:text-white rounded-lg font-semibold transition inline-flex items-center gap-2">
             ← Back
         </a>
     </div>
 
     <!-- Main Grid -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <!-- Left: Content -->
         <div class="lg:col-span-2 space-y-6">
             <!-- DO Info -->
@@ -107,7 +107,7 @@
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="text-sm text-gray-600 dark:text-gray-400 font-semibold">Priority</label>
-                            <span class="inline-block mt-1 px-3 py-1 bg-{{ $taskBoard->priority_color }}-100 dark:bg-{{ $taskBoard->priority_color }}-900 text-{{ $taskBoard->priority_color }}-800 dark:text-{{ $taskBoard->priority_color }}-200 rounded-full text-xs font-bold">
+                            <span class="inline-block mt-1 px-3 py-1 bg-{{ $taskBoard->priority_color }}-100 text-dark dark:text-white rounded-full text-xs font-bold">
                                 {{ $taskBoard->priority_label }}
                             </span>
                         </div>
@@ -202,9 +202,9 @@
                     @endif
                 </div>
             @else
-                <div class="bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-700 dark:text-white rounded-lg p-6">
+                <div class="bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-700 rounded-lg p-6">
                     <p class="text-yellow-700 dark:text-yellow-400 font-semibold mb-3">⚠️ No stock check created yet</p>
-                    <a href="{{ route('wqs.stock-checks.create', ['sales_do_id' => $taskBoard->sales_do_id]) }}" class="inline-flex items-center gap-2 px-4 py-2 bg-yellow-600 dark:bg-yellow-700 hover:bg-yellow-700 dark:hover:bg-yellow-800 text-white rounded-lg text-sm font-semibold">
+                    <a href="{{ route('wqs.stock-checks.create', ['sales_do_id' => $taskBoard->sales_do_id]) }}" class="inline-flex items-center gap-2 px-4 py-2 bg-yellow-600 dark:bg-yellow-700 hover:bg-yellow-700 dark:hover:bg-yellow-800 text-black dark:text-black rounded-lg text-sm font-semibold">
                         Create Stock Check
                     </a>
                 </div>
@@ -273,8 +273,8 @@
 
             <!-- Priority -->
             <div class="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-xl p-6">
-                <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-4">⚡ Priority</h2>
-                <span class="px-3 py-1 bg-{{ $taskBoard->priority_color }}-100 dark:bg-{{ $taskBoard->priority_color }}-900 text-{{ $taskBoard->priority_color }}-800 dark:text-{{ $taskBoard->priority_color }}-200 rounded-full text-sm font-bold">
+                <h2 class="text-lg font-bold text-black dark:text-white mb-4">⚡ Priority</h2>
+                <span class="px-3 py-1 bg-{{ $taskBoard->priority_color }}-100 dark:bg-{{ $taskBoard->priority_color }}-900 text-dark dark:text-white rounded-full text-sm font-bold">
                     {{ $taskBoard->priority_label }}
                 </span>
 

@@ -1,33 +1,39 @@
 <?php
+
 namespace App\Helpers;
 
 class SalesDOHelper
 {
     /**
-     * Status configuration untuk SalesDO workflow
+     * Master status configuration
      */
-    public static function getStatusConfig()
+    public static function getStatusConfig(): array
     {
         return [
-            // CRM Module
+
+            // ======================
+            // CRM
+            // ======================
             'crm_to_wqs' => [
                 'label' => 'CRM to WQS',
-                'color' => 'yellow',
-                'badge_class' => 'bg-yellow-100 text-yellow-800',
-                'description' => 'Document created in CRM, pending WQS review',
                 'module' => 'CRM',
+                'color' => 'warning',
+                'badge_class' => 'bg-warning-50 text-warning-700 dark:bg-warning-500/15 dark:text-warning-400',
+                'icon' => 'clock',
                 'editable' => true,
                 'deletable' => true,
                 'submittable' => true,
             ],
 
-            // WQS Module
+            // ======================
+            // WQS
+            // ======================
             'wqs_ready' => [
                 'label' => 'WQS Ready',
-                'color' => 'blue',
-                'badge_class' => 'bg-blue-100 text-blue-800',
-                'description' => 'Document submitted to WQS for quality check',
                 'module' => 'WQS',
+                'color' => 'blue-light',
+                'badge_class' => 'bg-blue-light-50 text-blue-light-700 dark:bg-blue-light-500/15 dark:text-blue-light-400',
+                'icon' => 'check-circle',
                 'editable' => false,
                 'deletable' => false,
                 'submittable' => false,
@@ -35,22 +41,24 @@ class SalesDOHelper
 
             'wqs_on_hold' => [
                 'label' => 'WQS On Hold',
-                'color' => 'red',
-                'badge_class' => 'bg-red-100 text-red-800',
-                'description' => 'Document is on hold in WQS for quality issues',
                 'module' => 'WQS',
+                'color' => 'error',
+                'badge_class' => 'bg-error-50 text-error-700 dark:bg-error-500/15 dark:text-error-400',
+                'icon' => 'alert-circle',
                 'editable' => true,
                 'deletable' => false,
                 'submittable' => true,
             ],
 
-            // SCM Module
+            // ======================
+            // SCM
+            // ======================
             'scm_on_delivery' => [
                 'label' => 'On Delivery',
-                'color' => 'indigo',
-                'badge_class' => 'bg-indigo-100 text-indigo-800',
-                'description' => 'Items are being delivered to customer',
                 'module' => 'SCM',
+                'color' => 'brand',
+                'badge_class' => 'bg-brand-50 text-brand-700 dark:bg-brand-500/15 dark:text-brand-400',
+                'icon' => 'truck',
                 'editable' => false,
                 'deletable' => false,
                 'submittable' => false,
@@ -58,22 +66,24 @@ class SalesDOHelper
 
             'scm_delivered' => [
                 'label' => 'Delivered',
-                'color' => 'green',
-                'badge_class' => 'bg-green-100 text-green-800',
-                'description' => 'Items delivered to customer',
                 'module' => 'SCM',
+                'color' => 'success',
+                'badge_class' => 'bg-success-50 text-success-700 dark:bg-success-500/15 dark:text-success-400',
+                'icon' => 'check-circle',
                 'editable' => false,
                 'deletable' => false,
                 'submittable' => false,
             ],
 
-            // ACT Module (Accounting/Invoicing)
+            // ======================
+            // ACT
+            // ======================
             'act_tukar_faktur' => [
                 'label' => 'Tukar Faktur',
-                'color' => 'purple',
-                'badge_class' => 'bg-purple-100 text-purple-800',
-                'description' => 'Awaiting invoice exchange/preparation',
                 'module' => 'ACT',
+                'color' => 'orange',
+                'badge_class' => 'bg-orange-50 text-orange-700 dark:bg-orange-500/15 dark:text-orange-400',
+                'icon' => 'file-text',
                 'editable' => false,
                 'deletable' => false,
                 'submittable' => false,
@@ -81,22 +91,24 @@ class SalesDOHelper
 
             'act_invoiced' => [
                 'label' => 'Invoiced',
-                'color' => 'green',
-                'badge_class' => 'bg-green-100 text-green-800',
-                'description' => 'Invoice has been created and issued',
                 'module' => 'ACT',
+                'color' => 'success',
+                'badge_class' => 'bg-success-50 text-success-700 dark:bg-success-500/15 dark:text-success-400',
+                'icon' => 'check-circle',
                 'editable' => false,
                 'deletable' => false,
                 'submittable' => false,
             ],
 
-            // FIN Module (Finance/Collection)
+            // ======================
+            // FIN
+            // ======================
             'fin_on_collect' => [
                 'label' => 'On Collection',
-                'color' => 'orange',
-                'badge_class' => 'bg-orange-100 text-orange-800',
-                'description' => 'Invoice is awaiting payment collection',
                 'module' => 'FIN',
+                'color' => 'orange',
+                'badge_class' => 'bg-orange-50 text-orange-700 dark:bg-orange-500/15 dark:text-orange-400',
+                'icon' => 'hourglass',
                 'editable' => false,
                 'deletable' => false,
                 'submittable' => false,
@@ -104,10 +116,10 @@ class SalesDOHelper
 
             'fin_paid' => [
                 'label' => 'Paid',
-                'color' => 'green',
-                'badge_class' => 'bg-green-100 text-green-800',
-                'description' => 'Payment received in full',
                 'module' => 'FIN',
+                'color' => 'success',
+                'badge_class' => 'bg-success-50 text-success-700 dark:bg-success-500/15 dark:text-success-400',
+                'icon' => 'check-circle',
                 'editable' => false,
                 'deletable' => false,
                 'submittable' => false,
@@ -115,10 +127,10 @@ class SalesDOHelper
 
             'fin_overdue' => [
                 'label' => 'Overdue',
-                'color' => 'red',
-                'badge_class' => 'bg-red-100 text-red-800',
-                'description' => 'Payment is overdue',
                 'module' => 'FIN',
+                'color' => 'error',
+                'badge_class' => 'bg-error-50 text-error-700 dark:bg-error-500/15 dark:text-error-400',
+                'icon' => 'alert-triangle',
                 'editable' => false,
                 'deletable' => false,
                 'submittable' => false,
@@ -127,202 +139,88 @@ class SalesDOHelper
     }
 
     /**
-     * Get status config untuk satu status
+     * Single status config
      */
-    public static function getStatusConfigByKey($status)
+    public static function getStatusConfigByKey(string $status): array
     {
-        $config = self::getStatusConfig();
-        return $config[$status] ?? [
+        return self::getStatusConfig()[$status] ?? [
             'label' => 'Unknown',
-            'color' => 'gray',
-            'badge_class' => 'bg-gray-100 text-gray-800',
-            'description' => 'Status tidak dikenal',
             'module' => 'Unknown',
+            'color' => 'gray',
+            'badge_class' => 'bg-gray-50 text-gray-700 dark:bg-gray-500/15 dark:text-gray-400',
+            'icon' => 'help-circle',
             'editable' => false,
             'deletable' => false,
             'submittable' => false,
         ];
     }
 
-    /**
-     * Get status label
-     */
-    public static function getStatusLabel($status)
+    // ======================
+    // SHORTCUT HELPERS
+    // ======================
+
+    public static function icon(string $status): string
     {
-        return self::getStatusConfigByKey($status)['label'];
+        return self::getStatusConfigByKey($status)['icon'];
     }
 
-    /**
-     * Get status color
-     */
-    public static function getStatusColor($status)
+    public static function isEditable(string $status): bool
     {
-        return self::getStatusConfigByKey($status)['color'];
+        return self::getStatusConfigByKey($status)['editable'];
     }
 
-    /**
-     * Get status badge class
-     */
-    public static function getStatusBadgeClass($status)
+    public static function isDeletable(string $status): bool
     {
-        return self::getStatusConfigByKey($status)['badge_class'];
+        return self::getStatusConfigByKey($status)['deletable'];
     }
 
-    /**
-     * Check if status is editable
-     */
-    public static function isEditable($status)
+    public static function isSubmittable(string $status): bool
     {
-        return self::getStatusConfigByKey($status)['editable'] ?? false;
+        return self::getStatusConfigByKey($status)['submittable'];
     }
 
-    /**
-     * Check if status is deletable
-     */
-    public static function isDeletable($status)
-    {
-        return self::getStatusConfigByKey($status)['deletable'] ?? false;
-    }
+    // ======================
+    // WORKFLOW
+    // ======================
 
-    /**
-     * Check if status is submittable to next module
-     */
-    public static function isSubmittable($status)
+    public static function nextStatus(string $current): ?string
     {
-        return self::getStatusConfigByKey($status)['submittable'] ?? false;
-    }
-
-    /**
-     * Get next status after submission
-     */
-    public static function getNextStatusAfterSubmit($currentStatus)
-    {
-        $transitions = [
+        return [
             'crm_to_wqs' => 'wqs_ready',
             'wqs_on_hold' => 'wqs_ready',
-            // Add more transitions as needed
+            'scm_on_delivery' => 'scm_delivered',
+            'act_tukar_faktur' => 'act_invoiced',
+            'fin_on_collect' => 'fin_paid',
+        ][$current] ?? null;
+    }
+
+    public static function canTransition(string $from, string $to): bool
+    {
+        $allowed = [
+            'crm_to_wqs' => ['wqs_ready'],
+            'wqs_ready' => ['scm_on_delivery'],
+            'wqs_on_hold' => ['wqs_ready'],
+            'scm_on_delivery' => ['scm_delivered'],
+            'scm_delivered' => ['act_tukar_faktur'],
+            'act_tukar_faktur' => ['act_invoiced'],
+            'act_invoiced' => ['fin_on_collect'],
+            'fin_on_collect' => ['fin_paid', 'fin_overdue'],
         ];
 
-        return $transitions[$currentStatus] ?? null;
+        return in_array($to, $allowed[$from] ?? [], true);
     }
 
     /**
-     * Get all statuses grouped by module
+     * Status grouped by module
      */
-    public static function getStatusesByModule()
+    public static function statusesByModule(): array
     {
-        $config = self::getStatusConfig();
         $grouped = [];
 
-        foreach ($config as $status => $details) {
-            $module = $details['module'];
-            if (!isset($grouped[$module])) {
-                $grouped[$module] = [];
-            }
-            $grouped[$module][$status] = $details['label'];
+        foreach (self::getStatusConfig() as $key => $config) {
+            $grouped[$config['module']][$key] = $config['label'];
         }
 
         return $grouped;
-    }
-
-    /**
-     * Get workflow timeline
-     */
-    public static function getWorkflowTimeline()
-    {
-        return [
-            1 => ['status' => 'crm_to_wqs', 'module' => 'CRM', 'label' => 'Order Created'],
-            2 => ['status' => 'wqs_ready', 'module' => 'WQS', 'label' => 'Quality Check'],
-            3 => ['status' => 'scm_on_delivery', 'module' => 'SCM', 'label' => 'Delivery'],
-            4 => ['status' => 'act_invoiced', 'module' => 'ACT', 'label' => 'Invoice'],
-            5 => ['status' => 'fin_paid', 'module' => 'FIN', 'label' => 'Payment'],
-        ];
-    }
-
-    /**
-     * Format currency untuk rupiah
-     */
-    public static function formatCurrency($amount)
-    {
-        return 'Rp ' . number_format($amount, 0, ',', '.');
-    }
-
-    /**
-     * Hitung progress percentage berdasarkan status
-     */
-    public static function getProgressPercentage($status)
-    {
-        $progress = [
-            'crm_to_wqs' => 20,
-            'wqs_ready' => 40,
-            'scm_on_delivery' => 60,
-            'scm_delivered' => 70,
-            'act_tukar_faktur' => 75,
-            'act_invoiced' => 85,
-            'fin_on_collect' => 90,
-            'fin_paid' => 100,
-            'fin_overdue' => 85,
-            'wqs_on_hold' => 40,
-        ];
-
-        return $progress[$status] ?? 0;
-    }
-
-    /**
-     * Validate if DO dapat disubmit
-     *
-     * @param \App\Models\SalesDO $salesDo
-     * @param \Illuminate\Database\Eloquent\Collection $items
-     * @return array ['valid' => bool, 'errors' => array]
-     */
-    public static function validateSubmission($salesDo, $items)
-    {
-        $errors = [];
-
-        // Check status
-        if ($salesDo->status !== 'crm_to_wqs') {
-            $errors[] = 'DO status must be "CRM to WQS" for submission.';
-        }
-
-        // Check items
-        if ($items->isEmpty()) {
-            $errors[] = 'DO must have at least one item.';
-        }
-
-        // Check item details
-        foreach ($items as $item) {
-            if (!$item->qty_ordered || $item->qty_ordered <= 0) {
-                $errors[] = "Item '{$item->product_name}' has invalid quantity.";
-            }
-
-            if (!$item->unit_price || $item->unit_price <= 0) {
-                $errors[] = "Item '{$item->product_name}' has invalid unit price.";
-            }
-        }
-
-        // Check customer
-        if (!$salesDo->customer_id) {
-            $errors[] = 'Customer must be selected.';
-        }
-
-        // Check office
-        if (!$salesDo->office_id) {
-            $errors[] = 'Office must be selected.';
-        }
-
-        // Check shipping address
-        if (empty($salesDo->shipping_address)) {
-            $errors[] = 'Shipping address is required.';
-        }
-
-        // Check grand total
-        if ($salesDo->grand_total <= 0) {
-            $errors[] = 'Grand total must be greater than zero.';
-        }
-
-        return [
-            'valid' => count($errors) === 0,
-            'errors' => $errors,
-        ];
     }
 }

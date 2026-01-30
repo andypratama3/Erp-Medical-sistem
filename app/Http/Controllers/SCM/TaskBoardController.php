@@ -102,7 +102,7 @@ class TaskBoardController extends Controller implements HasMiddleware
             'items.product',
             'delivery.driver',
             'documents' => function($query) {
-                $query->whereIn('stage', ['scm_loading', 'scm_delivery', 'scm_proof']);
+                $query->whereIn('document_category', ['scm_loading', 'scm_delivery', 'scm_proof']);
             }
         ]);
 

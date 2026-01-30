@@ -2,9 +2,9 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CRM\SalesDOController;
-use App\Http\Controllers\WQS\{TaskBoardController as WQSTaskBoard, StockCheckController};
-use App\Http\Controllers\SCM\{TaskBoardController as SCMTaskBoard, DeliveryController};
 use App\Http\Controllers\ACT\{TaskBoardController as ACTTaskBoard, InvoiceController};
+use App\Http\Controllers\SCM\{TaskBoardController as SCMTaskBoard, DeliveryController, DriverController};
+use App\Http\Controllers\WQS\{TaskBoardController as WQSTaskBoard, StockCheckController};
 use App\Http\Controllers\FIN\{TaskBoardController as FINTaskBoard, CollectionController, AgingController};
 
 Route::middleware(['auth'])->group(function () {
@@ -51,8 +51,65 @@ Route::middleware(['auth'])->group(function () {
 
     // SCM Module
     Route::prefix('scm')->name('scm.')->group(function () {
-        Route::get('task-board', [SCMTaskBoard::class, 'index'])->name('task-board');
+    // Task Board
+        Route::get('task-board', [SCMTaskBoard::class, 'index'])->name('task-board.index');
+        Route::get('task-board/{salesDo}', [SCMTaskBoard::class, 'show'])->name('task-board.show');
+
+        // Driver Assignment & Delivery Actions
+        Route::post('task-board/{salesDo}/assign-driver', [SCMTaskBoard::class, 'assignDriver'])->name('task-board.assign-driver');
+        Route::post('task-board/{salesDo}/start-delivery', [SCMTaskBoard::class, 'startDelivery'])->name('task-board.start-delivery');
+        Route::post('task-board/{salesDo}/complete-delivery', [SCMTaskBoard::class, 'completeDelivery'])->name('task-board.complete-delivery');
+        Route::post('task-board/{salesDo}/update-location', [SCMTaskBoard::class, 'updateLocation'])->name('task-board.update-location');
+
+        // Deliveries Resource
+
+        Route::resource('drivers', DriverController::class);
+
+
         Route::resource('deliveries', DeliveryController::class);
+        Route::post('deliveries/{delivery}/mark-delivered', [DeliveryController::class, 'markAsDelivered'])
+        ->name('deliveries.mark-delivered');
+
+        // Drivers Management
+        Route::prefix('drivers')->name('drivers.')->group(function () {
+            Route::get('/', [DriverController::class, 'index'])->name('index');
+            Route::get('create', [DriverController::class, 'create'])->name('create');
+            Route::post('/', [DriverController::class, 'store'])->name('store');
+            Route::get('{driver}', [DriverController::class, 'show'])->name('show');
+            Route::get('{driver}/edit', [DriverController::class, 'edit'])->name('edit');
+            Route::put('{driver}', [DriverController::class, 'update'])->name('update');
+            Route::delete('{driver}', [DriverController::class, 'destroy'])->name('destroy');
+            Route::post('{driver}/toggle-status', [DriverController::class, 'toggleStatus'])->name('toggle-status');
+        });
+
+        // Vehicles Management (Optional)
+        Route::prefix('vehicles')->name('vehicles.')->group(function () {
+            Route::get('/', [VehicleController::class, 'index'])->name('index');
+            Route::get('create', [VehicleController::class, 'create'])->name('create');
+            Route::post('/', [VehicleController::class, 'store'])->name('store');
+            Route::get('{vehicle}', [VehicleController::class, 'show'])->name('show');
+            Route::get('{vehicle}/edit', [VehicleController::class, 'edit'])->name('edit');
+            Route::put('{vehicle}', [VehicleController::class, 'update'])->name('update');
+            Route::delete('{vehicle}', [VehicleController::class, 'destroy'])->name('destroy');
+        });
+
+        // Delivery Tracking
+        Route::prefix('tracking')->name('tracking.')->group(function () {
+            Route::get('/', [DeliveryTrackingController::class, 'index'])->name('index');
+            Route::get('{salesDo}', [DeliveryTrackingController::class, 'show'])->name('show');
+            Route::get('{salesDo}/live', [DeliveryTrackingController::class, 'liveTracking'])->name('live');
+            Route::get('{salesDo}/history', [DeliveryTrackingController::class, 'history'])->name('history');
+        });
+
+        // Reports
+        Route::prefix('reports')->name('reports.')->group(function () {
+            Route::get('delivery-performance', [SCMReportController::class, 'deliveryPerformance'])->name('delivery-performance');
+            Route::get('driver-performance', [SCMReportController::class, 'driverPerformance'])->name('driver-performance');
+            Route::get('delivery-summary', [SCMReportController::class, 'deliverySummary'])->name('delivery-summary');
+            Route::get('export', [SCMReportController::class, 'export'])->name('export');
+        });
+
+
     });
 
     // ACT Module

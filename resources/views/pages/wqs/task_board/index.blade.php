@@ -47,13 +47,13 @@
                 <div>
                     <label class="block text-sm text-gray-700 dark:text-gray-300 font-semibold mb-2">Search</label>
                     <input type="text" name="search" value="{{ request('search') }}" placeholder="DO code, Customer..."
-                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400">
+                        class="h-10 w-full rounded-lg border border-gray-300 bg-transparent px-3 text-sm dark:text-white dark:border-gray-700 dark:bg-gray-900">
                 </div>
 
                 <div>
                     <label class="block text-sm text-gray-700 dark:text-gray-300 font-semibold mb-2">Status</label>
                     <select name="status"
-                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400">
+                        class="h-10 w-full rounded-lg border border-gray-300 bg-transparent px-3 text-sm dark:text-white dark:border-gray-700 dark:bg-gray-900">
                         <option value="">All Status</option>
                         <option value="pending" {{ request('status') === 'pending' ? 'selected' : '' }}>Pending</option>
                         <option value="in_progress" {{ request('status') === 'in_progress' ? 'selected' : '' }}>In Progress
@@ -67,7 +67,7 @@
                 <div>
                     <label class="block text-sm text-gray-700 dark:text-gray-300 font-semibold mb-2">Priority</label>
                     <select name="priority"
-                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400">
+                        class="h-10 w-full rounded-lg border border-gray-300 bg-transparent px-3 text-sm dark:text-white dark:border-gray-700 dark:bg-gray-900">
                         <option value="">All Priorities</option>
                         <option value="urgent" {{ request('priority') === 'urgent' ? 'selected' : '' }}>Urgent</option>
                         <option value="high" {{ request('priority') === 'high' ? 'selected' : '' }}>High</option>
@@ -78,11 +78,11 @@
 
                 <div class="flex items-end gap-2">
                     <button type="submit"
-                        class="flex-1 px-4 py-2 bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-800 text-white rounded-lg font-bold transition">
+                        class="inline-flex items-center justify-center font-medium gap-2 rounded-lg transition px-4 py-3 text-sm bg-brand-500 text-white shadow-theme-xs hover:bg-brand-600">
                         Apply
                     </button>
                     <a href="{{ route('wqs.task-board') }}"
-                        class="flex-1 px-4 py-2 bg-gray-300 dark:bg-gray-700 hover:bg-gray-400 dark:hover:bg-gray-600 text-gray-900 dark:text-white rounded-lg font-bold transition text-center">
+                        class="inline-flex items-center justify-center font-medium gap-2 rounded-lg transition px-4 py-3 text-sm bg-red-500 text-white shadow-theme-xs hover:bg-brand-600">
                         Reset
                     </a>
                 </div>
@@ -128,13 +128,13 @@
                             </td>
                             <td class="px-6 py-4">
                                 <span
-                                    class="px-2 py-1 bg-{{ $task->priority_color }}-100 dark:bg-{{ $task->priority_color }}-900 text-{{ $task->priority_color }}-800 dark:text-{{ $task->priority_color }}-200 rounded text-xs font-bold">
+                                    class="px-2 py-1 bg-{{ $task->priority_color }}-100 dark:bg-{{ $task->priority_color }}-900 text-{{ $task->priority_color }}-800 dark:text-white rounded text-xs font-bold">
                                     {{ $task->priority_label }}
                                 </span>
                             </td>
                             <td class="px-6 py-4">
                                 <span
-                                    class="px-2 py-1 bg-{{ $task->status_color }}-100 dark:bg-{{ $task->status_color }}-900 text-{{ $task->status_color }}-800 dark:text-{{ $task->status_color }}-200 rounded text-xs font-bold">
+                                    class="px-2 py-1 bg-{{ $task->status_color }}-100 dark:bg-{{ $task->status_color }}-900 text-{{ $task->status_color }}-800 dark:text-white rounded text-xs font-bold">
                                     {{ $task->status_label }}
                                 </span>
                             </td>

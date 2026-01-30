@@ -34,9 +34,9 @@ class VendorController extends Controller
                     'value' => $vendor->status,
                     'label' => ucfirst($vendor->status),
                     'color' => match ($vendor->status) {
-                        'active' => 'green',
-                        'inactive' => 'red',
-                        'blocked' => 'yellow',
+                        'active' => 'active',
+                        'inactive' => 'inactive',
+                        'blocked' => 'warning',
                         default => 'gray',
                     }
                 ],

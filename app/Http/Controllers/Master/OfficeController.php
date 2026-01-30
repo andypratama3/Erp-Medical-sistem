@@ -32,7 +32,7 @@ class OfficeController extends Controller
                 'status' => [
                     'value' => $office->status,
                     'label' => ucfirst($office->status),
-                    'color' => $office->status === 'active' ? 'green' : 'red',
+                    'color' => $office->status === 'active' ? 'active' : 'inactive',
                 ],
                 'actions' => [
                     'show' => route('master.offices.show', $office),
@@ -41,6 +41,7 @@ class OfficeController extends Controller
                 ],
             ];
         })->toArray();
+
 
         return view('pages.master.offices.index', compact(
             'offices',

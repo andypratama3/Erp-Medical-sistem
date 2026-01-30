@@ -34,7 +34,7 @@ class MenuHelper
                 'icon'=> 'ui-elements',
                 'name'=> 'CRM',
                 'subItems'=> [
-                    ['name'=> 'Sales', 'path'=> route('crm.sales-do.index')],
+                    ['name'=> 'Sales', 'path'=> '/crm/sales-do'],
                 ]
             ],
             [
@@ -51,8 +51,9 @@ class MenuHelper
                 'icon'=> 'ui-elements',
                 'name'=> 'SCM',
                 'subItems'=> [
-                    ['name'=> 'Task Board', 'path'=> route('scm.task-board')],
-                    ['name'=> 'Delivery', 'path'=> route('scm.deliveries.index')],
+                    ['name'=> 'Drivers', 'path'=> '/scm/drivers'],
+                    ['name'=> 'Task Board', 'path'=> '/scm/task-board'],
+                    ['name'=> 'Delivery', 'path'=> '/scm/deliveries'],
                 ]
             ],
             [

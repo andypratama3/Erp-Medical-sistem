@@ -58,11 +58,7 @@ class DepartmentController extends Controller
                 'status' => [
                     'value' => $department->status,
                     'label' => ucfirst($department->status),
-                    'color' => match ($department->status) {
-                        'active' => 'green',
-                        'inactive' => 'red',
-                        default => 'gray',
-                    }
+                    'color' => $department->status ,
                 ],
 
                 'actions' => [
@@ -110,7 +106,8 @@ class DepartmentController extends Controller
     public function show(MasterDepartment $department)
     {
         $department->load('office');
-        return view('pages.master.departments.show', compact('department'));
+        $offices = MasterOffice::active()->get();
+        return view('pages.master.departments.show', compact('department','offices'));
     }
 
     public function edit(MasterDepartment $department)

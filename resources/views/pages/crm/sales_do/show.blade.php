@@ -33,51 +33,16 @@
 
         <!-- Status Badge -->
         <div class="mb-6">
-            <span class="inline-flex px-3 py-1 rounded-full text-sm font-medium
-                @switch($salesDo->status)
-                    @case('crm_to_wqs')
-                        bg-blue-100 text-yellow-800 dark:bg-yellow-500 dark:text-yellow-800
-                        @break
-                    @case('wqs_ready')
-                        bg-yellow-100 text-yellow-800 dark:bg-yellow-500 dark:text-yellow-800
-                        @break
-                    @case('wqs_on_hold')
-                        bg-blue-100 text-blue-800 dark:bg-blue-500 dark:text-blue-800
-                        @break
-                    @case('scm_on_delivery')
-                        bg-purple-100 text-purple-800 dark:bg-purple-500 dark:text-purple-800
-                        @break
-                    @case('scm_delivered')
-                    @case('act_invoiced')
-                    @case('fin_paid')
-                        bg-green-100 text-green-800 dark:bg-green-500 dark:text-green-800
-                        @break
-                    @case('act_tukar_faktur')
-                        bg-indigo-100 text-indigo-800 dark:bg-indigo-500 dark:text-indigo-800
-                        @break
-                    @case('fin_on_collect')
-                        bg-orange-100 text-orange-800 dark:bg-orange-500 dark:text-orange-800
-                        @break
-                    @case('fin_overdue')
-                        bg-red-100 text-red-800 dark:bg-red-500 dark:text-red-800
-                        @break
-                    @default
-                        bg-gray-100 text-gray-800 dark:bg-gray-500 dark:text-gray-800
-                @endswitch">
-                {{ match($salesDo->status) {
-                    'crm_to_wqs' => 'CRM to WQS',
-                    'wqs_ready' => 'WQS Ready',
-                    'wqs_on_hold' => 'WQS On Hold',
-                    'scm_on_delivery' => 'On Delivery',
-                    'scm_delivered' => 'Delivered',
-                    'act_tukar_faktur' => 'Tukar Faktur',
-                    'act_invoiced' => 'Invoiced',
-                    'fin_on_collect' => 'On Collection',
-                    'fin_paid' => 'Paid',
-                    'fin_overdue' => 'Overdue',
-                    default => ucfirst($salesDo->status)
-                } }}
-            </span>
+            <div class="mb-6">
+                <x-ui.badge
+                    size="md"
+                    variant="light"
+                    :class="$salesDo->status_config['badge_class']"
+                >
+                    {{ $salesDo->status_config['label'] }}
+                </x-ui.badge>
+            </div>
+
         </div>
     </x-common.component-card>
 

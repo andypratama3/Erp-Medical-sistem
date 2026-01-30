@@ -46,7 +46,7 @@ class ProductController extends Controller
             ['key' => 'name', 'label' => 'Name', 'type' => 'text'],
             ['key' => 'category', 'label' => 'Category', 'type' => 'text'],
             ['key' => 'manufacture', 'label' => 'Manufacture', 'type' => 'text'],
-            ['key' => 'unit_price', 'label' => 'Unit Price', 'type' => 'currency'],
+            ['key' => 'unit_price', 'label' => 'Unit Price', 'type' => 'text'],
             ['key' => 'status', 'label' => 'Status', 'type' => 'badge'],
         ];
 
@@ -66,9 +66,9 @@ class ProductController extends Controller
                     'value' => $product->status,
                     'label' => ucfirst($product->status),
                     'color' => match ($product->status) {
-                        'active' => 'green',
-                        'inactive' => 'red',
-                        'discontinued' => 'yellow',
+                        'active' => 'active',
+                        'inactive' => 'inactive',
+                        'discontinued' => 'warning',
                         default => 'gray',
                     }
                 ],
@@ -211,6 +211,6 @@ class ProductController extends Controller
 
     public function import (Request $request)
     {
-        
+
     }
 }

@@ -5,6 +5,13 @@
     'filterable' => true,
 ])
 
+@php
+    use App\Helpers\StatusBadgeHelper;
+
+    // Get all status badge classes untuk Alpine.js
+    $statusClasses = StatusBadgeHelper::getStatusBadgeClasses();
+@endphp
+
 @push('styles')
     <style>
         /* ================================
@@ -86,6 +93,8 @@
         items: @js($data),
         search: '',
         statusFilter: '',
+        statusClasses: @js($statusClasses),
+
         get filteredItems() {
             let result = this.items;
 
@@ -113,20 +122,15 @@
                 });
             }
 
-
             return result;
         },
-        getStatusClass(status) {
-            const classes = {
-                Active: 'bg-green-50 text-green-700',
-                Inactive: 'blue text-gray-700',
-                Pending: 'bg-yellow-50 text-yellow-700',
-                Processing: 'bg-blue-50 text-blue-700',
-                Completed: 'bg-green-50 text-green-700',
-                Failed: 'bg-red-50 text-red-700',
-                Cancelled: 'bg-red-50 text-red-700',
-            };
-            return classes[status] || 'blue text-gray-700';
+
+        /**
+         * Get badge class dari status label
+         * Menggunakan StatusBadgeHelper configuration
+         */
+        getStatusClass(statusLabel) {
+            return this.statusClasses[statusLabel] || '';
         }
     }"
     class="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]"
@@ -149,7 +153,7 @@
 
             <tbody>
                 <template x-for="item in filteredItems" :key="item.id">
-                    <tr class="border-b border-gray-100 dark:border-gray-800">
+                    <tr class="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors">
 
                         <template x-for="column in @js($columns)" :key="column.key">
                             <td class="px-6 py-4">
@@ -160,7 +164,7 @@
                                 </template>
 
                                 <template x-if="column.type === 'tag'">
-                                    <span class="inline-block px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-xs"
+                                    <span class="inline-block px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-500/15 text-blue-700 dark:text-blue-400 text-xs"
                                           x-text="item[column.key]"></span>
                                 </template>
 
@@ -168,19 +172,14 @@
                                     <p class="text-sm text-gray-700 dark:text-white"
                                        x-text="item[column.key]"></p>
                                 </template>
-                               <template x-if="column.type === 'badge' && item[column.key]">
-                                    <span
-                                        class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium"
-                                        :class="{
-                                            'bg-green-100 text-green-700': item[column.key]?.color === 'green',
-                                            'bg-red-100 text-red-700': item[column.key]?.color === 'red',
-                                            'bg-yellow-100 text-yellow-700': item[column.key]?.color === 'yellow',
-                                            'bg-blue-100 text-blue-700': item[column.key]?.color === 'blue',
-                                            'bg-gray-100 text-gray-700': !item[column.key]?.color
-                                        }"
-                                        x-text="item[column.key]?.label">
-                                    </span>
+
+
+                                <template x-if="column.type === 'badge' && item[column.key]">
+                                    <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium"
+                                          :class="getStatusClass(item[column.key].color)"
+                                          x-text="item[column.key].label"></span>
                                 </template>
+
                             </td>
                         </template>
 
@@ -191,7 +190,7 @@
                                     <x-slot name="button">
                                         <button
                                             type="button"
-                                            class="text-gray-800 hover:text-gray-700 dark:text-gray-400"
+                                            class="text-gray-800 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 transition-colors"
                                         >
                                             <svg class="fill-current" width="24" height="24" viewBox="0 0 24 24">
                                                 <path fill-rule="evenodd" clip-rule="evenodd"
@@ -208,34 +207,46 @@
                                                 :href="item.actions.show"
                                                 class="flex w-full px-3 py-2 text-theme-xs font-medium
                                                     text-gray-800 hover:bg-gray-100 hover:text-gray-700
-                                                    dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
+                                                    dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300
+                                                    transition-colors"
                                             >
+                                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                                </svg>
                                                 Lihat
                                             </a>
                                         </template>
 
                                         {{-- EDIT --}}
-                                        <template x-if="item.actions?.edit">
+                                        <template x-if="item.actions?.edit && item.actions.edit !== null">
                                             <a
                                                 :href="item.actions.edit"
                                                 class="flex w-full px-3 py-2 text-theme-xs font-medium
                                                     text-gray-500 hover:bg-gray-100 hover:text-blue-600
-                                                    dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-blue-400"
+                                                    dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-blue-400
+                                                    transition-colors"
                                             >
+                                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                                </svg>
                                                 Edit
                                             </a>
                                         </template>
 
                                         {{-- DELETE --}}
-                                        <template x-if="item.actions?.delete">
+                                        <template x-if="item.actions?.delete && item.actions.delete !== null">
                                             <button
                                                 type="button"
                                                 class="flex w-full px-3 py-2 text-theme-xs font-medium text-left
-                                                    text-red-600 hover:bg-red-50
-                                                    dark:hover:bg-red-500/10
+                                                    text-red-600 hover:bg-red-50 dark:text-red-500
+                                                    dark:hover:bg-red-500/10 transition-colors
                                                     js-confirm-delete"
                                                 :data-url="item.actions.delete"
                                             >
+                                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                                </svg>
                                                 Delete
                                             </button>
                                         </template>
@@ -244,16 +255,21 @@
                             </div>
                         </td>
 
-
                     </tr>
                 </template>
 
-                {{-- Empty --}}
+                {{-- Empty State --}}
                 <template x-if="filteredItems.length === 0">
                     <tr>
                         <td :colspan="@js(count($columns) + 1)"
-                            class="py-8 text-center text-gray-500">
-                            Tidak ada data
+                            class="py-12 text-center">
+                            <div class="flex flex-col items-center justify-center">
+                                <svg class="w-12 h-12 text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
+                                </svg>
+                                <p class="text-gray-500 dark:text-gray-400 font-medium">Tidak ada data</p>
+                                <p class="text-gray-400 dark:text-gray-500 text-sm">Coba ubah filter atau cari dengan kata kunci lain</p>
+                            </div>
                         </td>
                     </tr>
                 </template>
@@ -269,7 +285,7 @@
 
 <script>
 /**
- * SweetAlert Helper
+ * SweetAlert Helper untuk delete confirmation
  */
 window.swalConfirm = function ({
     title = 'Anda yakin?',
@@ -289,6 +305,8 @@ window.swalConfirm = function ({
         reverseButtons: true,
         allowOutsideClick: false,
         allowEscapeKey: true,
+        confirmButtonColor: '#dc2626',
+        cancelButtonColor: '#6b7280',
         didOpen: () => {
             const popup = Swal.getPopup();
             popup && popup.offsetHeight;
@@ -300,7 +318,11 @@ window.swalConfirm = function ({
     });
 };
 </script>
+
 <script>
+/**
+ * Handle delete button click
+ */
 document.addEventListener('click', function (e) {
     const btn = e.target.closest('.js-confirm-delete');
     if (!btn) return;
