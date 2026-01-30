@@ -15,13 +15,8 @@
             :data="$departmentsData"
             :columns="$columns"
             :searchable="true"
-            :filterable="false" />
+            :filterable="false"
+            :pagination="$departments" />
     </x-common.component-card>
-
-    @if($departments->hasPages())
-        <div class="flex justify-start gap-2">
-            {{ $departments->links() }}
-        </div>
-    @endif
 </div>
 @endsection

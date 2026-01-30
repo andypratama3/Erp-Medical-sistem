@@ -15,13 +15,8 @@
             :data="$officesData"
             :columns="$columns"
             :searchable="true"
-            :filterable="true" />
+            :filterable="true"
+            :pagination="$offices" />
     </x-common.component-card>
-
-    @if($offices->hasPages())
-        <div class="flex justify-start gap-2">
-            {{ $offices->links() }}
-        </div>
-    @endif
 </div>
 @endsection

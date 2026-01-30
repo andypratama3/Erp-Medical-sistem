@@ -65,7 +65,8 @@
             :data="$productsData"
             :columns="$columns"
             :searchable="true"
-            :filterable="true" />
+            :filterable="true"
+            :pagination="$products" />
     </x-common.component-card>
 </div>
 

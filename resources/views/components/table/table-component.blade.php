@@ -1,6 +1,7 @@
 @props([
     'data' => [],
     'columns' => [],
+    'pagination' => null,
     'searchable' => true,
     'filterable' => true,
 ])
@@ -17,6 +18,8 @@
         /* ================================
         SweetAlert2 FIX & THEME
         ================================ */
+
+        /* .nav */
 
         /* FIX BUG: grid bikin tombol disabled */
         .swal2-popup {
@@ -91,6 +94,7 @@
 <div
     x-data="{
         items: @js($data),
+        pagination: @js($pagination ? $pagination->toArray() : null),
         search: '',
         statusFilter: '',
         statusClasses: @js($statusClasses),
@@ -183,7 +187,7 @@
                             </td>
                         </template>
 
-                        <td class="px-4 py-4 text-sm font-medium text-right whitespace-nowrap">
+                        <td class="text-sm font-medium text-right whitespace-nowrap">
                             <div class="flex justify-center relative">
                                 <x-common.table-dropdown>
                                     {{-- BUTTON --}}
@@ -273,10 +277,16 @@
                         </td>
                     </tr>
                 </template>
-
             </tbody>
         </table>
+
+        <div class="py-2 p-4 m-3 dark:text-white">
+            @if($pagination && $pagination->hasPages())
+                {{ $pagination->links() }}
+            @endif
+        </div>
     </div>
+
 </div>
 
 

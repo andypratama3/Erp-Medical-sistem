@@ -15,13 +15,8 @@
             :data="$customersData"
             :columns="$columns"
             :searchable="true"
-            :filterable="false" />
+            :filterable="false"
+            :pagination="$customers" />
     </x-common.component-card>
-
-    @if($customers->hasPages())
-        <div class="flex justify-start gap-2">
-            {{ $customers->links() }}
-        </div>
-    @endif
 </div>
 @endsection

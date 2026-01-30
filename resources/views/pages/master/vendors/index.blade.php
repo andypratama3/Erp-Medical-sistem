@@ -15,13 +15,8 @@
             :data="$vendorsData"
             :columns="$columns"
             :searchable="true"
-            :filterable="false" />
+            :filterable="false"
+            :pagination="$vendors" />
     </x-common.component-card>
-
-    @if($vendors->hasPages())
-        <div class="flex justify-start gap-2">
-            {{ $vendors->links() }}
-        </div>
-    @endif
 </div>
 @endsection

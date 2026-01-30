@@ -16,15 +16,10 @@
             :data="$permissionsData"
             :columns="$columns"
             :searchable="true"
-            :filterable="false" />
+            :filterable="false"
+            :pagination="$permissions"/>
     </x-common.component-card>
 
-    {{-- Pagination --}}
-    @if($permissions->hasPages())
-        <div class="flex justify-start gap-2 ">
-            {{ $permissions->links() }}
-        </div>
-    @endif
 </div>
 
 @endsection

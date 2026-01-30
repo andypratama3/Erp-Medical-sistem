@@ -18,15 +18,9 @@
             :data="$manufacturesData"
             :columns="$columns"
             :searchable="true"
-            :filterable="true" />
+            :filterable="true"
+            :pagination="$manufactures" />
     </x-common.component-card>
-
-    {{-- Pagination --}}
-    @if($manufactures->hasPages())
-        <div class="flex justify-start gap-2">
-            {{ $manufactures->links() }}
-        </div>
-    @endif
 </div>
 
 @endsection
