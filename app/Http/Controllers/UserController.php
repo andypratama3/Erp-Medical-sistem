@@ -40,9 +40,9 @@ class UserController extends Controller
                 'email' => $user->email,
                 'roles' => $user->roles->pluck('name')->toArray(),
                 'actions' => [
-                    'show' => route('users.show', $user->id),
-                    'edit' => route('users.edit', $user->id),
-                    'delete' => route('users.destroy', $user->id),
+                    'show' => route('master.users.show', $user->id),
+                    'edit' => route('master.users.edit', $user->id),
+                    'delete' => route('master.users.destroy', $user->id),
                 ]
             ];
         })->toArray();

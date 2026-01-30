@@ -2,9 +2,7 @@
     $isEdit = isset($product);
 @endphp
 
-@push('css')
 
-@endpush
 
 <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
 
@@ -53,7 +51,7 @@
             Unit Price <span class="text-red-500">*</span>
         </label>
         <div class="relative">
-            {{-- <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm dark:text-gray-400">Rp</span> --}}
+
             <input type="text" id="unit_price_display" required
                    value="{{ old('unit_price', isset($product) ? number_format($product->unit_price, 0, ',', '.') : '0') }}"
                      class="w-full h-11 rounded-lg border px-3 text-sm
@@ -161,18 +159,14 @@
         <label class="block text-sm font-medium mb-1 dark:text-white">
             Category <span class="text-red-500">*</span>
         </label>
-        <select name="category_id" required
-                class="w-full h-11 rounded-lg border px-3 text-sm
-                       bg-white text-gray-900
-                       dark:bg-gray-800 dark:border-gray-700 dark:text-white">
-            <option value="">-- Pilih --</option>
-            @foreach($categories as $c)
-                <option value="{{ $c->id }}"
-                    @selected(old('category_id',$product->category_id ?? '')==$c->id)>
-                    {{ $c->name }}
-                </option>
-            @endforeach
-        </select>
+        <x-form.select.searchable-select
+            name="category_id"
+            :options="$categories->map(fn($o) => ['value' => $o->id, 'label' => $o->name])->toArray()"
+            :selected="old('category_id', $product->category_id ?? '')"
+            placeholder="-- Select Category --"
+            searchPlaceholder="Search category..."
+            :required="true"
+        />
     </div>
 
     {{-- Min Stock --}}
@@ -269,7 +263,7 @@
     </div>
 
     {{-- Status --}}
-    <div>
+    <div class="sm:col-span-2">
         <label class="block text-sm font-medium mb-1 dark:text-white">
             Status <span class="text-red-500">*</span>
         </label>
@@ -288,7 +282,7 @@
     </div>
 
     {{-- Description --}}
-    <div class="md:col-span-12">
+    <div class="sm:col-span-12">
         <label class="block text-sm font-medium mb-1 dark:text-white">Description</label>
         <textarea name="description" rows="3"
                   class="w-full rounded-lg border px-3 py-2 text-sm
@@ -297,19 +291,24 @@
                          dark:placeholder-gray-400">{{ old('description', $product->description ?? '') }}</textarea>
     </div>
 
-    {{-- Actions --}}
-    <div class="md:col-span-12 flex justify-end gap-3 pt-4">
-        <a href="{{ route('master.products.index') }}"
-           class="px-5 py-2 rounded-lg border text-sm
-                  text-gray-700 dark:text-white
-                  dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-            Batal
-        </a>
 
+    <div class="sm:col-span-2">
+      <x-form.input.dropzone
+            title="Upload Foto Product"
+            accept="image/png,image/jpeg,image/webp,image/svg+xml"
+        />
+    </div>
+
+    {{-- Actions --}}
+     <div class="sm:col-span-2 flex items-center justify-end gap-3 mt-4">
+        <a href="{{ route('master.products.index') }}"
+            class="inline-flex items-center justify-center font-medium gap-2 rounded-lg transition px-4 py-3 text-sm bg-error-500 text-white shadow-theme-xs hover:bg-error-600">
+            Cancel
+        </a>
         <button type="submit"
-                class="px-5 py-2 rounded-lg bg-blue-600 text-white text-sm
-                       hover:bg-blue-700 transition-colors">
-            {{ $isEdit ? 'Update Product' : 'Simpan Product' }}
+            class="inline-flex items-center justify-center font-medium gap-2 rounded-lg transition px-4 py-3 text-sm bg-brand-500 text-white shadow-theme-xs hover:bg-brand-600">
+
+            {{ $isEdit ? 'Update Product' : 'Create Product' }}
         </button>
     </div>
 

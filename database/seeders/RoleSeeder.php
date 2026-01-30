@@ -13,6 +13,7 @@ class RoleSeeder extends Seeder
     {
         // SUPERADMIN - Full Access
         $superadmin = Role::create(['name' => 'superadmin']);
+        $owner = Role::create(['name' => 'owner','guard_name'=> 'web']);
         $superadmin->givePermissionTo(Permission::all());
 
         // MANAGER - View All, Limited Edit

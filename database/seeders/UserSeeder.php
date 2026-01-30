@@ -10,6 +10,15 @@ class UserSeeder extends Seeder
 {
     public function run(): void
     {
+        $owner = User::create([
+            'name' => 'Owner RMI',
+            'email' => 'owner@rmi.local',
+            'password'=> Hash::make('owner1234'),
+            'email_verified_at' => now(),
+        ]);
+
+        $owner->assignRole('owner');
+
         // SUPERADMIN
         $admin = User::create([
             'name' => 'Admin RMI',

@@ -12,9 +12,13 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
+            // Core seeders - harus dijalankan pertama
             PermissionSeeder::class,
             RoleSeeder::class,
             UserSeeder::class,
+            BranchSeeder::class, // Branch seeder harus setelah User
+
+            // Master data seeders
             MasterOfficeSeeder::class,
             MasterDepartmentSeeder::class,
             CategorySeeder::class,
@@ -25,6 +29,8 @@ class DatabaseSeeder extends Seeder
             VendorSeeder::class,
             TaxSeeder::class,
             PaymentTermSeeder::class,
+
+            // Transaction seeders
             SalesDOSeeder::class,
         ]);
 

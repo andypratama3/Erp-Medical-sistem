@@ -2,15 +2,21 @@
 
 namespace App\Http\Controllers\Master;
 
-use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Models\Category;
-use App\Models\ProductGroup;
 use App\Models\Manufacture;
+use App\Models\ProductGroup;
 use Illuminate\Http\Request;
+use App\Services\AuditLogService;
+use App\Http\Controllers\Controller;
 
 class ProductController extends Controller
 {
+    public function __construct(AuditLogService $auditLog)
+    {
+        $this->auditLog = $auditLog;
+    }
+
     public function index(Request $request)
     {
         $query = Product::with(['category', 'productGroup', 'manufacture']);
@@ -136,7 +142,11 @@ class ProductController extends Controller
             $validated['cost_price'] = (float) str_replace(['.', ','], ['', '.'], $validated['cost_price']);
         }
 
-        Product::create($validated);
+        $product = Product::create($validated);
+
+        
+
+        $this->auditLog->logCreate('master', $product);
 
         return redirect()->route('master.products.index')
             ->with('success', 'Product created successfully');
@@ -191,7 +201,10 @@ class ProductController extends Controller
             $validated['cost_price'] = (float) str_replace(['.', ','], ['', '.'], $validated['cost_price']);
         }
 
+        $oldData = $product->toArray();
         $product->update($validated);
+
+        $this->auditLog->logUpdate('master', $product, $oldData);
 
         return redirect()->route('master.products.index')
             ->with('success', 'Product updated successfully');

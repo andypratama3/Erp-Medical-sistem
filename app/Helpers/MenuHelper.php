@@ -16,18 +16,15 @@ class MenuHelper
                 'icon' => 'ui-elements',
                 'name' => 'Data Master',
                 'subItems' => [
-                    // ['name' => 'Offices', 'path' => route('master.offices.index')],
-                    // ['name'=> 'Departments', 'path'=> route('master.departments.index')],
-                    // ['name'=> 'Customers', 'path'=> route('master.customers.index')],
-                    // ['name'=> 'Vendors', 'path'=> route('master.vendors.index')],
-                    // ['name'=> 'Manufactures', 'path'=> route('master.manufactures.index')],
-                    // ['name'=> 'Products', 'path'=> route('master.products.index')],
+                    ['name'=> 'Branches', 'path'=> '/master/branches'],
                     ['name' => 'Offices', 'path' => '/master/offices'],
                     ['name'=> 'Departments', 'path'=> '/master/departments'],
                     ['name'=> 'Customers', 'path'=> '/master/customers'],
                     ['name'=> 'Vendors', 'path'=> '/master/vendors'],
                     ['name'=> 'Manufactures', 'path'=> '/master/manufactures'],
                     ['name'=> 'Products', 'path'=> '/master/products'],
+                    ['name'=> 'Taxes', 'path'=> '/master/taxes'],
+                    ['name'=> 'Payment Terms', 'path'=> '/master/payment-terms'],
                 ]
             ],
             [
@@ -41,8 +38,6 @@ class MenuHelper
                 'icon'=> 'ui-elements',
                 'name'=> 'WQS',
                 'subItems'=> [
-                    // ['name'=> 'Task Board', 'path'=> route('wqs.task-board')],
-                    // ['name'=> 'Stock Check', 'path'=> route('wqs.stock-checks.index')],
                     ['name'=> 'Task Board', 'path'=> '/wqs/task-board'],
                     ['name'=> 'Stock Check', 'path'=> '/wqs/stock-checks'],
                 ]
@@ -77,9 +72,6 @@ class MenuHelper
                 'icon' => 'gear',
                 'name' => 'Settings',
                 'subItems' => [
-                    // ['name' => 'Pengguna', 'path' =>  route('master.users.index')],
-                    // ['name' => 'Role', 'path' =>  route('master.roles.index')],
-                    // ['name' => 'Permission', 'path' =>  route('master.permissions.index')],
                     ['name'=> 'Users', 'path'=> '/master/users'],
                     ['name'=> 'Role', 'path'=> '/master/roles'],
                     ['name'=> 'Permission', 'path'=> '/master/permissions'],

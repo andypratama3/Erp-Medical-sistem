@@ -10,20 +10,15 @@
     <x-common.component-card
         title="User List"
         desc="Manage all users in your system"
-        link="{{ route('users.create') }}">
+        link="{{ route('master.users.create') }}">
 
         <x-table.table-component
             :data="$usersData"
             :columns="$columns"
             :searchable="true"
-            :filterable="false" />
+            :filterable="false"
+            :pagination="$users" />
     </x-common.component-card>
-
-    @if($users->hasPages())
-        <div class="flex justify-start gap-2">
-            {{ $users->links() }}
-        </div>
-    @endif
 </div>
 
 @endsection

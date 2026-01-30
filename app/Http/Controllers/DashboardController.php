@@ -22,6 +22,7 @@ class DashboardController extends Controller
             'overdue_invoices' => ACTInvoice::overdue()->count(),
         ];
 
+
         $recent_dos = SalesDO::with(['customer', 'office'])
             ->latest()
             ->take(10)

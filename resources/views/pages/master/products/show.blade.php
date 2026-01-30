@@ -5,65 +5,62 @@
     <!-- Header -->
     <div class="flex justify-between items-center">
         <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Product Details: {{ $product->name }}</h2>
-        <a href="{{ route('products.index') }}" class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg">Back</a>
+        <a href="{{ route('master.products.index') }}" class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg">Back</a>
     </div>
 
     <!-- Product Information -->
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Product Information</h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-                <span class="text-sm text-gray-500 dark:text-gray-400">SKU:</span>
-                <p class="text-base font-medium text-gray-900 dark:text-white">{{ $product->sku }}</p>
-            </div>
-            <div>
-                <span class="text-sm text-gray-500 dark:text-gray-400">Name:</span>
-                <p class="text-base font-medium text-gray-900 dark:text-white">{{ $product->name }}</p>
-            </div>
-            <div>
-                <span class="text-sm text-gray-500 dark:text-gray-400">Type:</span>
-                <p class="text-base font-medium text-gray-900 dark:text-white">{{ $product->type }}</p>
-            </div>
-            <div>
-                <span class="text-sm text-gray-500 dark:text-gray-400">Unit:</span>
-                <p class="text-base font-medium text-gray-900 dark:text-white">{{ $product->unit }}</p>
-            </div>
-            <div>
-                <span class="text-sm text-gray-500 dark:text-gray-400">Barcode:</span>
-                <p class="text-base font-medium text-gray-900 dark:text-white">{{ $product->barcode ?? '-' }}</p>
-            </div>
-            <div>
-                <span class="text-sm text-gray-500 dark:text-gray-400">Manufacture:</span>
-                <p class="text-base font-medium text-gray-900 dark:text-white">{{ $product->manufacture?->name ?? '-' }}</p>
-            </div>
-            <div>
-                <span class="text-sm text-gray-500 dark:text-gray-400">Category:</span>
-                <p class="text-base font-medium text-gray-900 dark:text-white">{{ $product->category?->name ?? '-' }}</p>
-            </div>
-            <div>
-                <span class="text-sm text-gray-500 dark:text-gray-400">Product Group:</span>
-                <p class="text-base font-medium text-gray-900 dark:text-white">{{ $product->productGroup?->name ?? '-' }}</p>
-            </div>
-            <div>
-                <span class="text-sm text-gray-500 dark:text-gray-400">Stock Qty:</span>
-                <p class="text-base font-medium text-gray-900 dark:text-white">{{ $product->stock_qty }}</p>
-            </div>
-            <div>
-                <span class="text-sm text-gray-500 dark:text-gray-400">Current Stock:</span>
-                <p class="text-base font-medium text-gray-900 dark:text-white">{{ $product->current_stock }}</p>
-            </div>
-            <div>
-                <span class="text-sm text-gray-500 dark:text-gray-400">AKL/AKD:</span>
-                <p class="text-base font-medium text-gray-900 dark:text-white">{{ $product->akl_akd ?? '-' }}</p>
-            </div>
-            <div>
-                <span class="text-sm text-gray-500 dark:text-gray-400">Status:</span>
-                <span class="px-2 py-1 text-xs font-semibold rounded-full {{ $product->status == 'active' ? 'bg-green-500' : 'bg-gray-500' }} text-white">{{ $product->status }}</span>
-            </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <div>
+            <span class="text-sm text-gray-500 dark:text-gray-400">SKU:</span>
+            <p class="text-base font-medium text-gray-900 dark:text-white">{{ $product->sku }}</p>
+        </div>
+        <div>
+            <span class="text-sm text-gray-500 dark:text-gray-400">Name:</span>
+            <p class="text-base font-medium text-gray-900 dark:text-white">{{ $product->name }}</p>
+        </div>
+        <div>
+            <span class="text-sm text-gray-500 dark:text-gray-400">Type:</span>
+            <p class="text-base font-medium text-gray-900 dark:text-white">{{ $product->type }}</p>
+        </div>
+        <div>
+            <span class="text-sm text-gray-500 dark:text-gray-400">Unit:</span>
+            <p class="text-base font-medium text-gray-900 dark:text-white">{{ $product->unit }}</p>
+        </div>
+        <div>
+            <span class="text-sm text-gray-500 dark:text-gray-400">Barcode:</span>
+            <p class="text-base font-medium text-gray-900 dark:text-white">{{ $product->barcode ?? '-' }}</p>
+        </div>
+        <div>
+            <span class="text-sm text-gray-500 dark:text-gray-400">Manufacture:</span>
+            <p class="text-base font-medium text-gray-900 dark:text-white">{{ $product->manufacture?->name ?? '-' }}</p>
+        </div>
+        <div>
+            <span class="text-sm text-gray-500 dark:text-gray-400">Category:</span>
+            <p class="text-base font-medium text-gray-900 dark:text-white">{{ $product->category?->name ?? '-' }}</p>
+        </div>
+        <div>
+            <span class="text-sm text-gray-500 dark:text-gray-400">Product Group:</span>
+            <p class="text-base font-medium text-gray-900 dark:text-white">{{ $product->productGroup?->name ?? '-' }}</p>
+        </div>
+        <div>
+            <span class="text-sm text-gray-500 dark:text-gray-400">Stock Qty:</span>
+            <p class="text-base font-medium text-gray-900 dark:text-white">{{ $product->stock_qty }}</p>
+        </div>
+        <div>
+            <span class="text-sm text-gray-500 dark:text-gray-400">Current Stock:</span>
+            <p class="text-base font-medium text-gray-900 dark:text-white">{{ $product->current_stock }}</p>
+        </div>
+        <div>
+            <span class="text-sm text-gray-500 dark:text-gray-400">AKL/AKD:</span>
+            <p class="text-base font-medium text-gray-900 dark:text-white">{{ $product->akl_akd ?? '-' }}</p>
+        </div>
+        <div>
+            <span class="text-sm text-gray-500 dark:text-gray-400">Status:</span>
+            <span class="px-2 py-1 text-xs font-semibold rounded-full {{ $product->status == 'active' ? 'bg-green-500' : 'bg-gray-500' }} text-white">{{ $product->status }}</span>
         </div>
 
         @if($product->description)
-        <div class="mt-4">
+        <div class="sm:col-span-2">
             <span class="text-sm text-gray-500 dark:text-gray-400">Description:</span>
             <p class="text-base text-gray-900 dark:text-white mt-1">{{ $product->description }}</p>
         </div>

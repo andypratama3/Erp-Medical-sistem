@@ -133,6 +133,50 @@
     </div>
 
 </body>
+<script>
+    function dropzoneComponent() {
+        return {
+            isDragging: false,
+            files: [],
+            successMessage: '',
+
+            handleDrop(e) {
+                this.isDragging = false;
+                this.handleFiles(Array.from(e.dataTransfer.files));
+            },
+
+            handleFiles(selectedFiles) {
+                const validTypes = [
+                    'image/png',
+                    'image/jpeg',
+                    'image/webp',
+                    'image/svg+xml'
+                ];
+
+                const validFiles = selectedFiles.filter(file =>
+                    validTypes.includes(file.type)
+                );
+
+                if (!validFiles.length) return;
+
+                this.files.push(...validFiles);
+                this.uploadFiles(validFiles);
+            },
+
+            uploadFiles(files) {
+                // simulasi upload sukses
+                setTimeout(() => {
+                    this.successMessage = `${files.length} file berhasil diupload`;
+                    setTimeout(() => this.successMessage = '', 3000);
+                }, 500);
+            },
+
+            removeFile(index) {
+                this.files.splice(index, 1);
+            }
+        }
+    }
+</script>
 
 @stack('scripts')
 
