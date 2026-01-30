@@ -2,8 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
 use App\Models\Role;
+use App\Models\User;
+use App\Models\Branch;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
@@ -11,6 +12,8 @@ class UserController extends Controller
 {
     public function index()
     {
+        $branchs = Branch::all();
+
         $users = User::with('roles')
             ->latest()
             ->paginate(10);
@@ -50,14 +53,17 @@ class UserController extends Controller
         return view('pages.user.index', compact(
             'users',
             'usersData',
-            'columns'
+            'columns',
+            'branchs'
         ));
     }
 
     public function create()
     {
         $roles = Role::all();
-        return view('pages.user.create', compact('roles'));
+        $branchs = Branch::active()->get();
+
+        return view('pages.user.create', compact('roles', 'branchs'));
     }
 
     public function store(Request $request)
@@ -66,21 +72,36 @@ class UserController extends Controller
             'name'     => 'required|string|max:255',
             'email'    => 'required|email|unique:users,email',
             'password' => 'required|min:6|confirmed',
-            'roles'    => 'required|array'
+            'roles'    => 'required|array',
+            'branches' => 'required|array|min:1',
+            'default_branch_id' => 'required|integer',
         ]);
 
         $user = User::create([
             'name'     => $request->name,
             'email'    => $request->email,
             'password' => Hash::make($request->password),
+            'current_branch_id' => $request->default_branch_id,
         ]);
 
+        // 🔐 Assign roles
         $user->syncRoles($request->roles);
 
+        // 🔗 Attach branches
+        $pivotData = [];
+        foreach ($request->branches as $branchId) {
+            $pivotData[$branchId] = [
+                'is_default' => $branchId == $request->default_branch_id,
+            ];
+        }
+
+        $user->branches()->sync($pivotData);
+
         return redirect()
-            ->route('users.index')
+            ->route('master.users.index')
             ->with('success', 'User berhasil ditambahkan');
     }
+
 
     public function show(User $user)
     {
@@ -91,11 +112,14 @@ class UserController extends Controller
     public function edit(User $user)
     {
         $roles = Role::all();
+        $branchs = Branch::active()->get();
+
         $selectedRoles = $user->roles->pluck('name')->toArray();
 
         return view('pages.user.edit', compact(
             'user',
             'roles',
+            'branchs',
             'selectedRoles'
         ));
     }
@@ -103,15 +127,18 @@ class UserController extends Controller
     public function update(Request $request, User $user)
     {
         $request->validate([
-            'name'  => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email,' . $user->id,
-            'roles' => 'required|array',
-            'password' => 'nullable|min:6|confirmed'
+            'name'     => 'required|string|max:255',
+            'email'    => 'required|email|unique:users,email,' . $user->id,
+            'roles'    => 'required|array',
+            'branches' => 'required|array|min:1',
+            'default_branch_id' => 'required|integer',
+            'password' => 'nullable|min:6|confirmed',
         ]);
 
         $user->update([
             'name'  => $request->name,
             'email' => $request->email,
+            'current_branch_id' => $request->default_branch_id,
         ]);
 
         if ($request->filled('password')) {
@@ -120,19 +147,31 @@ class UserController extends Controller
             ]);
         }
 
+        // Roles
         $user->syncRoles($request->roles);
 
+        // Branches
+        $pivotData = [];
+        foreach ($request->branches as $branchId) {
+            $pivotData[$branchId] = [
+                'is_default' => $branchId == $request->default_branch_id,
+            ];
+        }
+
+        $user->branches()->sync($pivotData);
+
         return redirect()
-            ->route('users.index')
+            ->route('master.users.index')
             ->with('success', 'User berhasil diperbarui');
     }
+
 
     public function destroy(User $user)
     {
         $user->delete();
 
         return redirect()
-            ->route('users.index')
+            ->route('master.users.index')
             ->with('success', 'User berhasil dihapus');
     }
 }

@@ -282,7 +282,7 @@
     </div>
 
     {{-- Description --}}
-    <div class="sm:col-span-12">
+    <div class="sm:col-span-2">
         <label class="block text-sm font-medium mb-1 dark:text-white">Description</label>
         <textarea name="description" rows="3"
                   class="w-full rounded-lg border px-3 py-2 text-sm
@@ -293,11 +293,21 @@
 
 
     <div class="sm:col-span-2">
-      <x-form.input.dropzone
-            title="Upload Foto Product"
+        <x-form.input.dropzone
+            title="Upload Foto & Video Product"
+            image-name="images[]"
             accept="image/png,image/jpeg,image/webp,image/svg+xml"
         />
     </div>
+
+    <div class="sm:col-span-2">
+        <x-form.input.dropzone-video
+            title="Upload Video Product"
+            name="video"
+            accept="video/mp4,video/mov"
+        />
+    </div>
+
 
     {{-- Actions --}}
      <div class="sm:col-span-2 flex items-center justify-end gap-3 mt-4">

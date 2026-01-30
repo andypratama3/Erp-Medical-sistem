@@ -107,8 +107,8 @@ $isEdit = isset($branch);
         </label>
         <textarea name="address" rows="3"
             class="w-full rounded-lg border px-4 py-2 text-sm
-                            bg-white text-gray-900
-                            dark:bg-gray-900 dark:border-gray-700 dark:text-white">{{ old('address', $branch->address ?? '') }}</textarea>
+            bg-white text-gray-900
+            dark:bg-gray-900 dark:border-gray-700 dark:text-white">{{ old('address', $branch->address ?? '') }}</textarea>
     </div>
 
 

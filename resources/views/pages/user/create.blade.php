@@ -6,7 +6,7 @@
 <x-common.component-card title="Tambah User">
     <x-flash-message.flash />
 
-    <form method="POST" action="{{ route('users.store') }}">
+    <form method="POST" action="{{ route('master.users.store') }}">
         @csrf
         @include('pages.user.form', [
             'roles' => $roles,

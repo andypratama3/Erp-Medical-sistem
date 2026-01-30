@@ -2,11 +2,12 @@
     'name',
     'id' => null,
     'options' => [],
-    'selected' => null,
+    'selected' => null, // string | array
     'placeholder' => 'Select an option',
     'required' => false,
     'searchPlaceholder' => 'Search...',
     'allowClear' => true,
+    'multiple' => false,
 ])
 
 @php
@@ -14,72 +15,129 @@
     $uniqueId = $id . '_' . uniqid();
 @endphp
 
-<div x-data="searchableSelect('{{ $uniqueId }}', {{ json_encode($options) }}, '{{ $selected }}', '{{ $placeholder }}', '{{ $searchPlaceholder }}', {{ $allowClear ? 'true' : 'false' }})"
-     x-init="init()"
-     class="relative w-full">
+<div
+    x-data="searchableSelect(
+        '{{ $uniqueId }}',
+        {{ json_encode($options) }},
+        {{ json_encode($selected) }},
+        '{{ $placeholder }}',
+        '{{ $searchPlaceholder }}',
+        {{ $allowClear ? 'true' : 'false' }},
+        {{ $multiple ? 'true' : 'false' }}
+    )"
+    x-init="init()"
+    class="relative w-full"
+>
+    {{-- Hidden inputs --}}
+    <template x-if="!multiple">
+        <input type="hidden"
+               name="{{ $name }}"
+               x-model="selectedValue"
+               {{ $required ? 'required' : '' }}>
+    </template>
 
-    <!-- Hidden input for form submission -->
-    <input type="hidden" name="{{ $name }}" x-model="selectedValue" {{ $required ? 'required' : '' }}>
+    <template x-if="multiple">
+        <template x-for="value in selectedValues" :key="value">
+            <input type="hidden" name="{{ $name }}[]" :value="value">
+        </template>
+    </template>
 
-    <!-- Custom Select Trigger -->
+    {{-- Trigger --}}
     <button type="button"
             @click="toggle()"
             @click.outside="close()"
-            class="h-11 w-full flex items-center justify-between rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 dark:text-white dark:border-gray-700 dark:bg-gray-900 focus:border-blue-300 focus:ring-3 focus:ring-blue-500/10 transition"
-            :class="{ 'border-blue-300 ring-3 ring-blue-500/10': isOpen }">
-        <span x-text="selectedLabel || '{{ $placeholder }}'"
-              :class="{ 'text-gray-400 dark:text-white': !selectedLabel }"
-              class="truncate"></span>
-        <svg class="stroke-current text-gray-500 dark:text-gray-400 transition-transform"
+            class="h-11 w-full flex items-center justify-between rounded-lg border px-4 text-sm
+                   bg-transparent text-gray-800 dark:text-white
+                   border-gray-300 dark:border-gray-700 dark:bg-gray-900
+                   focus:ring-2 focus:ring-blue-500/20">
+
+        <div class="flex flex-wrap gap-1 flex-1 text-left overflow-hidden">
+
+            {{-- MULTIPLE --}}
+            <template x-if="multiple && selectedLabels.length">
+                <template x-for="(label, index) in selectedLabels" :key="index">
+                    <span
+                        class="inline-flex items-center gap-1 px-2 py-0.5 text-xs rounded
+                                text-blue-800
+                               dark:bg-blue-900 dark:text-white">
+                        <span x-text="label"></span>
+                        <button type="button"
+                                @click.stop="remove(index)"
+                                class="font-bold hover:text-red-500 text-error-500 font-bold size-1.5">
+                            ×
+                        </button>
+                    </span>
+                </template>
+            </template>
+
+            {{-- SINGLE --}}
+            <template x-if="!multiple">
+                <span x-text="selectedLabel || placeholder"
+                      :class="{'text-gray-400': !selectedLabel}"
+                      class="truncate"></span>
+            </template>
+
+            {{-- Placeholder MULTIPLE --}}
+            <template x-if="multiple && !selectedLabels.length">
+                <span class="text-gray-400 truncate" x-text="placeholder"></span>
+            </template>
+        </div>
+
+        {{-- Arrow --}}
+        <svg class="w-5 h-5 text-gray-500 transition-transform"
              :class="{ 'rotate-180': isOpen }"
-             width="20" height="20" viewBox="0 0 20 20" fill="none">
-            <path d="M4.79175 7.396L10.0001 12.6043L15.2084 7.396" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+             fill="none" viewBox="0 0 24 24">
+            <path stroke="currentColor" stroke-width="1.5" d="M6 9l6 6 6-6"/>
         </svg>
     </button>
 
-    <!-- Dropdown -->
+    {{-- Dropdown --}}
     <div x-show="isOpen"
-         x-transition:enter="transition ease-out duration-100"
-         x-transition:enter-start="transform opacity-0 scale-95"
-         x-transition:enter-end="transform opacity-100 scale-100"
-         x-transition:leave="transition ease-in duration-75"
-         x-transition:leave-start="transform opacity-100 scale-100"
-         x-transition:leave-end="transform opacity-0 scale-95"
-         class="absolute z-50 mt-1 w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg shadow-lg max-h-60 overflow-hidden"
-         style="display: none;">
+         x-transition
+         class="absolute z-50 mt-1 w-full bg-white dark:bg-gray-900
+                border border-gray-300 dark:border-gray-700
+                rounded-lg shadow-lg max-h-64 overflow-hidden"
+         style="display:none">
 
-        <!-- Search Input -->
+        {{-- Search --}}
         <div class="p-2 border-b border-gray-200 dark:border-gray-700">
             <input type="text"
                    x-model="searchQuery"
                    @input="filterOptions()"
                    placeholder="{{ $searchPlaceholder }}"
-                   class="w-full h-9 rounded border border-gray-300 bg-transparent px-3 text-sm text-gray-800 dark:text-white dark:border-gray-700 dark:bg-gray-800 focus:border-blue-300 focus:ring-2 focus:ring-blue-500/10 focus:outline-none"
+                   class="w-full h-9 rounded border px-3 text-sm
+                          bg-transparent text-gray-800 dark:text-white
+                          border-gray-300 dark:border-gray-700
+                          focus:ring-2 focus:ring-blue-500/20"
                    @click.stop>
         </div>
 
-        <!-- Options List -->
-        <div class="overflow-y-auto max-h-48">
-            <!-- Clear Option -->
-            <template x-if="allowClear && selectedValue">
+        {{-- Options --}}
+        <div class="max-h-48 overflow-y-auto">
+
+            {{-- Clear --}}
+            <template x-if="allowClear && !multiple && selectedValue">
                 <button type="button"
-                        @click="select('', '{{ $placeholder }}')"
-                        class="w-full text-left px-4 py-2 text-sm text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 transition">
+                        @click="clearSingle()"
+                        class="w-full text-left px-4 py-2 text-sm text-gray-500
+                               hover:bg-gray-100 dark:hover:bg-gray-800">
                     <em>Clear selection</em>
                 </button>
             </template>
 
-            <!-- Options -->
             <template x-for="option in filteredOptions" :key="option.value">
                 <button type="button"
-                        @click="select(option.value, option.label)"
-                        class="w-full text-left px-4 py-2 text-sm text-gray-800 dark:text-white hover:bg-blue-50 dark:hover:bg-gray-800 transition"
-                        :class="{ 'bg-blue-100 dark:bg-gray-700 font-medium': selectedValue == option.value }">
-                    <span x-text="option.label"></span>
+                        @click="select(option)"
+                        class="w-full text-left px-4 py-2 text-sm transition
+                               hover:bg-blue-50 dark:hover:bg-gray-800"
+                        :class="{
+                            'bg-blue-100 dark:bg-gray-700 font-medium':
+                            isSelected(option.value)
+                        }">
+                    <span :class="isSelected(option.value) ? 'text-white' : 'text-gray-800 dark:text-gray-200'" x-text="option.label"></span>
                 </button>
             </template>
 
-            <!-- No Results -->
             <div x-show="filteredOptions.length === 0"
                  class="px-4 py-3 text-sm text-gray-500 text-center">
                 No results found
@@ -91,58 +149,98 @@
 @once
 @push('scripts')
 <script>
-    function searchableSelect(id, options, selected, placeholder, searchPlaceholder, allowClear) {
-        return {
-            id: id,
-            isOpen: false,
-            searchQuery: '',
-            selectedValue: selected || '',
-            selectedLabel: '',
-            placeholder: placeholder,
-            searchPlaceholder: searchPlaceholder,
-            allowClear: allowClear,
-            options: options,
-            filteredOptions: options,
+function searchableSelect(id, options, selected, placeholder, searchPlaceholder, allowClear, multiple) {
+    return {
+        id,
+        isOpen: false,
+        searchQuery: '',
+        placeholder,
+        searchPlaceholder,
+        allowClear,
+        multiple,
 
-            init() {
-                // Set initial selected label
-                if (this.selectedValue) {
-                    const option = this.options.find(opt => opt.value == this.selectedValue);
-                    if (option) {
-                        this.selectedLabel = option.label;
-                    }
-                }
-            },
+        options,
+        filteredOptions: options,
 
-            toggle() {
-                this.isOpen = !this.isOpen;
-                if (this.isOpen) {
-                    this.$nextTick(() => {
-                        this.$el.querySelector('input[type="text"]')?.focus();
-                    });
-                }
-            },
+        // SINGLE
+        selectedValue: '',
+        selectedLabel: '',
 
-            close() {
-                this.isOpen = false;
-                this.searchQuery = '';
-                this.filteredOptions = this.options;
-            },
+        // MULTIPLE
+        selectedValues: [],
+        selectedLabels: [],
 
-            select(value, label) {
-                this.selectedValue = value;
-                this.selectedLabel = label === this.placeholder ? '' : label;
-                this.close();
-            },
-
-            filterOptions() {
-                const query = this.searchQuery.toLowerCase();
-                this.filteredOptions = this.options.filter(option =>
-                    option.label.toLowerCase().includes(query)
-                );
+        init() {
+            if (this.multiple) {
+                this.selectedValues = Array.isArray(selected) ? selected : [];
+                this.syncLabels();
+            } else {
+                this.selectedValue = selected ?? '';
+                const opt = this.options.find(o => o.value == this.selectedValue);
+                if (opt) this.selectedLabel = opt.label;
             }
+        },
+
+        toggle() {
+            this.isOpen = !this.isOpen;
+            if (this.isOpen) {
+                this.$nextTick(() => {
+                    this.$el.querySelector('input[type="text"]')?.focus();
+                });
+            }
+        },
+
+        close() {
+            this.isOpen = false;
+            this.searchQuery = '';
+            this.filteredOptions = this.options;
+        },
+
+        select(option) {
+            if (this.multiple) {
+                const idx = this.selectedValues.indexOf(option.value);
+                idx === -1
+                    ? this.selectedValues.push(option.value)
+                    : this.selectedValues.splice(idx, 1);
+                this.syncLabels();
+            } else {
+                this.selectedValue = option.value;
+                this.selectedLabel = option.label;
+                this.close();
+            }
+        },
+
+        remove(index) {
+            this.selectedValues.splice(index, 1);
+            this.syncLabels();
+        },
+
+        clearSingle() {
+            this.selectedValue = '';
+            this.selectedLabel = '';
+            this.close();
+        },
+
+        isSelected(value) {
+            return this.multiple
+                ? this.selectedValues.includes(value)
+                : this.selectedValue == value;
+        },
+
+        syncLabels() {
+            this.selectedLabels = this.options
+                .filter(o => this.selectedValues.includes(o.value))
+                .map(o => o.label);
+        },
+
+        filterOptions() {
+            const q = this.searchQuery.toLowerCase();
+            this.filteredOptions = this.options.filter(o =>
+                o.label.toLowerCase().includes(q)
+            );
         }
     }
+}
 </script>
 @endpush
 @endonce

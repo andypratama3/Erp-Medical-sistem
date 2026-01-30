@@ -127,6 +127,9 @@ class ProductController extends Controller
             'is_taxable' => 'nullable|boolean',
             'is_importable' => 'nullable|boolean',
             'status' => 'required|in:active,inactive,discontinued',
+            'images' => 'nullable|array',
+            'images.*' => 'image|mimes:jpeg,png,gif|max:2048',
+            'video' => 'nullable|mimes:mp4,mov|max:10240',
         ]);
 
         // Handle checkboxes - set to false if not present
@@ -144,7 +147,21 @@ class ProductController extends Controller
 
         $product = Product::create($validated);
 
-        
+        /** ===== UPLOAD IMAGES ===== */
+        if ($request->hasFile('images')) {
+            foreach ($request->file('images') as $image) {
+                $product
+                    ->addMedia($image)
+                    ->toMediaCollection('product_images');
+            }
+        }
+
+        /** ===== UPLOAD VIDEO ===== */
+        if ($request->hasFile('video')) {
+            $product
+                ->addMedia($request->file('video'))
+                ->toMediaCollection('product_videos');
+        }
 
         $this->auditLog->logCreate('master', $product);
 

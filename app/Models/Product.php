@@ -1,15 +1,17 @@
 <?php
 
 namespace App\Models;
-
+use Spatie\MediaLibrary\HasMedia;
 use Illuminate\Database\Eloquent\Model;
+use Spatie\MediaLibrary\InteractsWithMedia;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class Product extends Model
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
+class Product extends Model implements HasMedia
 {
-    use SoftDeletes;
+    use SoftDeletes, InteractsWithMedia;
 
     protected $table = 'master_products';
 
@@ -42,6 +44,20 @@ class Product extends Model
         'status' => 'string',
         'product_type' => 'string',
     ];
+
+    // media collections
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('product_images')
+            ->useDisk('public')
+            ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/gif'])
+            ->withResponsiveImages();
+
+        $this->addMediaCollection('product_videos')
+            ->useDisk('public')
+            ->acceptsMimeTypes(['video/mp4', 'video/mov'])
+            ->singleFile();
+    }
 
     // Relationships
     public function category(): BelongsTo
