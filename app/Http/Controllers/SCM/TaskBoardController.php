@@ -43,7 +43,8 @@ class TaskBoardController extends Controller implements HasMiddleware
      */
     public function index(Request $request)
     {
-        $query = SalesDO::with(['customer', 'office', 'items', 'delivery'])
+        $query = SalesDO::where('branch_id', auth()->user()->branch_id)
+            ->with(['customer', 'office', 'items', 'delivery'])
             ->whereIn('status', ['wqs_ready', 'scm_on_delivery', 'scm_delivered']);
 
         // Search

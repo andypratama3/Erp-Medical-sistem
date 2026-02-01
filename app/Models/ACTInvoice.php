@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class ACTInvoice extends Model
 {
     use HasBranchScope;
-    
+
     protected $table = 'act_invoices';
 
     protected $fillable = [
@@ -46,7 +46,7 @@ class ACTInvoice extends Model
     {
         return $this->belongsTo(Branch::class);
     }
-    
+
     public function salesDO(): BelongsTo
     {
         return $this->belongsTo(SalesDO::class);

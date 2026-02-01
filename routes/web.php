@@ -9,6 +9,8 @@ Route::get('/', function () {
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    Route::resource('profile', \App\Http\Controllers\ProfileController::class);
 });
 
 require __DIR__.'/auth.php';

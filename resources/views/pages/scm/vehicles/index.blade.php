@@ -2,11 +2,11 @@
 
 @section('content')
 <!-- Stats Cards -->
-<div class="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-    <div class="rounded-sm border border-stroke bg-white px-7.5 py-6 shadow-default dark:border-strokedark dark:bg-boxdark">
+<div class="mb-6 grid sm:grid-cols-2 gap-4">
+    <div class="rounded-sm border border-stroke dark:text-white px-7.5 py-6 shadow-default dark:border-strokedark dark:bg-boxdark">
         <div class="flex h-11.5 w-11.5 items-center justify-center rounded-full bg-meta-2 dark:bg-meta-4">
             <svg class="fill-primary dark:fill-white" width="22" height="16" viewBox="0 0 22 16" fill="none">
-                <!-- Truck Icon SVG -->
+
             </svg>
         </div>
         <div class="mt-4 flex items-end justify-between">
@@ -19,7 +19,7 @@
         </div>
     </div>
 
-    <div class="rounded-sm border border-stroke bg-white px-7.5 py-6 shadow-default dark:border-strokedark dark:bg-boxdark">
+    <div class="rounded-sm border border-stroke dark:text-white px-7.5 py-6 shadow-default dark:border-strokedark dark:bg-boxdark">
         <div class="flex h-11.5 w-11.5 items-center justify-center rounded-full bg-meta-2 dark:bg-meta-4">
             <svg class="fill-primary dark:fill-white" width="22" height="16" viewBox="0 0 22 16">
                 <!-- Active Icon SVG -->
@@ -35,7 +35,7 @@
         </div>
     </div>
 
-    <div class="rounded-sm border border-stroke bg-white px-7.5 py-6 shadow-default dark:border-strokedark dark:bg-boxdark">
+    <div class="rounded-sm border border-stroke dark:text-white px-7.5 py-6 shadow-default dark:border-strokedark dark:bg-boxdark">
         <div class="flex h-11.5 w-11.5 items-center justify-center rounded-full bg-meta-2 dark:bg-meta-4">
             <svg class="fill-primary dark:fill-white" width="22" height="16" viewBox="0 0 22 16">
                 <!-- Maintenance Icon SVG -->
@@ -51,7 +51,7 @@
         </div>
     </div>
 
-    <div class="rounded-sm border border-stroke bg-white px-7.5 py-6 shadow-default dark:border-strokedark dark:bg-boxdark">
+    <div class="rounded-sm border border-stroke dark:text-white px-7.5 py-6 shadow-default dark:border-strokedark dark:bg-boxdark">
         <div class="flex h-11.5 w-11.5 items-center justify-center rounded-full bg-meta-2 dark:bg-meta-4">
             <svg class="fill-primary dark:fill-white" width="22" height="16" viewBox="0 0 22 16">
                 <!-- Available Icon SVG -->

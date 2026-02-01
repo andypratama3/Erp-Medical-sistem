@@ -2,147 +2,301 @@
 
 namespace App\Http\Controllers\ACT;
 
-use App\Http\Controllers\Controller;
 use App\Models\SalesDO;
+use App\Models\Customer;
 use App\Models\ACTInvoice;
-use App\Services\DocumentUploadService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use App\Services\AuditLogService;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
 
 class InvoiceController extends Controller
 {
-    protected $documentService;
+    protected $auditLog;
 
-    public function __construct(DocumentUploadService $documentService)
+    public function __construct(AuditLogService $auditLog)
     {
-        $this->documentService = $documentService;
+        $this->auditLog = $auditLog;
     }
 
-    public function index()
+
+    public function index(Request $request)
     {
-        $invoices = ACTInvoice::with(['salesDo.customer'])
-            ->latest()
-            ->paginate(15);
+        $query = ACTInvoice::with(['customer', 'salesDO', 'branch', 'createdBy']);
 
-        return view('pages.act.invoices.index', compact('invoices'));
-    }
-
-    public function create(Request $request)
-    {
-        $salesDo = SalesDO::with(['customer', 'items.product'])
-            ->findOrFail($request->do_id);
-
-        if (!in_array($salesDo->status, ['scm_delivered', 'act_tukar_faktur'])) {
-            return redirect()->route('act.task-board')
-                ->with('error', 'This DO is not ready for invoicing');
+        /* ============================
+        FILTERS
+        ============================ */
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('invoice_number', 'like', "%{$search}%")
+                ->orWhereHas('customer', fn ($c) =>
+                        $c->where('name', 'like', "%{$search}%")
+                );
+            });
         }
 
-        return view('pages.act.invoices.create', compact('salesDo'));
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->filled('date_from')) {
+            $query->whereDate('invoice_date', '>=', $request->date_from);
+        }
+
+        if ($request->filled('date_to')) {
+            $query->whereDate('invoice_date', '<=', $request->date_to);
+        }
+
+        $invoices = $query->latest()->paginate(15);
+
+        /* ============================
+        TABLE COLUMNS (KEY BASED)
+        ============================ */
+        $columns = [
+            ['key' => 'invoice_number', 'label' => 'Invoice Number', 'type' => 'text'],
+            ['key' => 'customer', 'label' => 'Customer', 'type' => 'text'],
+            ['key' => 'invoice_date', 'label' => 'Invoice Date', 'type' => 'text'],
+            ['key' => 'due_date', 'label' => 'Due Date', 'type' => 'text'],
+            ['key' => 'total_amount', 'label' => 'Total Amount', 'type' => 'text'],
+            ['key' => 'status', 'label' => 'Status', 'type' => 'badge'],
+        ];
+
+        /* ============================
+        FORMAT DATA FOR TABLE
+        ============================ */
+        $invoicesData = $invoices->getCollection()->map(function ($invoice) {
+            return [
+                'id' => $invoice->id,
+
+                'invoice_number' => $invoice->invoice_number,
+                'customer'       => $invoice->customer?->name ?? '-',
+                'invoice_date'   => $invoice->invoice_date?->format('d M Y') ?? '-',
+                'due_date'       => $invoice->due_date?->format('d M Y') ?? '-',
+                'total_amount'   => 'Rp ' . number_format($invoice->total_amount, 0, ',', '.'),
+
+                'status' => [
+                    'value' => $invoice->status,
+                    'label' => ucfirst($invoice->status),
+                    'color' => match ($invoice->status) {
+                        'paid'     => 'success',
+                        'unpaid'   => 'warning',
+                        'overdue'  => 'danger',
+                        default    => 'gray',
+                    },
+                ],
+
+                'actions' => [
+                    'show'   => route('act.invoices.show', $invoice),
+                    'edit'   => route('act.invoices.edit', $invoice),
+                    'delete' => route('act.invoices.destroy', $invoice),
+                ],
+            ];
+        })->toArray();
+
+        return view('pages.act.invoices.index', compact(
+            'columns',
+            'invoices',
+            'invoicesData'
+        ));
     }
 
+
+    /**
+     * Show the form for creating a new invoice
+     */
+    public function create()
+    {
+        try {
+            $salesOrders = SalesDO::where('status', 'approved')
+                ->where('branch_id', Auth::user()->current_branch_id)
+                ->get();
+
+            $customers = Customer::where('branch_id', Auth::user()->current_branch_id)
+                ->get();
+
+            return view('pages.act.invoices.create', compact('salesOrders', 'customers'));
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Gagal membuka form: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Store a newly created invoice in database
+     */
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'sales_do_id' => 'required|exists:sales_do,id',
-            'invoice_date' => 'required|date',
-            'due_date' => 'required|date|after_or_equal:invoice_date',
-            'tax_percent' => 'nullable|numeric|min:0|max:100',
-            'additional_charges' => 'nullable|numeric|min:0',
-            'bank_name' => 'nullable|string',
-            'account_number' => 'nullable|string',
-            'notes' => 'nullable|string',
-        ]);
-
-        DB::beginTransaction();
         try {
-            $salesDo = SalesDO::findOrFail($validated['sales_do_id']);
-
-            // Generate invoice number
-            $invoiceNumber = 'INV/' . date('Y/m') . '/' . str_pad(ACTInvoice::whereYear('created_at', date('Y'))->count() + 1, 4, '0', STR_PAD_LEFT);
-
-            // Calculate amounts
-            $subtotal = $salesDo->subtotal;
-            $taxAmount = $subtotal * ($validated['tax_percent'] ?? 11) / 100;
-            $totalAmount = $subtotal + $taxAmount + ($validated['additional_charges'] ?? 0);
-
-            // Create Invoice
-            $invoice = ACTInvoice::create([
-                'sales_do_id' => $salesDo->id,
-                'invoice_number' => $invoiceNumber,
-                'invoice_date' => $validated['invoice_date'],
-                'due_date' => $validated['due_date'],
-                'subtotal_amount' => $subtotal,
-                'tax_amount' => $taxAmount,
-                'additional_charges' => $validated['additional_charges'] ?? 0,
-                'total_amount' => $totalAmount,
-                'outstanding_amount' => $totalAmount,
-                'payment_status' => 'unpaid',
-                'bank_name' => $validated['bank_name'] ?? null,
-                'account_number' => $validated['account_number'] ?? null,
-                'notes' => $validated['notes'] ?? null,
-                'created_by' => auth()->id(),
+            // Validate input
+            $validated = $request->validate([
+                'sales_do_id' => 'required|exists:sales_dos,id',
+                'invoice_number' => 'required|unique:act_invoices',
+                'invoice_date' => 'required|date',
+                'due_date' => 'required|date|after:invoice_date',
+                'customer_id' => 'required|exists:master_customers,id',
+                'amount' => 'required|numeric|min:0',
+                'tax_amount' => 'nullable|numeric|min:0',
+                'notes' => 'nullable|string',
             ]);
 
-            // Update DO status
-            $salesDo->update(['status' => 'act_invoiced']);
+            // Calculate total
+            $validated['total_amount'] = $validated['amount'] + ($validated['tax_amount'] ?? 0);
+            $validated['branch_id'] = Auth::user()->current_branch_id;
+            $validated['created_by'] = Auth::id();
+            $validated['status'] = 'draft';
 
-            // Update ACT task and create FIN task
-            $salesDo->taskBoards()->where('module', 'act')->update(['task_status' => 'completed']);
+            // Create invoice
+            $invoice = ACTInvoice::create($validated);
 
-            $salesDo->taskBoards()->create([
-                'module' => 'fin',
-                'task_status' => 'pending',
-                'task_description' => 'Collection for invoice ' . $invoiceNumber,
-                'due_date' => $validated['due_date'],
-            ]);
+            // Log audit
+            $this->auditLog->log('CREATE', "Invoice {$invoice->invoice_number} created", Auth::id());
 
-            DB::commit();
-
-            return redirect()->route('act.invoices.show', $invoice)
-                ->with('success', 'Invoice generated successfully');
-
+            return redirect()->route('invoices.show', $invoice)
+                ->with('success', 'Invoice berhasil dibuat!');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return redirect()->back()
+                ->withErrors($e->errors())
+                ->withInput();
         } catch (\Exception $e) {
-            DB::rollback();
-            return back()->with('error', 'Failed to generate invoice: ' . $e->getMessage())->withInput();
+            return redirect()->back()
+                ->with('error', 'Error: ' . $e->getMessage())
+                ->withInput();
         }
     }
 
+    /**
+     * Display the specified invoice
+     */
     public function show(ACTInvoice $invoice)
     {
-        $invoice->load(['salesDo.customer', 'salesDo.items.product', 'documents']);
-        return view('pages.act.invoices.show', compact('invoice'));
+        try {
+            $invoice->load(['salesDO', 'customer', 'payments', 'createdBy']);
+            return view('pages.act.invoices.show', compact('invoice'));
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Gagal mengambil data: ' . $e->getMessage());
+        }
     }
 
-    public function uploadFaktur(Request $request, ACTInvoice $invoice)
+    /**
+     * Show the form for editing the specified invoice
+     */
+    public function edit(ACTInvoice $invoice)
     {
-        $validated = $request->validate([
-            'faktur_pajak' => 'required|file|mimes:pdf,jpg,png|max:10240',
-            'faktur_number' => 'required|string',
-        ]);
-
-        DB::beginTransaction();
         try {
-            // Upload faktur pajak
-            $this->documentService->upload(
-                $request->file('faktur_pajak'),
-                ACTInvoice::class,
-                $invoice->id,
-                'act_faktur_pajak',
-                'Faktur Pajak ' . $validated['faktur_number']
-            );
+            if ($invoice->status !== 'draft') {
+                return redirect()->back()->with('error', 'Hanya invoice draft yang bisa diedit!');
+            }
 
-            // Update invoice
-            $invoice->update([
-                'faktur_pajak_number' => $validated['faktur_number'],
+            $salesOrders = SalesDO::where('status', 'approved')
+                ->where('branch_id', Auth::user()->current_branch_id)
+                ->get();
+
+            $customers = Customer::where('branch_id', Auth::user()->current_branch_id)
+                ->get();
+
+            return view('pages.act.invoices.edit', compact('invoice', 'salesOrders', 'customers'));
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Gagal membuka form: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Update the specified invoice in database
+     */
+    public function update(Request $request, ACTInvoice $invoice)
+    {
+        try {
+            if ($invoice->status !== 'draft') {
+                return redirect()->back()->with('error', 'Hanya invoice draft yang bisa diubah!');
+            }
+
+            $validated = $request->validate([
+                'invoice_number' => 'required|unique:act_invoices,invoice_number,' . $invoice->id,
+                'invoice_date' => 'required|date',
+                'due_date' => 'required|date|after:invoice_date',
+                'customer_id' => 'required|exists:master_customers,id',
+                'amount' => 'required|numeric|min:0',
+                'tax_amount' => 'nullable|numeric|min:0',
+                'notes' => 'nullable|string',
             ]);
 
-            DB::commit();
+            $validated['total_amount'] = $validated['amount'] + ($validated['tax_amount'] ?? 0);
 
-            return back()->with('success', 'Faktur Pajak uploaded successfully');
+            $invoice->update($validated);
 
+            $this->auditLog->log('UPDATE', "Invoice {$invoice->invoice_number} updated", Auth::id());
+
+            return redirect()->route('invoices.show', $invoice)
+                ->with('success', 'Invoice berhasil diubah!');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return redirect()->back()
+                ->withErrors($e->errors())
+                ->withInput();
         } catch (\Exception $e) {
-            DB::rollback();
-            return back()->with('error', 'Failed to upload faktur: ' . $e->getMessage());
+            return redirect()->back()
+                ->with('error', 'Error: ' . $e->getMessage())
+                ->withInput();
+        }
+    }
+
+    /**
+     * Remove the specified invoice
+     */
+    public function destroy(ACTInvoice $invoice)
+    {
+        try {
+            if ($invoice->status !== 'draft') {
+                return redirect()->back()->with('error', 'Hanya invoice draft yang bisa dihapus!');
+            }
+
+            $invoiceNumber = $invoice->invoice_number;
+            $invoice->delete();
+
+            $this->auditLog->log('DELETE', "Invoice {$invoiceNumber} deleted", Auth::id());
+
+            return redirect()->route('invoices.index')
+                ->with('success', 'Invoice berhasil dihapus!');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Gagal menghapus: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Approve invoice
+     */
+    public function approve(ACTInvoice $invoice)
+    {
+        try {
+            if ($invoice->status !== 'draft') {
+                return redirect()->back()->with('error', 'Invoice harus dalam status draft!');
+            }
+
+            $invoice->markAsApproved();
+            $this->auditLog->log('APPROVE', "Invoice {$invoice->invoice_number} approved", Auth::id());
+
+            return redirect()->back()->with('success', 'Invoice berhasil disetujui!');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Error: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Cancel invoice
+     */
+    public function cancel(ACTInvoice $invoice)
+    {
+        try {
+            if (in_array($invoice->status, ['paid', 'cancelled'])) {
+                return redirect()->back()->with('error', 'Invoice tidak bisa dibatalkan!');
+            }
+
+            $invoice->markAsCancelled();
+            $this->auditLog->log('CANCEL', "Invoice {$invoice->invoice_number} cancelled", Auth::id());
+
+            return redirect()->back()->with('success', 'Invoice berhasil dibatalkan!');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Error: ' . $e->getMessage());
         }
     }
 }

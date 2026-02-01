@@ -13,6 +13,7 @@ class CreateWQSTaskBoard
 
         // Prevent duplicate WQS STOCK CHECK task
         $exists = TaskBoard::where('sales_do_id', $salesDo->id)
+            ->where('branch_id', $salesDo->branch_id)
             ->where('module', 'wqs')
             ->where('task_type', 'wqs_stock_check')
             ->exists();
@@ -23,6 +24,7 @@ class CreateWQSTaskBoard
 
         TaskBoard::create([
             'sales_do_id'      => $salesDo->id,
+            'branch_id'        => $salesDo->branch_id,
             'module'           => 'wqs',
             'task_type'        => 'wqs_stock_check',
             'task_status'      => 'pending',

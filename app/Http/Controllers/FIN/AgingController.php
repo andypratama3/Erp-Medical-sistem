@@ -12,8 +12,8 @@ class AgingController extends Controller
     public function index(Request $request)
     {
         $query = ACTInvoice::with(['salesDo.customer'])
-            ->where('payment_status', '!=', 'paid')
-            ->where('outstanding_amount', '>', 0);
+            ->where('invoice_status', '!=', 'paid')
+            ->where('total', '>', 0);
 
         // Filter by customer
         if ($request->filled('customer_id')) {
@@ -55,16 +55,16 @@ class AgingController extends Controller
     protected function calculateAgingSummary()
     {
         $now = Carbon::now();
-        $unpaidInvoices = ACTInvoice::where('payment_status', '!=', 'paid')
-            ->where('outstanding_amount', '>', 0)
+        $unpaidInvoices = ACTInvoice::where('invoice_status', '!=', 'paid')
+            ->where('total', '>', 0)
             ->get();
 
         return [
-            'current' => 'Rp ' . number_format($unpaidInvoices->filter(fn($inv) => $inv->due_date >= $now)->sum('outstanding_amount'), 0, ',', '.'),
-            '1_30' => 'Rp ' . number_format($unpaidInvoices->filter(fn($inv) => $inv->due_date->between($now->copy()->subDays(30), $now->copy()->subDay()))->sum('outstanding_amount'), 0, ',', '.'),
-            '31_60' => 'Rp ' . number_format($unpaidInvoices->filter(fn($inv) => $inv->due_date->between($now->copy()->subDays(60), $now->copy()->subDays(31)))->sum('outstanding_amount'), 0, ',', '.'),
-            '61_90' => 'Rp ' . number_format($unpaidInvoices->filter(fn($inv) => $inv->due_date->between($now->copy()->subDays(90), $now->copy()->subDays(61)))->sum('outstanding_amount'), 0, ',', '.'),
-            'over_90' => 'Rp ' . number_format($unpaidInvoices->filter(fn($inv) => $inv->due_date < $now->copy()->subDays(90))->sum('outstanding_amount'), 0, ',', '.'),
+            'current' => 'Rp ' . number_format($unpaidInvoices->filter(fn($inv) => $inv->due_date >= $now)->sum('total'), 0, ',', '.'),
+            '1_30' => 'Rp ' . number_format($unpaidInvoices->filter(fn($inv) => $inv->due_date->between($now->copy()->subDays(30), $now->copy()->subDay()))->sum('total'), 0, ',', '.'),
+            '31_60' => 'Rp ' . number_format($unpaidInvoices->filter(fn($inv) => $inv->due_date->between($now->copy()->subDays(60), $now->copy()->subDays(31)))->sum('total'), 0, ',', '.'),
+            '61_90' => 'Rp ' . number_format($unpaidInvoices->filter(fn($inv) => $inv->due_date->between($now->copy()->subDays(90), $now->copy()->subDays(61)))->sum('total'), 0, ',', '.'),
+            'over_90' => 'Rp ' . number_format($unpaidInvoices->filter(fn($inv) => $inv->due_date < $now->copy()->subDays(90))->sum('total'), 0, ',', '.'),
         ];
     }
 

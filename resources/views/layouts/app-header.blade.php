@@ -113,7 +113,7 @@
                 </button>
 
                 <!-- Notification Dropdown -->
-                {{-- <x-header.notification-dropdown /> --}}
+                <x-header.notification-dropdown />
             </div>
 
             <div class="flex items-center gap-2 2xsm:gap-3">
