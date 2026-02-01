@@ -110,7 +110,7 @@
                         <tr class="border-b border-gray-100 dark:border-gray-800">
                             <td class="px-6 py-4">
                                 <a href="{{ route('crm.sales-do.show', $task->salesDO) }}"
-                                    class="text-blue-600 dark:text-blue-400 hover:underline font-mono font-semibold">
+                                    class="text-black dark:text-white hover:underline font-mono font-semibold">
                                     {{ $task->salesDO->do_code }}
                                 </a>
                             </td>
@@ -156,7 +156,7 @@
                             </td>
                             <td class="px-6 py-4">
                                 <a href="{{ route('wqs.task-board.show', $task) }}"
-                                    class="inline-flex items-center gap-1 px-3 py-1 bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-800 text-white rounded text-xs font-bold transition">
+                                    class="inline-flex items-center gap-1 px-3 py-1 bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-800 text-black dark:text-white rounded text-xs font-bold transition">
                                     View
                                 </a>
                             </td>

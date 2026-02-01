@@ -41,7 +41,7 @@ class SCMDelivery extends Model
     // Relationships
     public function salesDO(): BelongsTo
     {
-        return $this->belongsTo(SalesDO::class);
+        return $this->belongsTo(SalesDO::class, 'sales_do_id');
     }
 
     public function driver(): BelongsTo

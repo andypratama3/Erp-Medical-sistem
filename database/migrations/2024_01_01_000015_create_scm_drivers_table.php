@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('license_number', 50)->nullable();
             $table->string('vehicle_type', 100)->nullable();
             $table->string('vehicle_number', 50)->nullable();
-            $table->enum('status', ['active', 'inactive'])->default('active');
+            $table->enum('status', ['active', 'inactive','on_leave'])->default('active');
             $table->softDeletes();
             $table->timestamps();
 

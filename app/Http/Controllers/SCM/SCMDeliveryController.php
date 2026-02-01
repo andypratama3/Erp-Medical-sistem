@@ -2,12 +2,13 @@
 
 namespace App\Http\Controllers\SCM;
 
-use App\Http\Controllers\Controller;
-use App\Models\SCMDelivery;
-use App\Models\SCMDriver;
 use App\Models\SalesDO;
-use App\Services\AuditLogService;
+use App\Models\SCMDriver;
+use App\StatusBadgeHelper;
+use App\Models\SCMDelivery;
 use Illuminate\Http\Request;
+use App\Services\AuditLogService;
+use App\Http\Controllers\Controller;
 
 class SCMDeliveryController extends Controller
 {
@@ -67,7 +68,7 @@ class SCMDeliveryController extends Controller
                 'do_code' => $delivery->salesDO->do_code ?? '-',
                 'customer' => $delivery->salesDO->customer->name ?? '-',
                 'driver' => $delivery->driver->name ?? '-',
-                'delivery_date' => $delivery->delivery_date->format('d M Y'),
+                'delivery_date' => $delivery->delivery_date ? $delivery->delivery_date->format('d M Y') : '-',
                 'status' => $delivery->status_badge,
                 'actions' => [
                     'show' => route('scm.deliveries.show', $delivery),
@@ -77,6 +78,27 @@ class SCMDeliveryController extends Controller
             ];
         })->toArray();
 
+        // $statusKey = match($delivery->delivery_status) {
+        //     'pending'   => 'light',
+        //     'scheduled' => 'warning',
+        //     'on_route'  => 'scm_on_delivery',
+        //     'delivered' => 'scm_delivered',
+        //     'failed'    => 'error',
+        //     'cancelled' => 'inactive',
+        //     default     => 'light',
+        // };
+        // $badge = StatusBadgeHelper::getStatusConfigByKey($statusKey);
+
+        // $statusLabel = match($delivery->delivery_status) {
+        //     'pending'   => 'Pending',
+        //     'scheduled' => 'Scheduled',
+        //     'on_route'  => 'On Route',
+        //     'delivered' => 'Delivered',
+        //     'failed'    => 'Failed',
+        //     'cancelled' => 'Cancelled',
+        //     default     => ucfirst($delivery->delivery_status ?? '-'),
+        // };
+
         $drivers = SCMDriver::active()->get();
         $salesDOs = SalesDO::whereIn('status', ['wqs_quality_ok', 'scm_picking'])->get();
 
@@ -85,7 +107,8 @@ class SCMDeliveryController extends Controller
             'deliveries',
             'deliveriesData',
             'drivers',
-            'salesDOs'
+            'salesDOs',
+            // 'badge',
         ));
     }
 

@@ -211,7 +211,7 @@
                 class="inline-flex items-center justify-center font-medium gap-2 rounded-lg transition px-4 py-3 text-sm bg-brand-500 text-white shadow-theme-xs hover:bg-brand-600">
                 Edit
             </a>
-            <button type="button" onclick="openSubmitModal()" class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
+            <button type="button" onclick="openSubmitModal()" class="inline-flex items-center px-4 py-2 bg-green-600 text-black dark:text-white rounded-lg hover:bg-green-700 transition">
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>

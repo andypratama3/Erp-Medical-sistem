@@ -67,18 +67,22 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-sm text-gray-700 dark:text-gray-300 font-semibold mb-2">Driver *</label>
-                            <select name="driver_id" required class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400">
-                                <option value="">Select Driver</option>
-                                @foreach($drivers as $driver)
-                                    <option value="{{ $driver->id }}" {{ old('driver_id', $salesDo->delivery?->driver_id) == $driver->id ? 'selected' : '' }}>
-                                        {{ $driver->name }} - {{ $driver->phone }}
-                                    </option>
-                                @endforeach
-                            </select>
+                           <x-form.select.searchable-select
+                                name="driver_id"
+                                :options="$drivers->map(function($driver) {
+                                    return [
+                                        'value' => $driver->id,
+                                        'label' => $driver->name,
+                                    ];
+                                })->toArray()"
+                                :selected="old('driver_id', $salesDo->delivery?->driver_id)"
+                                placeholder="Select a driver"
+                                required
+                            />
                         </div>
 
                         <div>
-                            <label class="block text-sm text-gray-700 dark:text-gray-300 font-semibold mb-2">Vehicle Plate *</label>
+                            <label class="block text-sm text-gray-700 dark:text-gray-300 font-semibold mb-2">Vehicle Plate </label>
                             <input type="text" name="vehicle_plate" value="{{ old('vehicle_plate', $salesDo->delivery?->vehicle_plate) }}" required
                                    placeholder="e.g., B 1234 XYZ"
                                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400">
@@ -86,8 +90,15 @@
 
                         <div>
                             <label class="block text-sm text-gray-700 dark:text-gray-300 font-semibold mb-2">Scheduled Date *</label>
-                            <input type="date" name="scheduled_date" value="{{ old('scheduled_date', $salesDo->delivery?->scheduled_date) }}" required
-                                   class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400">
+                               <x-form.date-picker
+                                    id="do_date"
+                                    name="scheduled_date"
+                                    placeholder="Select DO Date From"
+                                    :defaultDate="old(
+                                        'scheduled_date',
+                                        request('scheduled_date') ? request('scheduled_date') : now()->toDateString()
+                                    )"
+                                />
                         </div>
                     </div>
 

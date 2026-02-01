@@ -118,8 +118,9 @@
 
             <div class="flex items-center gap-2 2xsm:gap-3">
                 <!-- Branch Switcher -->
-                <x-header.branch-switcher />
-
+                @role(['owner','superadmin'])
+                    <x-header.branch-switcher />
+                @endrole
                 <!-- User Dropdown -->
                 <x-header.user-dropdown />
             </div>

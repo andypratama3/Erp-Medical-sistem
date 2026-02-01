@@ -106,17 +106,45 @@ $isEdit = isset($driver);
             class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 dark:text-white focus:border-blue-300 focus:ring-3 focus:ring-blue-500/10 dark:border-gray-700 dark:bg-gray-900">
     </div>
 
+    <div>
+        <label class="mb-1.5 block text-sm font-medium dark:text-white">Status</label>
+        {{-- select --}}
+        <select name="status"
+            class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 dark:text-white focus:border-blue-300 focus:ring-3 focus:ring-blue-500/10 dark:border-gray-700 dark:bg-gray-900">
+            <option value="active" {{ old('status', $driver->status ?? 'active') === 'active' ? 'selected' : '' }}>
+                Active</option>
+            <option value="inactive"
+                {{ old('status', $driver->status ?? '') === 'inactive' ? 'selected' : '' }}>
+                Inactive</option>
+        
+            <option value="on_leave"
+                {{ old('status', $driver->status ?? '') === 'on_leave' ? 'selected' : '' }}>
+                On Leave</option>
+        </select>
+    </div>
+
+    <div>
+        <label class="mb-1.5 block text-sm font-medium dark:text-white">Notes</label>
+        <textarea name="notes" rows="3"
+            class="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2 text-sm text-gray-800 dark:text-white focus:border-blue-300 focus:ring-3 focus:ring-blue-500/10 dark:border-gray-700 dark:bg-gray-900">{{ old('notes', $driver->notes ?? '') }}
+        </textarea>
+    </div>
+
 
 
     {{-- Action Buttons --}}
-    <div class="sm:col-span-2 flex justify-end gap-3 pt-4">
+    <div></div>
+    <div class="flex justify-end gap-3 pt-4 mb-4">
         <a href="{{ route('scm.drivers.index') }}"
-            class="px-5 py-2.5 rounded-lg border text-sm font-medium border-gray-300 text-gray-700 dark:text-white dark:border-gray-700">
+            class="px-5 py-2.5 rounded-lg border text-sm font-medium border-gray-300 text-gray-700 dark:text-white dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-white/[0.03]">
             Cancel
         </a>
         <button type="submit"
-            class="px-5 py-2.5 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">
-            {{ $isEdit ? 'Update Driver' : 'Save Driver' }}
+            class="inline-flex items-center justify-center font-medium gap-2 rounded-lg transition px-4 py-3 text-sm bg-brand-500 text-white shadow-theme-xs hover:bg-brand-600">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+            {{ $isEdit ? 'Update Driver' : 'Create Driver' }}
         </button>
     </div>
 </div>

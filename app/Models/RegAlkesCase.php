@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\HasBranchScope;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -10,11 +11,12 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class RegAlkesCase extends Model
 {
-    use SoftDeletes;
+    use SoftDeletes, HasBranchScope;
 
     protected $table = 'reg_alkes_cases';
 
     protected $fillable = [
+        'branch_id',
         'case_number',
         'manufacture_id',
         'manufacture_name',
@@ -45,6 +47,11 @@ class RegAlkesCase extends Model
     ];
 
     // Relationships
+    public function branch(): BelongsTo
+    {
+        return $this->belongsTo(Branch::class);
+    }
+    
     public function manufacture(): BelongsTo
     {
         return $this->belongsTo(Manufacture::class, 'manufacture_id');

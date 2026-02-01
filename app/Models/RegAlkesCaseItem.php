@@ -2,14 +2,18 @@
 
 namespace App\Models;
 
+use App\Traits\HasBranchScope;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class RegAlkesCaseItem extends Model
 {
+    use HasBranchScope;
+    
     protected $table = 'reg_alkes_case_items';
 
     protected $fillable = [
+        'branch_id',
         'case_id',
         'product_id',
         'product_name',
@@ -28,6 +32,11 @@ class RegAlkesCaseItem extends Model
     ];
 
     // Relationships
+    public function branch(): BelongsTo
+    {
+        return $this->belongsTo(Branch::class);
+    }
+    
     public function regAlkesCase(): BelongsTo
     {
         return $this->belongsTo(RegAlkesCase::class, 'case_id');

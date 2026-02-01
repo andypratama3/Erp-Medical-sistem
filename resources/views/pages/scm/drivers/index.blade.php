@@ -12,7 +12,7 @@
         link="{{ route('scm.drivers.create') }}">
 
         <x-table.table-component
-            :data="$deliveriesData"
+            :data="$driversData"
             :columns="$columns"
             :searchable="true"
             :filterable="false" />

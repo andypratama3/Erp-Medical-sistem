@@ -2,15 +2,19 @@
 
 namespace App\Models;
 
+use App\Traits\HasBranchScope;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ACTInvoice extends Model
 {
+    use HasBranchScope;
+    
     protected $table = 'act_invoices';
 
     protected $fillable = [
+        'branch_id',
         'sales_do_id',
         'invoice_number',
         'invoice_date',
@@ -38,6 +42,11 @@ class ACTInvoice extends Model
     ];
 
     // Relationships
+    public function branch(): BelongsTo
+    {
+        return $this->belongsTo(Branch::class);
+    }
+    
     public function salesDO(): BelongsTo
     {
         return $this->belongsTo(SalesDO::class);

@@ -2,14 +2,18 @@
 
 namespace App\Models;
 
+use App\Traits\HasBranchScope;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class FINPayment extends Model
 {
+    use HasBranchScope;
+    
     protected $table = 'fin_payments';
 
     protected $fillable = [
+        'branch_id',
         'sales_do_id',
         'collection_id',
         'payment_number',
@@ -30,6 +34,11 @@ class FINPayment extends Model
     ];
 
     // Relationships
+    public function branch(): BelongsTo
+    {
+        return $this->belongsTo(Branch::class);
+    }
+    
     public function salesDO(): BelongsTo
     {
         return $this->belongsTo(SalesDO::class);

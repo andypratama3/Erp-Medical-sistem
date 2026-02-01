@@ -83,6 +83,9 @@ class SCMDriverController extends Controller
 
     public function store(Request $request)
     {
+
+        
+
         $validated = $request->validate([
             'code' => 'required|string|max:50|unique:scm_drivers,code',
             'name' => 'required|string|max:100',
