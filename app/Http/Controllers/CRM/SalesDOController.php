@@ -302,7 +302,7 @@ class SalesDOController extends Controller implements HasMiddleware
             'documents',
             'taskBoards'
         ]);
-        
+
         return view('pages.crm.sales_do.show', compact('salesDo'));
     }
 

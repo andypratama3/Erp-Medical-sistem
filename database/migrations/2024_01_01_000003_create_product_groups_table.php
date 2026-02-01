@@ -15,7 +15,6 @@ return new class extends Migration
             $table->string('name', 200);
             $table->text('description')->nullable();
             $table->enum('status', ['active', 'inactive'])->default('active');
-
             $table->softDeletes();
             $table->timestamps();
 

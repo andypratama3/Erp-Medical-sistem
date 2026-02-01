@@ -63,24 +63,16 @@ Route::middleware(['auth'])->group(function () {
 
         // Deliveries Resource
 
-        Route::resource('drivers', DriverController::class);
+         Route::resource('drivers', App\Http\Controllers\SCM\SCMDriverController::class);
 
+        // Deliveries
+        Route::resource('deliveries', App\Http\Controllers\SCM\SCMDeliveryController::class);
 
-        Route::resource('deliveries', DeliveryController::class);
-        Route::post('deliveries/{delivery}/mark-delivered', [DeliveryController::class, 'markAsDelivered'])
-        ->name('deliveries.mark-delivered');
-
-        // Drivers Management
-        Route::prefix('drivers')->name('drivers.')->group(function () {
-            Route::get('/', [DriverController::class, 'index'])->name('index');
-            Route::get('create', [DriverController::class, 'create'])->name('create');
-            Route::post('/', [DriverController::class, 'store'])->name('store');
-            Route::get('{driver}', [DriverController::class, 'show'])->name('show');
-            Route::get('{driver}/edit', [DriverController::class, 'edit'])->name('edit');
-            Route::put('{driver}', [DriverController::class, 'update'])->name('update');
-            Route::delete('{driver}', [DriverController::class, 'destroy'])->name('destroy');
-            Route::post('{driver}/toggle-status', [DriverController::class, 'toggleStatus'])->name('toggle-status');
-        });
+        // Additional delivery actions
+        Route::post('deliveries/{delivery}/depart', [App\Http\Controllers\SCM\SCMDeliveryController::class, 'markDeparted'])
+            ->name('deliveries.depart');
+        Route::post('deliveries/{delivery}/delivered', [App\Http\Controllers\SCM\SCMDeliveryController::class, 'markDelivered'])
+            ->name('deliveries.delivered');
 
         // Vehicles Management (Optional)
         Route::prefix('vehicles')->name('vehicles.')->group(function () {

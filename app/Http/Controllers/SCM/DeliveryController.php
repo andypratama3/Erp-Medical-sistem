@@ -3,44 +3,98 @@
 namespace App\Http\Controllers\SCM;
 
 use App\Http\Controllers\Controller;
-use App\Models\SalesDO;
 use App\Models\SCMDelivery;
 use App\Models\SCMDriver;
-use App\Services\DocumentUploadService;
+use App\Models\SalesDO;
+use App\Services\AuditLogService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
-class DeliveryController extends Controller
+class SCMDeliveryController extends Controller
 {
-    protected $documentService;
+    protected $auditLog;
 
-    public function __construct(DocumentUploadService $documentService)
+    public function __construct(AuditLogService $auditLog)
     {
-        $this->documentService = $documentService;
+        $this->auditLog = $auditLog;
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $deliveries = SCMDelivery::with(['salesDo.customer', 'driver'])
-            ->latest()
-            ->paginate(15);
+        $query = SCMDelivery::with(['salesDO.customer', 'driver', 'branch']);
 
-        return view('pages.scm.deliveries.index', compact('deliveries'));
-    }
-
-    public function create(Request $request)
-    {
-        $salesDo = SalesDO::with(['customer', 'items.product'])
-            ->findOrFail($request->do_id);
-
-        if (!in_array($salesDo->status, ['scm_ready', 'scm_on_delivery'])) {
-            return redirect()->route('scm.task-board')
-                ->with('error', 'This DO is not ready for delivery');
+        // Filters
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('tracking_number', 'like', "%{$search}%")
+                  ->orWhereHas('salesDO', function($q) use ($search) {
+                      $q->where('do_code', 'like', "%{$search}%");
+                  });
+            });
         }
 
-        $drivers = SCMDriver::active()->get();
+        if ($request->filled('delivery_status')) {
+            $query->where('delivery_status', $request->delivery_status);
+        }
 
-        return view('pages.scm.deliveries.create', compact('salesDo', 'drivers'));
+        if ($request->filled('driver_id')) {
+            $query->where('driver_id', $request->driver_id);
+        }
+
+        if ($request->filled('date_from')) {
+            $query->whereDate('delivery_date', '>=', $request->date_from);
+        }
+
+        if ($request->filled('date_to')) {
+            $query->whereDate('delivery_date', '<=', $request->date_to);
+        }
+
+        $deliveries = $query->latest()->paginate(15);
+
+        $columns = [
+            ['key' => 'tracking_number', 'label' => 'Tracking #', 'type' => 'text'],
+            ['key' => 'do_code', 'label' => 'DO Code', 'type' => 'text'],
+            ['key' => 'customer', 'label' => 'Customer', 'type' => 'text'],
+            ['key' => 'driver', 'label' => 'Driver', 'type' => 'text'],
+            ['key' => 'delivery_date', 'label' => 'Delivery Date', 'type' => 'date'],
+            ['key' => 'status', 'label' => 'Status', 'type' => 'badge'],
+        ];
+
+        $deliveriesData = $deliveries->getCollection()->map(function ($delivery) {
+            return [
+                'id' => $delivery->id,
+                'tracking_number' => $delivery->tracking_number ?? '-',
+                'do_code' => $delivery->salesDO->do_code ?? '-',
+                'customer' => $delivery->salesDO->customer->name ?? '-',
+                'driver' => $delivery->driver->name ?? '-',
+                'delivery_date' => $delivery->delivery_date->format('d M Y'),
+                'status' => $delivery->status_badge,
+                'actions' => [
+                    'show' => route('scm.deliveries.show', $delivery),
+                    'edit' => route('scm.deliveries.edit', $delivery),
+                    'delete' => route('scm.deliveries.destroy', $delivery),
+                ],
+            ];
+        })->toArray();
+
+        $drivers = SCMDriver::active()->get();
+        $salesDOs = SalesDO::whereIn('status', ['wqs_quality_ok', 'scm_picking'])->get();
+
+        return view('pages.scm.deliveries.index', compact(
+            'columns',
+            'deliveries',
+            'deliveriesData',
+            'drivers',
+            'salesDOs'
+        ));
+    }
+
+    public function create()
+    {
+        $drivers = SCMDriver::active()->get();
+        $salesDOs = SalesDO::whereIn('status', ['wqs_quality_ok', 'scm_picking'])->get();
+
+        return view('pages.scm.deliveries.create', compact('drivers', 'salesDOs'));
     }
 
     public function store(Request $request)
@@ -49,124 +103,123 @@ class DeliveryController extends Controller
             'sales_do_id' => 'required|exists:sales_do,id',
             'driver_id' => 'required|exists:scm_drivers,id',
             'delivery_date' => 'required|date',
-            'delivery_address' => 'required|string',
-            'loading_photo' => 'nullable|image|max:5120',
-            'delivery_proof' => 'nullable|image|max:5120',
-            'received_by' => 'nullable|string',
-            'received_at' => 'nullable|date',
-            'delivery_notes' => 'nullable|string',
+            'shipping_address' => 'required|string',
+            'tracking_number' => 'nullable|string|max:100',
+            'delivery_status' => 'required|in:pending,scheduled,on_route,delivered,failed,cancelled',
+            'notes' => 'nullable|string',
         ]);
 
-        DB::beginTransaction();
-        try {
-            $salesDo = SalesDO::findOrFail($validated['sales_do_id']);
+        $delivery = SCMDelivery::create($validated);
 
-            // Create Delivery
-            $delivery = SCMDelivery::create([
-                'sales_do_id' => $salesDo->id,
-                'driver_id' => $validated['driver_id'],
-                'delivery_date' => $validated['delivery_date'],
-                'delivery_address' => $validated['delivery_address'],
-                'delivery_status' => 'on_delivery',
-                'delivery_notes' => $validated['delivery_notes'] ?? null,
-                'received_by' => $validated['received_by'] ?? null,
-                'received_at' => $validated['received_at'] ?? null,
-            ]);
+        // Update Sales DO status
+        $delivery->salesDO->update(['status' => 'scm_shipping']);
 
-            // Upload loading photo
-            if ($request->hasFile('loading_photo')) {
-                $this->documentService->upload(
-                    $request->file('loading_photo'),
-                    SCMDelivery::class,
-                    $delivery->id,
-                    'scm_loading_photo',
-                    'Loading photo'
-                );
-            }
+        // Audit Log
+        $this->auditLog->logCreate('scm', $delivery, "Created delivery for DO: {$delivery->salesDO->do_code}");
 
-            // Upload delivery proof
-            if ($request->hasFile('delivery_proof')) {
-                $this->documentService->upload(
-                    $request->file('delivery_proof'),
-                    SCMDelivery::class,
-                    $delivery->id,
-                    'scm_delivery_proof',
-                    'Delivery proof'
-                );
-            }
-
-            // Update DO status
-            $salesDo->update(['status' => 'scm_on_delivery']);
-
-            // Update SCM task
-            $salesDo->taskBoards()->where('module', 'scm')->update(['task_status' => 'in_progress']);
-
-            DB::commit();
-
-            return redirect()->route('scm.deliveries.show', $delivery)
-                ->with('success', 'Delivery created successfully');
-
-        } catch (\Exception $e) {
-            DB::rollback();
-            return back()->with('error', 'Failed to create delivery: ' . $e->getMessage())->withInput();
-        }
+        return redirect()->route('scm.deliveries.index')
+            ->with('success', 'Delivery created successfully.');
     }
 
     public function show(SCMDelivery $delivery)
     {
-        $delivery->load(['salesDo.customer', 'driver', 'documents']);
+        $delivery->load(['salesDO.customer', 'driver', 'branch']);
+
+        $this->auditLog->logView('scm', $delivery);
+
         return view('pages.scm.deliveries.show', compact('delivery'));
     }
 
-    public function markAsDelivered(Request $request, SCMDelivery $delivery)
+    public function edit(SCMDelivery $delivery)
+    {
+        $drivers = SCMDriver::active()->get();
+        $salesDOs = SalesDO::whereIn('status', ['wqs_quality_ok', 'scm_picking'])->get();
+
+        return view('pages.scm.deliveries.edit', compact('delivery', 'drivers', 'salesDOs'));
+    }
+
+    public function update(Request $request, SCMDelivery $delivery)
     {
         $validated = $request->validate([
-            'received_by' => 'required|string',
-            'received_at' => 'required|date',
-            'signature' => 'nullable|image|max:2048',
+            'sales_do_id' => 'required|exists:sales_do,id',
+            'driver_id' => 'required|exists:scm_drivers,id',
+            'delivery_date' => 'required|date',
+            'shipping_address' => 'required|string',
+            'tracking_number' => 'nullable|string|max:100',
+            'delivery_status' => 'required|in:pending,scheduled,on_route,delivered,failed,cancelled',
+            'departure_time' => 'nullable|date',
+            'arrival_time' => 'nullable|date',
+            'receiver_name' => 'nullable|string|max:100',
+            'receiver_position' => 'nullable|string|max:100',
+            'received_at' => 'nullable|date',
+            'delivery_notes' => 'nullable|string',
+            'notes' => 'nullable|string',
         ]);
 
-        DB::beginTransaction();
-        try {
-            // Update delivery status
-            $delivery->update([
-                'delivery_status' => 'delivered',
-                'received_by' => $validated['received_by'],
-                'received_at' => $validated['received_at'],
-            ]);
+        $originalData = $delivery->toArray();
+        $delivery->update($validated);
 
-            // Upload signature
-            if ($request->hasFile('signature')) {
-                $this->documentService->upload(
-                    $request->file('signature'),
-                    SCMDelivery::class,
-                    $delivery->id,
-                    'scm_signature',
-                    'Recipient signature'
-                );
-            }
-
-            // Update DO status
-            $delivery->salesDo->update(['status' => 'scm_delivered']);
-
-            // Complete SCM task and create ACT task
-            $delivery->salesDo->taskBoards()->where('module', 'scm')->update(['task_status' => 'completed']);
-            
-            $delivery->salesDo->taskBoards()->create([
-                'module' => 'act',
-                'task_status' => 'pending',
-                'task_description' => 'Generate invoice for DO ' . $delivery->salesDo->do_number,
-                'due_date' => now()->addDays(1),
-            ]);
-
-            DB::commit();
-
-            return redirect()->route('scm.deliveries.show', $delivery)
-                ->with('success', 'Delivery marked as delivered successfully');
-
-        } catch (\Exception $e) {
-            DB::rollback();
-            return back()->with('error', 'Failed to mark as delivered: ' . $e->getMessage());
+        // Update Sales DO status if delivered
+        if ($validated['delivery_status'] === 'delivered') {
+            $delivery->salesDO->update(['status' => 'scm_delivered']);
         }
+
+        $this->auditLog->logUpdate('scm', $delivery, $originalData, "Updated delivery for DO: {$delivery->salesDO->do_code}");
+
+        return redirect()->route('scm.deliveries.index')
+            ->with('success', 'Delivery updated successfully.');
+    }
+
+    public function destroy(SCMDelivery $delivery)
+    {
+        $doCode = $delivery->salesDO->do_code;
+
+        $this->auditLog->logDelete('scm', $delivery, "Deleted delivery for DO: {$doCode}");
+
+        $delivery->delete();
+
+        return redirect()->route('scm.deliveries.index')
+            ->with('success', 'Delivery deleted successfully.');
+    }
+
+    /**
+     * Mark delivery as departed
+     */
+    public function markDeparted(SCMDelivery $delivery)
+    {
+        $delivery->update([
+            'delivery_status' => 'on_route',
+            'departure_time' => now(),
+        ]);
+
+        $this->auditLog->logAction('scm', 'depart', $delivery, "Delivery departed for DO: {$delivery->salesDO->do_code}");
+
+        return redirect()->back()->with('success', 'Delivery marked as departed.');
+    }
+
+    /**
+     * Mark delivery as delivered
+     */
+    public function markDelivered(Request $request, SCMDelivery $delivery)
+    {
+        $validated = $request->validate([
+            'receiver_name' => 'required|string|max:100',
+            'receiver_position' => 'nullable|string|max:100',
+        ]);
+
+        $delivery->update([
+            'delivery_status' => 'delivered',
+            'arrival_time' => now(),
+            'received_at' => now(),
+            'receiver_name' => $validated['receiver_name'],
+            'receiver_position' => $validated['receiver_position'] ?? null,
+        ]);
+
+        // Update Sales DO status
+        $delivery->salesDO->update(['status' => 'scm_delivered']);
+
+        $this->auditLog->logAction('scm', 'delivered', $delivery, "Delivery completed for DO: {$delivery->salesDO->do_code}");
+
+        return redirect()->back()->with('success', 'Delivery marked as completed.');
     }
 }

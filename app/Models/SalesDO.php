@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\HasBranchScope;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\{
@@ -14,11 +15,12 @@ use App\Helpers\SalesDOHelper;
 
 class SalesDO extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, SoftDeletes, HasBranchScope;
 
     protected $table = 'sales_do';
 
     protected $fillable = [
+        'branch_id',
         'do_code',
         'tracking_code',
         'customer_id',
@@ -101,6 +103,11 @@ class SalesDO extends Model
     public function delivery(): BelongsTo
     {
         return $this->belongsTo(SCMDelivery::class, 'delivery_id');
+    }
+
+    public function branch()
+    {
+        return $this->belongsTo(Branch::class, 'branch_id');
     }
 
     /* ================= SCOPES ================= */

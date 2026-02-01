@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\HasBranchScope;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\{
     MorphTo,
@@ -11,9 +12,10 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class DocumentUpload extends Model
 {
-    use SoftDeletes;
+    use SoftDeletes, HasBranchScope;
 
     protected $fillable = [
+        'branch_id',
         'documentable_type',
         'documentable_id',
         'document_category',

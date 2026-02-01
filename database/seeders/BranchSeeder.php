@@ -85,7 +85,7 @@ class BranchSeeder extends Seeder
         $branches = Branch::all();
 
         // Owner gets all branches
-        $owner = $users->where('email', 'owner@example.com')->first();
+        $owner = $users->where('email', 'owner@rmi.local')->first();
         if ($owner) {
             foreach ($branches as $branch) {
                 $owner->branches()->attach($branch->id, [
@@ -96,7 +96,7 @@ class BranchSeeder extends Seeder
         }
 
         // Admin gets all branches
-        $admin = $users->where('email', 'admin@example.com')->first();
+        $admin = $users->where('email', 'admin@rmi.local')->first();
         if ($admin) {
             foreach ($branches as $branch) {
                 $admin->branches()->attach($branch->id, [
@@ -108,9 +108,9 @@ class BranchSeeder extends Seeder
 
         // Assign staff to specific branches
         $staffMappings = [
-            'staff@example.com' => ['HQ', 'BDG'],
-            'manager@example.com' => ['BDG'],
-            'sales@example.com' => ['SBY', 'MKS'],
+            'staff@rmi.local' => ['HQ', 'BDG'],
+            'manager@rmi.local' => ['BDG'],
+            'sales@rmi.local' => ['SBY', 'MKS'],
         ];
 
         foreach ($staffMappings as $email => $branchCodes) {
@@ -134,9 +134,9 @@ class BranchSeeder extends Seeder
 
         // Set managers for branches
         $managerMappings = [
-            'HQ' => 'admin@example.com',
-            'BDG' => 'manager@example.com',
-            'SBY' => 'sales@example.com',
+            'HQ' => 'admin@rmi.local',
+            'BDG' => 'manager@rmi.local',
+            'SBY' => 'sales@rmi.local',
         ];
 
         foreach ($managerMappings as $branchCode => $email) {

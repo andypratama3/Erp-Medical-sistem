@@ -294,10 +294,10 @@
 
     <div class="sm:col-span-2">
         <x-form.input.dropzone
-            title="Upload Foto & Video Product"
-            image-name="images[]"
-            accept="image/png,image/jpeg,image/webp,image/svg+xml"
+            title="Upload Foto Product"
+            name="images"
         />
+
     </div>
 
     <div class="sm:col-span-2">

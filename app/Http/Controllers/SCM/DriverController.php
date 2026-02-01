@@ -2,43 +2,65 @@
 
 namespace App\Http\Controllers\SCM;
 
-use App\Models\SCMDriver;
-use Illuminate\Http\Request;
-use App\Helpers\StatusBadgeHelper;
 use App\Http\Controllers\Controller;
+use App\Models\SCMDriver;
+use App\Services\AuditLogService;
+use Illuminate\Http\Request;
 
-class DriverController extends Controller
+class SCMDriverController extends Controller
 {
+    protected $auditLog;
+
+    public function __construct(AuditLogService $auditLog)
+    {
+        $this->auditLog = $auditLog;
+    }
+
     public function index(Request $request)
     {
-        $drivers = SCMDriver::orderBy('created_at', 'asc');
+        $query = SCMDriver::with('branch');
 
-        $columns = [
-            ['key' => 'code', 'label' => 'Code', 'type' => 'text'],
-            ['key' => 'name', 'label' => 'Name', 'type' => 'text'],
-            ['key' => 'phone', 'label' => 'Phone', 'type' => 'text'],
-            ['key' => 'license_number', 'label' => 'License Number', 'type' => 'text'],
-            ['key' => 'vehicle_type', 'label' => 'Vehicle Type', 'type' => 'text'],
-            ['key' => 'vehicle_number', 'label' => 'Vehicle Number', 'type' => 'text'],
-        ];
-
-        if($request->has('search')) {
+        if ($request->filled('search')) {
             $search = $request->search;
-            $drivers->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('code', 'like', "%{$search}%")
-                  ->orWhere('name', 'like', "%{$search}%");
+                  ->orWhere('name', 'like', "%{$search}%")
+                  ->orWhere('vehicle_number', 'like', "%{$search}%");
             });
         }
 
-        $drivers = $drivers->paginate(15);
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
 
+        if ($request->filled('vehicle_type')) {
+            $query->where('vehicle_type', $request->vehicle_type);
+        }
 
-        $deliveriesData = $drivers->getCollection(function ($driver) use ($request) {
+        $drivers = $query->latest()->paginate(15);
+
+        $columns = [
+            ['key' => 'code', 'label' => 'Code', 'type' => 'text'],
+            ['key' => 'name', 'label' => 'Driver Name', 'type' => 'text'],
+            ['key' => 'phone', 'label' => 'Phone', 'type' => 'text'],
+            ['key' => 'vehicle', 'label' => 'Vehicle', 'type' => 'text'],
+            ['key' => 'license', 'label' => 'License', 'type' => 'text'],
+            ['key' => 'status', 'label' => 'Status', 'type' => 'badge'],
+        ];
+
+        $driversData = $drivers->getCollection()->map(function ($driver) {
             return [
                 'id' => $driver->id,
                 'code' => $driver->code,
                 'name' => $driver->name,
                 'phone' => $driver->phone ?? '-',
+                'vehicle' => "{$driver->vehicle_type} - {$driver->vehicle_number}",
+                'license' => $driver->license_number ?? '-',
+                'status' => [
+                    'value' => $driver->status,
+                    'label' => ucfirst($driver->status),
+                    'color' => $driver->status === 'active' ? 'active' : 'inactive',
+                ],
                 'actions' => [
                     'show' => route('scm.drivers.show', $driver),
                     'edit' => route('scm.drivers.edit', $driver),
@@ -47,8 +69,11 @@ class DriverController extends Controller
             ];
         })->toArray();
 
-
-        return view('pages.scm.drivers.index', compact('drivers','deliveriesData','columns'));
+        return view('pages.scm.drivers.index', compact(
+            'columns',
+            'drivers',
+            'driversData'
+        ));
     }
 
     public function create()
@@ -59,21 +84,33 @@ class DriverController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'code' => 'required|unique:scm_drivers',
-            'name' => 'required',
-            'phone' => 'nullable',
-            'license_number' => 'required|unique:scm_drivers',
-            'vehicle_type' => 'required',
-            'vehicle_number' => 'required|unique:scm_drivers',
+            'code' => 'required|string|max:50|unique:scm_drivers,code',
+            'name' => 'required|string|max:100',
+            'phone' => 'required|string|max:20',
+            'email' => 'nullable|email|max:100',
+            'license_number' => 'required|string|max:50',
+            'license_expiry' => 'nullable|date',
+            'vehicle_type' => 'required|string|max:50',
+            'vehicle_number' => 'required|string|max:50',
+            'vehicle_capacity' => 'nullable|numeric|min:0',
+            'status' => 'required|in:active,inactive,on_leave',
+            'notes' => 'nullable|string',
         ]);
 
-        SCMDriver::create($validated);
+        $driver = SCMDriver::create($validated);
 
-        return redirect()->route('scm.drivers.index')->with('success', 'Driver created successfully');
+        $this->auditLog->logCreate('scm', $driver, "Created driver: {$driver->name}");
+
+        return redirect()->route('scm.drivers.index')
+            ->with('success', 'Driver created successfully.');
     }
 
     public function show(SCMDriver $driver)
     {
+        $driver->load(['branch', 'deliveries.salesDO']);
+
+        $this->auditLog->logView('scm', $driver);
+
         return view('pages.scm.drivers.show', compact('driver'));
     }
 
@@ -85,23 +122,37 @@ class DriverController extends Controller
     public function update(Request $request, SCMDriver $driver)
     {
         $validated = $request->validate([
-            'code' => 'required|unique:scm_drivers,code,' . $driver->id,
-            'name' => 'required',
-            'phone' => 'nullable',
-            'license_number' => 'required|unique:scm_drivers,license_number,' . $driver->id,
-            'vehicle_type' => 'required',
-            'vehicle_number' => 'required|unique:scm_drivers,vehicle_number,' . $driver->id,
+            'code' => 'required|string|max:50|unique:scm_drivers,code,' . $driver->id,
+            'name' => 'required|string|max:100',
+            'phone' => 'required|string|max:20',
+            'email' => 'nullable|email|max:100',
+            'license_number' => 'required|string|max:50',
+            'license_expiry' => 'nullable|date',
+            'vehicle_type' => 'required|string|max:50',
+            'vehicle_number' => 'required|string|max:50',
+            'vehicle_capacity' => 'nullable|numeric|min:0',
+            'status' => 'required|in:active,inactive,on_leave',
+            'notes' => 'nullable|string',
         ]);
 
+        $originalData = $driver->toArray();
         $driver->update($validated);
 
-        return redirect()->route('scm.drivers.index')->with('success', 'Driver updated successfully');
+        $this->auditLog->logUpdate('scm', $driver, $originalData, "Updated driver: {$driver->name}");
+
+        return redirect()->route('scm.drivers.index')
+            ->with('success', 'Driver updated successfully.');
     }
 
     public function destroy(SCMDriver $driver)
     {
+        $driverName = $driver->name;
+
+        $this->auditLog->logDelete('scm', $driver, "Deleted driver: {$driverName}");
+
         $driver->delete();
 
-        return redirect()->route('scm.drivers.index')->with('success', 'Driver deleted successfully');
+        return redirect()->route('scm.drivers.index')
+            ->with('success', 'Driver deleted successfully.');
     }
 }

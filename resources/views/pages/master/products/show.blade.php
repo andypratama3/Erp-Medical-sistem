@@ -70,38 +70,55 @@
     <!-- Photos -->
     <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
         <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Photos</h3>
-        @if($product->photos && count($product->photos) > 0)
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-            @foreach($product->photos as $photo)
-            <div class="relative group">
-                <img src="{{ Storage::url($photo) }}" alt="Product photo" class="w-full h-48 object-cover rounded-lg cursor-pointer hover:opacity-90" onclick="openImageModal('{{ Storage::url($photo) }}')">
-                <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all rounded-lg"></div>
+
+        @php
+            $images = $product->getMedia('product_images');
+        @endphp
+
+        @if($images->count())
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                @foreach($images as $image)
+                    <div class="relative group">
+                        <img
+                            src="{{ $image->getUrl() }}"
+                            alt="Product photo"
+                            class="w-full h-48 object-cover rounded-lg cursor-pointer hover:opacity-90"
+                            onclick="openImageModal('{{ $image->getUrl() }}')"
+                        >
+                        <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all rounded-lg"></div>
+                    </div>
+                @endforeach
             </div>
-            @endforeach
-        </div>
         @else
-        <p class="text-gray-500 dark:text-gray-400">No photos uploaded</p>
+            <p class="text-gray-500 dark:text-gray-400">No photos uploaded</p>
         @endif
     </div>
 
+
     <!-- Videos -->
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mt-6">
         <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Videos</h3>
-        @if($product->videos && count($product->videos) > 0)
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            @foreach($product->videos as $video)
-            <div class="relative">
-                <video controls class="w-full h-64 rounded-lg bg-black">
-                    <source src="{{ Storage::url($video) }}" type="video/mp4">
-                    Your browser does not support the video tag.
-                </video>
+
+        @php
+            $videos = $product->getMedia('product_videos');
+        @endphp
+
+        @if($videos->count())
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                @foreach($videos as $video)
+                    <div class="relative">
+                        <video controls class="w-full h-64 rounded-lg bg-black">
+                            <source src="{{ $video->getUrl() }}" type="{{ $video->mime_type }}">
+                            Your browser does not support the video tag.
+                        </video>
+                    </div>
+                @endforeach
             </div>
-            @endforeach
-        </div>
         @else
-        <p class="text-gray-500 dark:text-gray-400">No videos uploaded</p>
+            <p class="text-gray-500 dark:text-gray-400">No videos uploaded</p>
         @endif
     </div>
+
 </div>
 
 <!-- Image Modal -->

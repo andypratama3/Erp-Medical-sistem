@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\HasBranchScope;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\{BelongsTo, MorphMany};
@@ -10,11 +11,12 @@ use Carbon\Carbon;
 
 class TaskBoard extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, SoftDeletes, HasBranchScope;
 
     protected $table = 'task_boards';
 
     protected $fillable = [
+        'branch_id',
         'sales_do_id',
         'module',
         'task_type',

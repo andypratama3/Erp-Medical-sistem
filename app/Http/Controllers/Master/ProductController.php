@@ -110,6 +110,8 @@ class ProductController extends Controller
 
     public function store(Request $request)
     {
+       
+        // ✅ FIXED: Validate file uploads properly
         $validated = $request->validate([
             'category_id' => 'required|exists:categories,id',
             'product_group_id' => 'required|exists:product_groups,id',
@@ -128,8 +130,8 @@ class ProductController extends Controller
             'is_importable' => 'nullable|boolean',
             'status' => 'required|in:active,inactive,discontinued',
             'images' => 'nullable|array',
-            'images.*' => 'image|mimes:jpeg,png,gif|max:2048',
-            'video' => 'nullable|mimes:mp4,mov|max:10240',
+            'images.*' => 'image|mimes:jpeg,png,gif,webp|max:2048',
+            'video' => 'nullable|mimes:mp4,mov,avi,quicktime|max:10240',
         ]);
 
         // Handle checkboxes - set to false if not present
@@ -145,22 +147,29 @@ class ProductController extends Controller
             $validated['cost_price'] = (float) str_replace(['.', ','], ['', '.'], $validated['cost_price']);
         }
 
+        // Create product
         $product = Product::create($validated);
 
-        /** ===== UPLOAD IMAGES ===== */
-        if ($request->hasFile('images')) {
+        // ✅ FIXED: Handle image uploads
+        if ($request->hasFile('images') && is_array($request->file('images'))) {
             foreach ($request->file('images') as $image) {
-                $product
-                    ->addMedia($image)
-                    ->toMediaCollection('product_images');
+                // Validate that it's actually a file
+                if ($image->isValid()) {
+                    $product
+                        ->addMedia($image)
+                        ->toMediaCollection('product_images');
+                }
             }
         }
 
-        /** ===== UPLOAD VIDEO ===== */
+        // ✅ FIXED: Handle video upload
         if ($request->hasFile('video')) {
-            $product
-                ->addMedia($request->file('video'))
-                ->toMediaCollection('product_videos');
+            $video = $request->file('video');
+            if ($video->isValid()) {
+                $product
+                    ->addMedia($video)
+                    ->toMediaCollection('product_videos');
+            }
         }
 
         $this->auditLog->logCreate('master', $product);
@@ -203,6 +212,9 @@ class ProductController extends Controller
             'is_taxable' => 'nullable|boolean',
             'is_importable' => 'nullable|boolean',
             'status' => 'required|in:active,inactive,discontinued',
+            'images' => 'nullable|array',
+            'images.*' => 'image|mimes:jpeg,png,gif,webp|max:2048',
+            'video' => 'nullable|mimes:mp4,mov,avi,quicktime|max:10240',
         ]);
 
         // Handle checkboxes - set to false if not present
@@ -219,7 +231,31 @@ class ProductController extends Controller
         }
 
         $oldData = $product->toArray();
+
         $product->update($validated);
+
+        // ✅ FIXED: Handle image uploads
+        if ($request->hasFile('images') && is_array($request->file('images'))) {
+            foreach ($request->file('images') as $image) {
+                if ($image->isValid()) {
+                    $product
+                        ->addMedia($image)
+                        ->toMediaCollection('product_images');
+                }
+            }
+        }
+
+        // ✅ FIXED: Handle video upload
+        if ($request->hasFile('video')) {
+            $video = $request->file('video');
+            if ($video->isValid()) {
+                // Clear old video first
+                $product->clearMediaCollection('product_videos');
+                $product
+                    ->addMedia($video)
+                    ->toMediaCollection('product_videos');
+            }
+        }
 
         $this->auditLog->logUpdate('master', $product, $oldData);
 
@@ -241,6 +277,6 @@ class ProductController extends Controller
 
     public function import (Request $request)
     {
-
+        // TODO: Implement import functionality
     }
 }

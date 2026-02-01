@@ -20,6 +20,7 @@ return new class extends Migration
             $table->string('receiver_position', 100)->nullable();
             $table->timestamp('received_at')->nullable();
             $table->text('delivery_notes')->nullable();
+            $table->softDeletes();
             $table->timestamps();
 
             $table->index('sales_do_id');
