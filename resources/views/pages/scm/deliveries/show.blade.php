@@ -19,7 +19,7 @@
 
     <x-flash-message.flash />
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="grid sm:grid-cols-2 gap-6">
         <!-- Left: Main Content (2 columns) -->
         <div class="lg:col-span-2 space-y-6">
             <!-- Delivery Status -->
@@ -102,7 +102,7 @@
             @if($delivery->delivery_status !== 'delivered')
             <div class="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-xl p-6">
                 <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-4">✅ Mark as Delivered</h2>
-                <form method="POST" action="{{ route('scm.deliveries.mark-delivered', $delivery) }}" enctype="multipart/form-data" class="space-y-4">
+                <form method="POST" action="{{ route('scm.deliveries.delivered', $delivery) }}" enctype="multipart/form-data" class="space-y-4">
                     @csrf
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -135,11 +135,11 @@
             @endif
 
             <!-- Delivery Items -->
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-xl p-6">
+            <div class="w-full dark:bg-gray-800 rounded-lg shadow dark:shadow-xl p-6">
                 <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-4">📦 Delivery Items</h2>
                 <div class="space-y-3">
                     @foreach($delivery->salesDo->items as $item)
-                        <div class="border border-gray-200 dark:border-gray-600 rounded-lg p-4 bg-gray-50 dark:bg-gray-700/50">
+                        <div class="border border-gray-200 dark:border-gray-600 rounded-lg p-4 dark:bg-gray-700/50">
                             <div class="flex justify-between items-start">
                                 <div>
                                     <h3 class="font-bold text-gray-900 dark:text-white">{{ $item->product->name }}</h3>
@@ -310,13 +310,13 @@
             </div>
 
             <!-- Quick Actions -->
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-xl p-6">
+            <div class=" dark:bg-gray-800 rounded-lg dark:text-white shadow dark:shadow-xl p-6">
                 <h3 class="font-bold text-gray-900 dark:text-white mb-4">⚡ Quick Actions</h3>
                 <div class="space-y-2">
-                    <a href="{{ route('crm.sales-do.show', $delivery->salesDo) }}" class="block w-full px-4 py-2 bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-800 text-white rounded-lg text-sm font-bold transition text-center">
+                    <a href="{{ route('crm.sales-do.show', $delivery->salesDo) }}" class="block w-full px-4 py-2 bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-800 text-dark dark:text-white rounded-lg text-sm font-bold transition text-center">
                         📄 View Full DO
                     </a>
-                    <a href="{{ route('scm.task-board.show', $delivery->salesDo) }}" class="block w-full px-4 py-2 bg-gray-600 dark:bg-gray-700 hover:bg-gray-700 dark:hover:bg-gray-600 text-white rounded-lg text-sm font-bold transition text-center">
+                    <a href="{{ route('scm.task-board.show', $delivery->salesDo) }}" class="block w-full px-4 py-2 bg-gray-600 dark:bg-gray-700 dark:hover:bg-gray-700 dark:hover:bg-gray-600 text-dark dark:text-white rounded-lg text-sm font-bold transition text-center">
                         🚚 View Task
                     </a>
                 </div>

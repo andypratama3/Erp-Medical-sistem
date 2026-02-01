@@ -3,7 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CRM\SalesDOController;
 use App\Http\Controllers\ACT\{TaskBoardController as ACTTaskBoard, InvoiceController};
-use App\Http\Controllers\SCM\{TaskBoardController as SCMTaskBoard, DeliveryController, DriverController};
+use App\Http\Controllers\SCM\{TaskBoardController as SCMTaskBoard, DeliveryController, DriverController, VehicleController, DeliveryTrackingController, SCMReportController};
 use App\Http\Controllers\WQS\{TaskBoardController as WQSTaskBoard, StockCheckController};
 use App\Http\Controllers\FIN\{TaskBoardController as FINTaskBoard, CollectionController, AgingController};
 
@@ -17,6 +17,13 @@ Route::middleware(['auth'])->group(function () {
 
     // WQS Module
     Route::prefix('wqs')->name('wqs.')->middleware(['auth'])->group(function () {
+
+      Route::get('inventory', [App\Http\Controllers\WQS\InventoryController::class, 'index'])
+            ->name('inventory.index');
+        Route::get('inventory/adjustments', [App\Http\Controllers\WQS\InventoryController::class, 'adjustments'])
+            ->name('inventory.adjustments');
+        Route::post('inventory/adjustments', [App\Http\Controllers\WQS\InventoryController::class, 'storeAdjustment'])
+            ->name('inventory.adjustments.store');
         // Task Board
         Route::get('task-board', [WQSTaskBoard::class, 'index'])
             ->name('task-board');
@@ -112,6 +119,7 @@ Route::middleware(['auth'])->group(function () {
 
     // FIN Module
     Route::prefix('fin')->name('fin.')->group(function () {
+        Route::resource('payments', App\Http\Controllers\FIN\PaymentController::class);
         Route::get('task-board', [FINTaskBoard::class, 'index'])->name('task-board');
         Route::resource('collections', CollectionController::class);
         Route::get('aging', [AgingController::class, 'index'])->name('aging');

@@ -3,7 +3,9 @@
 @section('title', 'Delivery Task - ' . $salesDo->do_code)
 
 @section('content')
+<x-common.page-breadcrumb pageTitle="Delivery Task - {{ $salesDo->do_code }}" />
 <div class="container-fluid px-4 py-6">
+
     <!-- Header -->
     <div class="mb-6">
         <h1 class="text-4xl font-bold text-gray-900 dark:text-white">🚚 Delivery Task</h1>
@@ -67,18 +69,18 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-sm text-gray-700 dark:text-gray-300 font-semibold mb-2">Driver *</label>
-                           <x-form.select.searchable-select
-                                name="driver_id"
-                                :options="$drivers->map(function($driver) {
-                                    return [
-                                        'value' => $driver->id,
-                                        'label' => $driver->name,
-                                    ];
-                                })->toArray()"
-                                :selected="old('driver_id', $salesDo->delivery?->driver_id)"
-                                placeholder="Select a driver"
-                                required
-                            />
+                            <x-form.select.searchable-select
+                                    name="driver_id"
+                                    :options="$drivers->map(function($driver) {
+                                        return [
+                                            'value' => $driver->id,
+                                            'label' => $driver->name,
+                                        ];
+                                    })->toArray()"
+                                    :selected="old('driver_id', $salesDo->delivery?->driver_id)"
+                                    placeholder="Select a driver"
+                                    required
+                                />
                         </div>
 
                         <div>
@@ -91,7 +93,7 @@
                         <div>
                             <label class="block text-sm text-gray-700 dark:text-gray-300 font-semibold mb-2">Scheduled Date *</label>
                                <x-form.date-picker
-                                    id="do_date"
+                                    id="scheduled_date"
                                     name="scheduled_date"
                                     placeholder="Select DO Date From"
                                     :defaultDate="old(

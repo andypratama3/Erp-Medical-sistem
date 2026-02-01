@@ -49,6 +49,7 @@ class MenuHelper
                     ['name'=> 'Drivers', 'path'=> '/scm/drivers'],
                     ['name'=> 'Task Board', 'path'=> '/scm/task-board'],
                     ['name'=> 'Delivery', 'path'=> '/scm/deliveries'],
+                    ['name'=> 'Vehicles', 'path'=> '/scm/vehicles'],
                 ]
             ],
             [

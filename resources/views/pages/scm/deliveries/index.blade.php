@@ -9,21 +9,7 @@
     <x-flash-message.flash />
 
     <!-- Action Bar -->
-    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div class="flex gap-3">
-            <a href="{{ route('scm.deliveries.create') }}"
-                class="inline-flex items-center justify-center font-medium gap-2 rounded-lg transition px-4 py-3 text-sm bg-brand-500 text-white shadow-theme-xs hover:bg-brand-600">
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M8 1v14M1 8h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                </svg>
-                New Delivery
-            </a>
-            <a href="{{ route('scm.task-board.index') }}"
-                class="inline-flex items-center justify-center font-medium gap-2 rounded-lg transition px-4 py-3 text-sm bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600">
-                Task Board
-            </a>
-        </div>
-    </div>
+
 
     <!-- Statistics -->
     <div class="grid sm:grid-cols-2 gap-4">
@@ -99,13 +85,18 @@
                         class="inline-flex items-center justify-center font-medium gap-2 rounded-lg transition px-4 py-3 text-sm bg-brand-500 text-white shadow-theme-xs hover:bg-brand-600">Apply</button>
                     <a href="{{ route('scm.deliveries.index') }}"
                         class="inline-flex items-center justify-center font-medium gap-2 rounded-lg transition px-4 py-3 text-sm bg-red-500 text-white shadow-theme-xs hover:bg-red-600">Reset</a>
+                    <a href="{{ route('scm.task-board.index') }}"
+                        type="button" class="inline-flex items-center justify-center font-medium gap-2 rounded-lg transition px-4 py-3 text-sm bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600">
+                        Task Board
+                    </a>
                 </div>
+
             </div>
         </form>
-    </x-common.component-card>
 
+    </x-common.component-card>
     <!-- Deliveries Table -->
-    <x-common.component-card title="Delivery List" desc="Manage all delivery records">
+    <x-common.component-card title="Delivery List" link="{{ route('scm.deliveries.create') }}" desc="Manage all delivery records">
         <div class="overflow-hidden rounded-xl border border-gray-200 dark:border-gray-800 dark:bg-white/[0.03]">
             <div class="max-w-full overflow-x-auto">
                 <table class="w-full min-w-[900px]">
