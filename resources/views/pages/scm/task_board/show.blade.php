@@ -43,15 +43,15 @@
                     <div>
                         <p class="text-sm text-gray-600 dark:text-gray-400">Status</p>
                         @if($salesDo->status === 'wqs_ready')
-                            <span class="inline-block mt-1 px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded text-sm font-bold">
+                            <span class="inline-block mt-1 px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-white rounded text-sm font-bold">
                                 Ready
                             </span>
                         @elseif($salesDo->status === 'scm_on_delivery')
-                            <span class="inline-block mt-1 px-3 py-1 bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200 rounded text-sm font-bold">
+                            <span class="inline-block mt-1 px-3 py-1 bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-white rounded text-sm font-bold">
                                 On Delivery
                             </span>
                         @elseif($salesDo->status === 'scm_delivered')
-                            <span class="inline-block mt-1 px-3 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded text-sm font-bold">
+                            <span class="inline-block mt-1 px-3 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-white rounded text-sm font-bold">
                                 Delivered
                             </span>
                         @endif
@@ -184,7 +184,7 @@
                     <div>
                         <label class="block text-sm text-gray-700 dark:text-gray-300 font-semibold mb-2">Delivery Photos</label>
                         <input type="file" name="delivery_photos[]" multiple accept="image/*"
-                               class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400">
+                               class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400">
                         <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">Upload proof of delivery photos (max 2MB each)</p>
                     </div>
 
@@ -193,7 +193,7 @@
                         <div class="border border-gray-300 dark:border-gray-600 rounded-lg p-2 bg-white dark:bg-gray-700">
                             <canvas id="signatureCanvas" class="w-full h-40 border border-gray-200 dark:border-gray-600 rounded cursor-crosshair bg-white"></canvas>
                             <div class="flex gap-2 mt-2">
-                                <button type="button" onclick="clearSignature()" class="px-3 py-1 bg-gray-300 dark:bg-gray-600 hover:bg-gray-400 dark:hover:bg-gray-500 text-gray-900 dark:text-white rounded text-sm font-semibold transition">
+                                <button type="button" onclick="clearSignature()" class="px-3 py-1  dark:bg-gray-600 hover:bg-gray-400 dark:hover:bg-gray-500 text-gray-900 dark:text-white rounded text-sm font-semibold transition">
                                     Clear
                                 </button>
                             </div>
@@ -223,7 +223,7 @@
                                   class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400">{{ old('delivery_notes') }}</textarea>
                     </div>
 
-                    <button type="submit" class="w-full px-4 py-3 bg-green-600 dark:bg-green-700 hover:bg-green-700 dark:hover:bg-green-800 text-white rounded-lg font-bold transition">
+                    <button type="submit" class="w-full px-4 py-3 bg-green-600 dark:bg-green-700 hover:bg-green-700 dark:hover:bg-gray-800 dark:text-white rounded-lg font-bold transition">
                         ✅ Complete Delivery
                     </button>
                 </form>

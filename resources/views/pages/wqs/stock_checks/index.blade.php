@@ -184,15 +184,15 @@
 
                                 @if($check->overall_status !== 'completed')
                                 <a href="{{ route('wqs.stock-checks.edit', $check) }}"
-                                    class="inline-flex items-center gap-1 px-2 py-1 bg-orange-600 dark:bg-orange-700 hover:bg-orange-700 dark:hover:bg-orange-800 text-white rounded text-xs font-bold transition">
-                                    ✏️ Edit
+                                    class="inline-flex items-center gap-1 px-2 py-1 bg-orange-600 dark:bg-orange-700 hover:bg-orange-700 dark:hover:bg-orange-800 text-dark dark:text-white rounded text-xs font-bold transition">
+                                    Edit
                                 </a>
                                 @endif
 
                                 @if($check->overall_status === 'checked')
                                 <button onclick="openMarkFailedModal({{ $check->id }})"
-                                    class="inline-flex items-center gap-1 px-2 py-1 bg-red-600 dark:bg-red-700 hover:bg-red-700 dark:hover:bg-red-800 text-white rounded text-xs font-bold transition">
-                                    ✕ Failed
+                                    class="inline-flex items-center gap-1 px-2 py-1 bg-red-600 dark:bg-red-700 hover:bg-red-700 dark:hover:bg-red-800 text-dark dark:text-white rounded text-xs font-bold transition">
+                                    Failed
                                 </button>
                                 @endif
                             </div>
@@ -271,7 +271,7 @@
     }
 
     // Close modal when clicking outside
-    document.getElementById('markFailedModal') ? .addEventListener('click', function (e) {
+    document.getElementById('markFailedModal').addEventListener('click', function (e) {
         if (e.target === this) {
             closeMarkFailedModal();
         }

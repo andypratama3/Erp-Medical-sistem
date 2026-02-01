@@ -6,7 +6,7 @@
 <div class="container-fluid px-4 py-6">
     <!-- Header -->
     <div class="mb-6">
-        <h1 class="text-4xl font-bold text-gray-900 dark:text-white">✏️ Edit Stock Check</h1>
+        <h1 class="text-4xl font-bold text-gray-900 dark:text-white">Edit Stock Check</h1>
         <p class="text-gray-600 dark:text-gray-400 mt-2">DO: <span class="font-mono font-semibold">{{ $stockCheck->salesDO->do_code }}</span> | Customer: <span class="font-semibold">{{ $stockCheck->salesDO->customer?->name }}</span></p>
     </div>
 
@@ -227,33 +227,33 @@
     </div>
 </div>
 
-@section('scripts')
+@push('scripts')
 <script>
-function setAllAvailable() {
-    document.querySelectorAll('input[value="available"]').forEach(radio => {
-        radio.checked = true;
-    });
-    document.querySelectorAll('input[name*="[available_qty]"]').forEach(input => {
-        const container = input.closest('[data-item-index]');
-        const orderedQtyText = container.querySelector('p:nth-of-type(3)')?.textContent;
-        if (orderedQtyText) {
-            const match = orderedQtyText.match(/Ordered Qty:\s*(\d+)/);
-            if (match) {
-                input.value = parseInt(match[1]);
+    function setAllAvailable() {
+        document.querySelectorAll('input[value="available"]').forEach(radio => {
+            radio.checked = true;
+        });
+        document.querySelectorAll('input[name*="[available_qty]"]').forEach(input => {
+            const container = input.closest('[data-item-index]');
+            const orderedQtyText = container.querySelector('p:nth-of-type(3)')?.textContent;
+            if (orderedQtyText) {
+                const match = orderedQtyText.match(/Ordered Qty:\s*(\d+)/);
+                if (match) {
+                    input.value = parseInt(match[1]);
+                }
             }
-        }
-    });
-}
+        });
+    }
 
-function markAllZero() {
-    document.querySelectorAll('input[value="not_available"]').forEach(radio => {
-        radio.checked = true;
-    });
-    document.querySelectorAll('input[name*="[available_qty]"]').forEach(input => {
-        input.value = 0;
-    });
+    function markAllZero() {
+        document.querySelectorAll('input[value="not_available"]').forEach(radio => {
+            radio.checked = true;
+        });
+        document.querySelectorAll('input[name*="[available_qty]"]').forEach(input => {
+            input.value = 0;
+        });
 }
 </script>
-@endsection
+@endpush
 
-@endsection 
+@endsection

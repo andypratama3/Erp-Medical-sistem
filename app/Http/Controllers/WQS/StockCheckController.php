@@ -368,7 +368,7 @@ class StockCheckController extends Controller implements HasMiddleware
         }
 
         $stockCheck->markFailed($validated['reason']);
-        $stockCheck->salesDO->update(['status' => 'wqs_on_hold']);
+        $stockCheck->salesDO->update(['status' => 'crm_to_wqs']);
 
         $this->auditLog->log('WQS_STOCK_CHECK_FAILED', 'WQS', [
             'stock_check_id' => $stockCheck->id,
