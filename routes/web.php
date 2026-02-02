@@ -1,47 +1,48 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\RoleController;
+use App\Http\Controllers\UserController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\UserController;
-use App\Http\Controllers\RoleController;
-use App\Http\Controllers\PermissionController;
+use App\Http\Controllers\FIN\AgingController;
 
 // CRM Controllers
-use App\Http\Controllers\CRM\SalesDOController;
+use App\Http\Controllers\Master\TaxController;
 
 // WQS Controllers
-use App\Http\Controllers\WQS\StockCheckController;
-use App\Http\Controllers\WQS\InventoryController;
-use App\Http\Controllers\WQS\TaskBoardController as WQSTaskBoardController;
+use App\Http\Controllers\PermissionController;
+use App\Http\Controllers\ACT\InvoiceController;
+use App\Http\Controllers\CRM\SalesDOController;
 
 // SCM Controllers
-use App\Http\Controllers\SCM\SCMDeliveryController;
-use App\Http\Controllers\SCM\SCMDriverController;
+use App\Http\Controllers\FIN\PaymentController;
 use App\Http\Controllers\SCM\VehicleController;
-use App\Http\Controllers\SCM\DeliveryTrackingController;
-use App\Http\Controllers\SCM\TaskBoardController as SCMTaskBoardController;
+use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\Master\BranchController;
+use App\Http\Controllers\Master\OfficeController;
 
 // ACT Controllers
-use App\Http\Controllers\ACT\InvoiceController;
-use App\Http\Controllers\ACT\TaskBoardController as ACTTaskBoardController;
+use App\Http\Controllers\Master\VendorController;
+use App\Http\Controllers\SCM\SCMDriverController;
 
 // FIN Controllers
-use App\Http\Controllers\FIN\PaymentController;
+use App\Http\Controllers\WQS\InventoryController;
 use App\Http\Controllers\FIN\CollectionController;
-use App\Http\Controllers\FIN\AgingController;
-use App\Http\Controllers\FIN\TaskBoardController as FINTaskBoardController;
+use App\Http\Controllers\Master\ProductController;
+use App\Http\Controllers\WQS\StockCheckController;
 
 // Master Data Controllers
-use App\Http\Controllers\Master\BranchController;
 use App\Http\Controllers\Master\CustomerController;
-use App\Http\Controllers\Master\VendorController;
-use App\Http\Controllers\Master\ProductController;
-use App\Http\Controllers\Master\PaymentTermController;
-use App\Http\Controllers\Master\TaxController;
-use App\Http\Controllers\Master\ManufactureController;
-use App\Http\Controllers\Master\OfficeController;
+use App\Http\Controllers\SCM\SCMDeliveryController;
 use App\Http\Controllers\Master\DepartmentController;
+use App\Http\Controllers\Master\ManufactureController;
+use App\Http\Controllers\Master\PaymentTermController;
+use App\Http\Controllers\SCM\DeliveryTrackingController;
+use App\Http\Controllers\ACT\TaskBoardController as ACTTaskBoardController;
+use App\Http\Controllers\FIN\TaskBoardController as FINTaskBoardController;
+use App\Http\Controllers\SCM\TaskBoardController as SCMTaskBoardController;
+use App\Http\Controllers\WQS\TaskBoardController as WQSTaskBoardController;
 
 /*
 |--------------------------------------------------------------------------
@@ -58,6 +59,7 @@ Route::get('/', function () {
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth', 'verified'])->group(function () {
+
 
     // Switch Branch
     // Branch switch route (outside master prefix)
@@ -361,6 +363,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // Permissions
         Route::resource('permissions', PermissionController::class);
     });
+
+    Route::get('notifications/recent', [NotificationController::class, 'recent']);
+    Route::post('notifications/{notification}/read', [NotificationController::class, 'markAsRead']);
+    Route::post('notifications/mark-all-read', [NotificationController::class, 'markAllAsRead']);
 });
 
 /*
