@@ -104,7 +104,7 @@ class StockCheckController extends Controller implements HasMiddleware
         // Verify DO is in WQS stage
         if (!in_array($salesDo->status, ['crm_to_wqs', 'wqs_ready', 'wqs_on_hold'])) {
             return redirect()
-                ->route('wqs.task-board')
+                ->route('wqs.task-board.index')
                 ->with('error', 'This DO is not in WQS stage.');
         }
 

@@ -12,7 +12,7 @@
 
     <!-- Back Button -->
     <div class="mb-6">
-        <a href="{{ route('wqs.task-board') }}" class="inline-flex items-center gap-2 px-4 py-2 bg-gray-400 dark:bg-gray-700 hover:bg-gray-500 dark:hover:bg-gray-600 text-white rounded-lg font-semibold transition">
+        <a href="{{ route('wqs.task-board.index') }}" class="inline-flex items-center gap-2 px-4 py-2 bg-gray-400 dark:bg-gray-700 hover:bg-gray-500 dark:hover:bg-gray-600 text-white rounded-lg font-semibold transition">
             Back to Task Board
         </a>
     </div>
@@ -120,7 +120,7 @@
 
                 <!-- Action Buttons -->
                 <div class="flex gap-3">
-                    <a href="{{ route('wqs.task-board') }}" class="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg font-bold hover:bg-gray-50 dark:hover:bg-gray-700 transition text-center">
+                    <a href="{{ route('wqs.task-board.index') }}" class="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg font-bold hover:bg-gray-50 dark:hover:bg-gray-700 transition text-center">
                         Cancel
                     </a>
                     <button type="submit" class="flex-1 px-4 py-3 bg-green-600 dark:bg-green-700 hover:bg-green-700 dark:hover:bg-green-800 text-white rounded-lg font-bold transition">

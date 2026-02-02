@@ -13,7 +13,7 @@
             <p class="text-gray-600 dark:text-gray-400 mt-2">Manage all stock verification records</p>
         </div>
 
-        <a href="{{ route('wqs.task-board') }}"
+        <a href="{{ route('wqs.task-board.index') }}"
             class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-800 text-white rounded-lg font-semibold transition">
             Back to Task Board
         </a>

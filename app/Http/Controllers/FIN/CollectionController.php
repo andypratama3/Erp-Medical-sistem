@@ -33,7 +33,7 @@ class CollectionController extends Controller
             ->findOrFail($request->invoice_id);
 
         if ($invoice->payment_status === 'paid') {
-            return redirect()->route('fin.task-board')
+            return redirect()->route('fin.task-board.index')
                 ->with('error', 'This invoice is already paid');
         }
 

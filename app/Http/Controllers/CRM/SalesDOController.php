@@ -554,6 +554,7 @@ class SalesDOController extends Controller implements HasMiddleware
             // Dispatch event for WQS module to listen (optional)
             event(new SalesDOSubmitted($salesDo));
 
+
             DB::commit();
 
             return redirect()

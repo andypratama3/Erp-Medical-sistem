@@ -56,17 +56,17 @@ class MenuHelper
                 'icon'=> 'ui-elements',
                 'name'=> 'ACT',
                 'subItems'=> [
-                    ['name'=> 'Task Board', 'path'=> route('act.task-board')],
-                    ['name'=> 'Invoice', 'path'=> route('act.invoices.index')],
+                    ['name'=> 'Task Board', 'path'=> '/act/task-board'],
+                    ['name'=> 'Invoice', 'path'=> '/act/invoices'],
                 ]
             ],
             [
                 'icon'=> 'ui-elements',
                 'name'=> 'FIN',
                 'subItems'=> [
-                    ['name'=> 'Task Board', 'path'=> route('fin.task-board')],
-                    ['name'=> 'Collection', 'path'=> route('fin.collections.index')],
-                    ['name'=> 'Aging', 'path'=> route('fin.aging')],
+                    ['name'=> 'Task Board', 'path'=> '/fin/task-board'],
+                    ['name'=> 'Collection', 'path'=> '/fin/collections'],
+                    ['name'=> 'Aging', 'path'=> '/fin/agings'],
                 ]
             ],
             [

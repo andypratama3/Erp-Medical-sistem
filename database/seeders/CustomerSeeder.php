@@ -2,19 +2,22 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
+use App\Models\Branch;
 use App\Models\Customer;
 use App\Models\PaymentTerm;
+use Illuminate\Database\Seeder;
 
 class CustomerSeeder extends Seeder
 {
     public function run(): void
     {
         $paymentTerm = PaymentTerm::first();
+        $branch = Branch::first();
 
         $customers = [
             [
                 'code' => 'CUST-001',
+                'branch_id' => $branch->id,
                 'name' => 'RS Siloam Hospitals',
                 'legal_name' => 'PT. Siloam Hospitals',
                 'npwp' => '01.123.456.7-900',
@@ -36,6 +39,7 @@ class CustomerSeeder extends Seeder
             ],
             [
                 'code' => 'CUST-002',
+                'branch_id' => $branch->id,
                 'name' => 'RS Mayapada Hospital',
                 'legal_name' => 'PT. Mayapada Hospital',
                 'npwp' => '01.123.456.7-901',
@@ -57,6 +61,7 @@ class CustomerSeeder extends Seeder
             ],
             [
                 'code' => 'CUST-003',
+                'branch_id' => $branch->id,
                 'name' => 'RSUD Tarakan',
                 'legal_name' => 'PT. UD Tarakan',
                 'npwp' => '01.123.456.7-902',
@@ -78,6 +83,7 @@ class CustomerSeeder extends Seeder
             ],
             [
                 'code' => 'CUST-004',
+                'branch_id' => $branch->id,
                 'name' => 'Klinik Kimia Farma',
                 'legal_name' => 'PT. Kimia Farma',
                 'npwp' => '01.123.456.7-903',
@@ -99,6 +105,7 @@ class CustomerSeeder extends Seeder
             ],
             [
                 'code' => 'CUST-005',
+                'branch_id' => $branch->id,
                 'name' => 'PT. Indomobil Sukses',
                 'legal_name' => 'PT. Indomobil Sukses',
                 'npwp' => '01.123.456.7-904',

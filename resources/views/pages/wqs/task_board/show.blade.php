@@ -4,6 +4,9 @@
 
 @section('content')
 <div class="space-y-6">
+
+    <x-flash-message.flash />
+
     <x-common.page-breadcrumb pageTitle="Task Board {{ $taskBoard->task_type_label }}" />
     <!-- Header -->
     <div class="mb-6 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
@@ -60,7 +63,7 @@
             ✕ Reject
         </button>
 
-        <a href="{{ route('wqs.task-board') }}" class="px-4 py-2 bg-gray-400 dark:bg-gray-700 hover:bg-gray-500 dark:hover:bg-gray-600 text-black dark:text-white rounded-lg font-semibold transition inline-flex items-center gap-2">
+        <a href="{{ route('wqs.task-board.index') }}" class="px-4 py-2 bg-gray-400 dark:bg-gray-700 hover:bg-gray-500 dark:hover:bg-gray-600 text-black dark:text-white rounded-lg font-semibold transition inline-flex items-center gap-2">
             ← Back
         </a>
     </div>

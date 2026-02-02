@@ -108,18 +108,15 @@ class InvoiceController extends Controller
      */
     public function create()
     {
-        try {
-            $salesOrders = SalesDO::where('status', 'approved')
-                ->where('branch_id', Auth::user()->current_branch_id)
-                ->get();
+        $salesOrders = SalesDO::where('status', 'approved')
+            ->where('branch_id', Auth::user()->current_branch_id)
+            ->get();
 
-            $customers = Customer::where('branch_id', Auth::user()->current_branch_id)
-                ->get();
+        $customers = Customer::where('branch_id', Auth::user()->current_branch_id)
+            ->get();
 
-            return view('pages.act.invoices.create', compact('salesOrders', 'customers'));
-        } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Gagal membuka form: ' . $e->getMessage());
-        }
+        return view('pages.act.invoices.create', compact('salesOrders', 'customers'));
+
     }
 
     /**

@@ -102,12 +102,13 @@ class TaskBoardController extends Controller implements HasMiddleware
     /**
      * Show detailed task for WQS processing
      */
-    public function show(TaskBoard $taskBoard)
+    public function show($id)
     {
+        $taskBoard = TaskBoard::findOrFail($id);
         // Verify task is WQS module
         if ($taskBoard->module !== 'wqs') {
             return redirect()
-                ->route('wqs.task-board')
+                ->route('wqs.task-board.index')
                 ->with('error', 'Invalid task.');
         }
 
@@ -155,7 +156,8 @@ class TaskBoardController extends Controller implements HasMiddleware
         ]);
 
 
-        // Make task Board to SCM Task Board
+        // Make task Board to SCM Task Board AND invoice
+
         
 
 

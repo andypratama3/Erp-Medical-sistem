@@ -61,7 +61,7 @@
                         class="inline-flex items-center justify-center font-medium gap-2 rounded-lg transition px-4 py-3 text-sm bg-brand-500 text-white shadow-theme-xs hover:bg-brand-600">
                         Apply
                     </button>
-                    <a href="{{ route('fin.task-board') }}"
+                    <a href="{{ route('fin.task-board.index') }}"
                         class="inline-flex items-center justify-center font-medium gap-2 rounded-lg transition px-4 py-3 text-sm bg-red-500 text-white shadow-theme-xs hover:bg-red-600">
                         Reset
                     </a>

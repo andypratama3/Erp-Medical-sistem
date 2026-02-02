@@ -32,6 +32,7 @@ return new class extends Migration
             $table->softDeletes();
             $table->timestamps();
 
+
             $table->index('code');
             $table->index('customer_type');
             $table->index('status');
