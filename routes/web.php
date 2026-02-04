@@ -193,11 +193,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('/{delivery}', [SCMDeliveryController::class, 'show'])->name('show');
             Route::get('/{delivery}/edit', [SCMDeliveryController::class, 'edit'])->name('edit');
             Route::put('/{delivery}', [SCMDeliveryController::class, 'update'])->name('update');
+            Route::delete('/{delivery}', [SCMDeliveryController::class,'destroy'])->name('destroy');
+
 
             // Workflow Actions
             Route::post('/{delivery}/assign-driver', [SCMDeliveryController::class, 'assignDriver'])->name('assign-driver');
             Route::post('/{delivery}/dispatch', [SCMDeliveryController::class, 'dispatch'])->name('dispatch');
-            Route::post('/{delivery}/mark-delivered', [SCMDeliveryController::class, 'markDelivered'])->name('mark-delivered');
+            Route::post('/{delivery}/mark-delivered', [SCMDeliveryController::class, 'markDelivered'])->name('delivered');
             Route::post('/{delivery}/upload-pod', [SCMDeliveryController::class, 'uploadPOD'])->name('upload-pod');
         });
 

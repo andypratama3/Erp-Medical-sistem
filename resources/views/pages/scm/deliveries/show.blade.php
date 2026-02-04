@@ -19,7 +19,7 @@
 
     <x-flash-message.flash />
 
-    <div class="grid sm:grid-cols-2 gap-6">
+    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
         <!-- Left: Main Content (2 columns) -->
         <div class="lg:col-span-2 space-y-6">
             <!-- Delivery Status -->
