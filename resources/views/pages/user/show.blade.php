@@ -82,7 +82,7 @@
     {{-- Actions --}}
     <div class="flex justify-end gap-3">
         <a
-            href="{{ route('users.index') }}"
+            href="{{ route('management.users.index') }}"
             class="px-4 py-2 rounded-lg border
                    border-gray-300 text-gray-700
                    dark:border-gray-700 dark:text-white
@@ -91,7 +91,7 @@
         </a>
 
         <a
-            href="{{ route('users.edit', $user) }}"
+            href="{{ route('management.users.edit', $user) }}"
             class="px-4 py-2 rounded-lg bg-blue-600 dark:text-white
                    hover:bg-blue-700">
             Edit User

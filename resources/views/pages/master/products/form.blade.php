@@ -7,7 +7,7 @@
 <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
 
     {{-- SKU --}}
-    <div>
+    <div class="md:col-span-4">
         <label class="block text-sm font-medium mb-1 dark:text-white">
             SKU <span class="text-red-500">*</span>
         </label>
@@ -33,8 +33,9 @@
                       dark:bg-gray-800 dark:border-gray-700 dark:text-white">
     </div>
 
+
     {{-- Unit --}}
-    <div>
+    <div class="md:col-span-1">
         <label class="block text-sm font-medium mb-1 dark:text-white">
             Unit <span class="text-red-500">*</span>
         </label>
@@ -170,7 +171,7 @@
     </div>
 
     {{-- Min Stock --}}
-    <div>
+    <div class="md:col-span-2">
         <label class="block text-sm font-medium mb-1 dark:text-white">Min Stock</label>
         <input type="number" name="min_stock" min="0"
                value="{{ old('min_stock', $product->min_stock ?? 0) }}"
@@ -180,7 +181,7 @@
     </div>
 
     {{-- Max Stock --}}
-    <div>
+    <div class="md:col-span-2">
         <label class="block text-sm font-medium mb-1 dark:text-white">Max Stock</label>
         <input type="number" name="max_stock" min="0"
                value="{{ old('max_stock', $product->max_stock ?? 0) }}"
@@ -190,34 +191,34 @@
     </div>
 
     {{-- Is Taxable (Radio Button) --}}
-    <div class="md:col-span-4">
+    <div class="md:col-span-2">
         <div class="flex items-center gap-3 h-11"
-             x-data="{ isChecked: '{{ old('is_taxable', $product->is_taxable ?? true) ? '1' : '0' }}' }">
+                x-data="{ isChecked: '{{ old('is_taxable', $product->is_taxable ?? true) ? '1' : '0' }}' }">
             <label class="text-sm font-medium text-gray-800 dark:text-white">
                 Taxable:
             </label>
             <div class="flex items-center gap-4">
                 <label :class="isChecked === '0' ? 'text-gray-700 dark:text-white' : 'text-gray-500 dark:text-gray-400'"
-                       class="relative flex cursor-pointer items-center gap-2 text-sm font-medium select-none">
+                        class="relative flex cursor-pointer items-center gap-2 text-sm font-medium select-none">
                     <input class="sr-only" type="radio" name="is_taxable" value="0"
-                           @checked(old('is_taxable', $product->is_taxable ?? true) == false)
-                           @change="isChecked = '0'">
+                            @checked(old('is_taxable', $product->is_taxable ?? true) == false)
+                            @change="isChecked = '0'">
                     <span :class="isChecked === '0' ? 'border-blue-500 bg-blue-500' : 'bg-transparent border-gray-300 dark:border-gray-700'"
-                          class="flex h-5 w-5 items-center justify-center rounded-full border-[1.25px] transition-all">
+                            class="flex h-5 w-5 items-center justify-center rounded-full border-[1.25px] transition-all">
                         <span :class="isChecked === '0' ? 'block' : 'hidden'"
-                              class="h-2 w-2 rounded-full bg-white"></span>
+                                class="h-2 w-2 rounded-full bg-white"></span>
                     </span>
                     No
                 </label>
                 <label :class="isChecked === '1' ? 'text-gray-700 dark:text-white' : 'text-gray-500 dark:text-gray-400'"
-                       class="relative flex cursor-pointer items-center gap-2 text-sm font-medium select-none">
+                        class="relative flex cursor-pointer items-center gap-2 text-sm font-medium select-none">
                     <input class="sr-only" type="radio" name="is_taxable" value="1"
-                           @checked(old('is_taxable', $product->is_taxable ?? true) == true)
-                           @change="isChecked = '1'">
+                            @checked(old('is_taxable', $product->is_taxable ?? true) == true)
+                            @change="isChecked = '1'">
                     <span :class="isChecked === '1' ? 'border-blue-500 bg-blue-500' : 'bg-transparent border-gray-300 dark:border-gray-700'"
-                          class="flex h-5 w-5 items-center justify-center rounded-full border-[1.25px] transition-all">
+                            class="flex h-5 w-5 items-center justify-center rounded-full border-[1.25px] transition-all">
                         <span :class="isChecked === '1' ? 'block' : 'hidden'"
-                              class="h-2 w-2 rounded-full bg-white"></span>
+                                class="h-2 w-2 rounded-full bg-white"></span>
                     </span>
                     Yes
                 </label>
@@ -226,35 +227,35 @@
     </div>
 
     {{-- Is Importable (Radio Button) --}}
-    <div class="md:col-span-4">
+    <div class="md:col-span-2 ">
         <div class="flex items-center gap-3 h-11"
-             x-data="{ is_importable: '{{ old('is_importable', $product->is_importable ?? false) ? '1' : '0' }}' }">
+                x-data="{ is_importable: '{{ old('is_importable', $product->is_importable ?? false) ? '1' : '0' }}' }">
             <label class="text-sm font-medium text-gray-800 dark:text-white">
                 Importable:
             </label>
             <div class="flex items-center gap-4">
 
                 <label :class="is_importable === '0' ? 'text-gray-700 dark:text-white' : 'text-gray-500 dark:text-gray-400'"
-                       class="relative flex cursor-pointer items-center gap-2 text-sm font-medium select-none">
+                        class="relative flex cursor-pointer items-center gap-2 text-sm font-medium select-none">
                     <input class="sr-only" type="radio" name="is_importable" value="0"
-                           @checked(old('is_importable', $product->is_importable ?? false) == false)
-                           @change="is_importable = '0'">
+                            @checked(old('is_importable', $product->is_importable ?? false) == false)
+                            @change="is_importable = '0'">
                     <span :class="is_importable === '0' ? 'border-blue-500 bg-blue-500' : 'bg-transparent border-gray-300 dark:border-gray-700'"
-                          class="flex h-5 w-5 items-center justify-center rounded-full border-[1.25px] transition-all">
+                            class="flex h-5 w-5 items-center justify-center rounded-full border-[1.25px] transition-all">
                         <span :class="is_importable === '0' ? 'block' : 'hidden'"
-                              class="h-2 w-2 rounded-full bg-white"></span>
+                                class="h-2 w-2 rounded-full bg-white"></span>
                     </span>
                     No
                 </label>
                 <label :class="is_importable === '1' ? 'text-gray-700 dark:text-white' : 'text-gray-500 dark:text-gray-400'"
-                       class="relative flex cursor-pointer items-center gap-2 text-sm font-medium select-none">
+                        class="relative flex cursor-pointer items-center gap-2 text-sm font-medium select-none">
                     <input class="sr-only" type="radio" name="is_importable" value="1"
-                           @checked(old('is_importable', $product->is_importable ?? false) == true)
-                           @change="is_importable = '1'">
+                            @checked(old('is_importable', $product->is_importable ?? false) == true)
+                            @change="is_importable = '1'">
                     <span :class="is_importable === '1' ? 'border-blue-500 bg-blue-500' : 'bg-transparent border-gray-300 dark:border-gray-700'"
-                          class="flex h-5 w-5 items-center justify-center rounded-full border-[1.25px] transition-all">
+                            class="flex h-5 w-5 items-center justify-center rounded-full border-[1.25px] transition-all">
                         <span :class="is_importable === '1' ? 'block' : 'hidden'"
-                              class="h-2 w-2 rounded-full bg-white"></span>
+                                class="h-2 w-2 rounded-full bg-white"></span>
                     </span>
                     Yes
                 </label>
@@ -263,7 +264,7 @@
     </div>
 
     {{-- Status --}}
-    <div class="sm:col-span-2">
+    <div class="sm:col-span-4">
         <label class="block text-sm font-medium mb-1 dark:text-white">
             Status <span class="text-red-500">*</span>
         </label>
@@ -282,7 +283,7 @@
     </div>
 
     {{-- Description --}}
-    <div class="sm:col-span-2">
+    <div class="sm:col-span-4">
         <label class="block text-sm font-medium mb-1 dark:text-white">Description</label>
         <textarea name="description" rows="3"
                   class="w-full rounded-lg border px-3 py-2 text-sm
@@ -292,7 +293,7 @@
     </div>
 
 
-    <div class="sm:col-span-2">
+    <div class="md:col-span-4">
         <x-form.input.dropzone
             title="Upload Foto Product"
             name="images"
@@ -300,7 +301,7 @@
 
     </div>
 
-    <div class="sm:col-span-2">
+    <div class="md:col-span-4">
         <x-form.input.dropzone-video
             title="Upload Video Product"
             name="video"
@@ -310,7 +311,7 @@
 
 
     {{-- Actions --}}
-     <div class="sm:col-span-2 flex items-center justify-end gap-3 mt-4">
+     <div class="sm:col-span-4 flex items-center justify-end gap-3 mt-4">
         <a href="{{ route('master.products.index') }}"
             class="inline-flex items-center justify-center font-medium gap-2 rounded-lg transition px-4 py-3 text-sm bg-error-500 text-white shadow-theme-xs hover:bg-error-600">
             Cancel

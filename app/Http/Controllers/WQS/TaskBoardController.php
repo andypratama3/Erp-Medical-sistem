@@ -157,8 +157,8 @@ class TaskBoardController extends Controller implements HasMiddleware
 
 
         // Make task Board to SCM Task Board AND invoice
+        // (new WQSStockCheck())->start($taskBoard);
 
-        
 
 
         return redirect()
@@ -277,6 +277,9 @@ class TaskBoardController extends Controller implements HasMiddleware
                 'do_code' => $taskBoard->salesDO->do_code,
                 'task_type' => $taskBoard->task_type,
             ]);
+
+            // *** ADD THIS: Dispatch WQSCompleted event ***
+            event(new WQSCompleted($taskBoard->salesDO));
 
             DB::commit();
 

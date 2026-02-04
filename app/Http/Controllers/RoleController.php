@@ -39,9 +39,9 @@ class RoleController extends Controller
                 'roleName' => $role->name,
                 'guard_name' => $role->guard_name ?? 'web',
                 'actions' => [
-                    'show' => route('master.roles.show', $role->id),
-                    'edit' => route('master.roles.edit', $role->id),
-                    'delete' => route('master.roles.destroy', $role->id),
+                    'show' => route('management.roles.show', $role->id),
+                    'edit' => route('management.roles.edit', $role->id),
+                    'delete' => route('management.roles.destroy', $role->id),
                 ]
             ];
         })->toArray();
@@ -83,7 +83,7 @@ class RoleController extends Controller
         $role->syncPermissions($validated['permissions']);
 
         return redirect()
-            ->route('master.roles.index')
+            ->route('management.roles.index')
             ->with('success', 'Role berhasil ditambahkan');
     }
 
@@ -132,7 +132,7 @@ class RoleController extends Controller
         $role->syncPermissions($validated['permissions'] ?? []);
 
         return redirect()
-            ->route('master.roles.index')
+            ->route('management.roles.index')
             ->with('success', 'Role berhasil diperbarui');
     }
 
@@ -144,7 +144,7 @@ class RoleController extends Controller
         $role->delete();
 
         return redirect()
-            ->route('master.roles.index')
+            ->route('management.roles.index')
             ->with('success', 'Role berhasil dihapus');
     }
 }

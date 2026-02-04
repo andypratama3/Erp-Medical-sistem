@@ -6,34 +6,42 @@ use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
 {
-    /**
-     * Seed the application's database.
-     */
     public function run(): void
     {
         $this->call([
-            // Core seeders - harus dijalankan pertama
+            // Core System
             PermissionSeeder::class,
             RoleSeeder::class,
-            UserSeeder::class,
-            BranchSeeder::class, // Branch seeder harus setelah User
 
-            // Master data seeders
+            // Master Data
+            BranchSeeder::class,
             MasterOfficeSeeder::class,
             MasterDepartmentSeeder::class,
             CategorySeeder::class,
             ProductGroupSeeder::class,
             ManufactureSeeder::class,
+            PaymentTermSeeder::class,
+            TaxSeeder::class,
             ProductSeeder::class,
             CustomerSeeder::class,
             VendorSeeder::class,
-            TaxSeeder::class,
-            PaymentTermSeeder::class,
 
-            // Transaction seeders
+            // Users & Access
+            UserSeeder::class,
+
+            // Operational Data
             SalesDOSeeder::class,
-        ]);
+            StockCheckSeeder::class,
+            VehicleSeeder::class,
+            DriverSeeder::class,
+            DeliverySeeder::class,
+            InvoiceSeeder::class,
+            CollectionSeeder::class,
+            PaymentSeeder::class,
 
-        $this->command->info('✅ All seeders completed successfully!');
+            // Additional Data
+            RegAlkesCaseSeeder::class,
+            NotificationSeeder::class,
+        ]);
     }
 }

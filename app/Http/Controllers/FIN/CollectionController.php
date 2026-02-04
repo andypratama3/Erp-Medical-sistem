@@ -115,4 +115,161 @@ class CollectionController extends Controller
         $collection->load(['invoice.salesDo.customer', 'documents']);
         return view('pages.fin.collections.show', compact('collection'));
     }
+
+    public function recordPayment(Request $request, ACTInvoice $invoice)
+    {
+        $validated = $request->validate([
+            'payment_date' => 'required|date',
+            'amount' => 'required|numeric|min:0',
+            'payment_method' => 'required|in:cash,transfer,check,giro',
+            'reference_number' => 'nullable|string|max:100',
+            'notes' => 'nullable|string',
+        ]);
+
+        DB::beginTransaction();
+        try {
+            // Create payment record
+            $payment = FINPayment::create([
+                'invoice_id' => $invoice->id,
+                'branch_id' => $invoice->branch_id,
+                'payment_date' => $validated['payment_date'],
+                'amount' => $validated['amount'],
+                'payment_method' => $validated['payment_method'],
+                'reference_number' => $validated['reference_number'] ?? null,
+                'notes' => $validated['notes'] ?? null,
+                'status' => 'confirmed',
+                'created_by' => Auth::id(),
+            ]);
+
+            // Update invoice status
+            $remainingAmount = $invoice->total_amount - $invoice->payments->sum('amount');
+
+            if ($remainingAmount <= 0) {
+                // Fully paid
+                $invoice->update([
+                    'status' => 'paid',
+                    'paid_at' => now(),
+                ]);
+
+                // Update Sales DO status
+                $invoice->salesDO->update(['status' => 'fin_paid']);
+
+            } else {
+                // Partially paid
+                $invoice->update([
+                    'status' => 'partial',
+                ]);
+            }
+
+            $this->auditLog->log('PAYMENT_RECORDED', 'FIN', [
+                'payment_id' => $payment->id,
+                'invoice_number' => $invoice->invoice_number,
+                'amount' => $payment->amount,
+                'payment_method' => $payment->payment_method,
+            ]);
+
+            // *** ADD THIS: Dispatch PaymentReceived event (only for full payment) ***
+            if ($invoice->status === 'paid') {
+                event(new PaymentReceived($payment));
+            }
+
+            DB::commit();
+
+            return redirect()
+                ->route('fin.collections.show', $invoice)
+                ->with('success', 'Payment recorded successfully.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()
+                ->back()
+                ->with('error', 'Failed to record payment: ' . $e->getMessage());
+        }
+    }
+
+    public function startCollection(Request $request, ACTInvoice $invoice)
+    {
+        if ($invoice->status !== 'approved') {
+            return redirect()
+                ->back()
+                ->with('error', 'Invoice must be approved before starting collection.');
+        }
+
+        DB::beginTransaction();
+        try {
+            $invoice->update([
+                'collection_started_at' => now(),
+                'collection_assigned_to' => Auth::id(),
+            ]);
+
+            // Update Sales DO status
+            $invoice->salesDO->update(['status' => 'fin_on_collect']);
+
+            $this->auditLog->log('COLLECTION_STARTED', 'FIN', [
+                'invoice_id' => $invoice->id,
+                'invoice_number' => $invoice->invoice_number,
+                'assigned_to' => Auth::user()->name,
+            ]);
+
+            DB::commit();
+
+            return redirect()
+                ->back()
+                ->with('success', 'Collection process started.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()
+                ->back()
+                ->with('error', 'Failed to start collection: ' . $e->getMessage());
+        }
+    }
+
+    public function markOverdue(Request $request, ACTInvoice $invoice)
+    {
+        $validated = $request->validate([
+            'notes' => 'nullable|string',
+        ]);
+
+        // Check if invoice is actually overdue
+        if ($invoice->due_date && $invoice->due_date->isFuture()) {
+            return redirect()
+                ->back()
+                ->with('error', 'Invoice is not yet due.');
+        }
+
+        DB::beginTransaction();
+        try {
+            $invoice->update([
+                'status' => 'overdue',
+                'overdue_notes' => $validated['notes'] ?? null,
+            ]);
+
+            // Update Sales DO status
+            $invoice->salesDO->update(['status' => 'fin_overdue']);
+
+            $this->auditLog->log('INVOICE_OVERDUE', 'FIN', [
+                'invoice_id' => $invoice->id,
+                'invoice_number' => $invoice->invoice_number,
+                'days_overdue' => now()->diffInDays($invoice->due_date),
+            ]);
+
+            // *** ADD THIS: Dispatch PaymentOverdue event ***
+            event(new PaymentOverdue($invoice));
+
+            DB::commit();
+
+            return redirect()
+                ->back()
+                ->with('warning', 'Invoice marked as overdue.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()
+                ->back()
+                ->with('error', 'Failed to mark invoice as overdue: ' . $e->getMessage());
+        }
+    }
+
+
 }

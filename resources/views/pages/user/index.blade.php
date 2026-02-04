@@ -48,7 +48,7 @@
     <x-common.component-card
         title="User List"
         desc="Manage all users in your system"
-        link="{{ route('master.users.create') }}">
+        link="{{ route('management.users.create') }}">
         {{-- <div class="flex-shrink-0">
             <a href="{{  }}" class="inline-flex items-center justify-center font-medium gap-2 rounded-lg transition px-4 py-3 text-sm bg-brand-500 text-white shadow-theme-xs hover:bg-brand-600">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

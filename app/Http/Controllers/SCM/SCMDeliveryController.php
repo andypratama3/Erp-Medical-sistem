@@ -205,6 +205,57 @@ class SCMDeliveryController extends Controller
             ->with('success', 'Delivery deleted successfully.');
     }
 
+    public function dispatch(Request $request, SCMDelivery $delivery)
+    {
+        $validated = $request->validate([
+            'notes' => 'nullable|string',
+        ]);
+
+        // Ensure driver is assigned
+        if (!$delivery->driver_id) {
+            return redirect()
+                ->back()
+                ->with('error', 'Please assign a driver before dispatching.');
+        }
+
+        DB::beginTransaction();
+        try {
+            // Update delivery status
+            $delivery->update([
+                'delivery_status' => 'on_route',
+                'dispatched_at' => now(),
+                'notes' => $validated['notes'] ?? null,
+            ]);
+
+            // Update Sales DO status
+            $delivery->salesDO->update([
+                'status' => 'scm_on_delivery',
+            ]);
+
+            // Audit log
+            $this->auditLog->log('DELIVERY_DISPATCHED', 'SCM', [
+                'delivery_id' => $delivery->id,
+                'do_code' => $delivery->salesDO->do_code,
+                'driver' => $delivery->driver->name,
+            ]);
+
+            // *** ADD THIS: Dispatch DeliveryDispatched event ***
+            event(new DeliveryDispatched($delivery));
+
+            DB::commit();
+
+            return redirect()
+                ->route('scm.deliveries.show', $delivery)
+                ->with('success', 'Delivery dispatched successfully.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()
+                ->back()
+                ->with('error', 'Failed to dispatch delivery: ' . $e->getMessage());
+        }
+    }
+
     /**
      * Mark delivery as departed
      */
@@ -226,23 +277,90 @@ class SCMDeliveryController extends Controller
     public function markDelivered(Request $request, SCMDelivery $delivery)
     {
         $validated = $request->validate([
-            'receiver_name' => 'required|string|max:100',
-            'receiver_position' => 'nullable|string|max:100',
+            'delivery_notes' => 'nullable|string',
+            'delivered_at' => 'nullable|date',
         ]);
 
-        $delivery->update([
-            'delivery_status' => 'delivered',
-            'arrival_time' => now(),
-            'received_at' => now(),
-            'receiver_name' => $validated['receiver_name'],
-            'receiver_position' => $validated['receiver_position'] ?? null,
+        // Ensure POD is uploaded
+        if (!$delivery->pod_file) {
+            return redirect()
+                ->back()
+                ->with('error', 'Please upload Proof of Delivery (POD) first.');
+        }
+
+        DB::beginTransaction();
+        try {
+            // Update delivery status
+            $delivery->update([
+                'delivery_status' => 'delivered',
+                'delivered_at' => $validated['delivered_at'] ?? now(),
+                'delivery_notes' => $validated['delivery_notes'] ?? null,
+            ]);
+
+            // Update Sales DO status
+            $delivery->salesDO->update([
+                'status' => 'scm_delivered',
+            ]);
+
+            // Audit log
+            $this->auditLog->log('DELIVERY_COMPLETED', 'SCM', [
+                'delivery_id' => $delivery->id,
+                'do_code' => $delivery->salesDO->do_code,
+                'delivered_at' => $delivery->delivered_at,
+            ]);
+
+            // *** ADD THIS: Dispatch DeliveryCompleted event ***
+            event(new DeliveryCompleted($delivery));
+
+            DB::commit();
+
+            return redirect()
+                ->route('scm.deliveries.show', $delivery)
+                ->with('success', 'Delivery marked as completed.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()
+                ->back()
+                ->with('error', 'Failed to mark delivery: ' . $e->getMessage());
+        }
+    }
+    
+    public function uploadPOD(Request $request, SCMDelivery $delivery)
+    {
+        $validated = $request->validate([
+            'pod_file' => 'required|file|mimes:jpg,jpeg,png,pdf|max:5120', // 5MB max
         ]);
 
-        // Update Sales DO status
-        $delivery->salesDO->update(['status' => 'scm_delivered']);
+        try {
+            if ($request->hasFile('pod_file')) {
+                $file = $request->file('pod_file');
+                $filename = 'POD_' . $delivery->tracking_number . '_' . time() . '.' . $file->getClientOriginalExtension();
+                $path = $file->storeAs('pod', $filename, 'public');
 
-        $this->auditLog->logAction('scm', 'delivered', $delivery, "Delivery completed for DO: {$delivery->salesDO->do_code}");
+                $delivery->update([
+                    'pod_file' => $path,
+                    'pod_uploaded_at' => now(),
+                ]);
 
-        return redirect()->back()->with('success', 'Delivery marked as completed.');
+                $this->auditLog->log('POD_UPLOADED', 'SCM', [
+                    'delivery_id' => $delivery->id,
+                    'pod_file' => $filename,
+                ]);
+
+                return redirect()
+                    ->back()
+                    ->with('success', 'POD uploaded successfully.');
+            }
+
+            return redirect()
+                ->back()
+                ->with('error', 'No file uploaded.');
+
+        } catch (\Exception $e) {
+            return redirect()
+                ->back()
+                ->with('error', 'Failed to upload POD: ' . $e->getMessage());
+        }
     }
 }

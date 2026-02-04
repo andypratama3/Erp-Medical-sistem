@@ -96,7 +96,7 @@ $isEdit = isset($user);
 
     {{-- Action Buttons --}}
     <div class="flex justify-end gap-3 pt-4">
-        <a href="{{ route('master.users.index') }}" class="px-5 py-2.5 rounded-lg border text-sm font-medium
+        <a href="{{ route('management.users.index') }}" class="px-5 py-2.5 rounded-lg border text-sm font-medium
                    border-gray-300 text-gray-700
                    dark:border-gray-700 dark:text-white
                    hover:bg-gray-50 dark:hover:bg-white/[0.03]">

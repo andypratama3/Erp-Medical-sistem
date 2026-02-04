@@ -43,9 +43,9 @@ class UserController extends Controller
                 'email' => $user->email,
                 'roles' => $user->roles->pluck('name')->toArray(),
                 'actions' => [
-                    'show' => route('master.users.show', $user->id),
-                    'edit' => route('master.users.edit', $user->id),
-                    'delete' => route('master.users.destroy', $user->id),
+                    'show' => route('management.users.show', $user->id),
+                    'edit' => route('management.users.edit', $user->id),
+                    'delete' => route('management.users.destroy', $user->id),
                 ]
             ];
         })->toArray();
@@ -98,7 +98,7 @@ class UserController extends Controller
         $user->branches()->sync($pivotData);
 
         return redirect()
-            ->route('master.users.index')
+            ->route('management.users.index')
             ->with('success', 'User berhasil ditambahkan');
     }
 
@@ -161,7 +161,7 @@ class UserController extends Controller
         $user->branches()->sync($pivotData);
 
         return redirect()
-            ->route('master.users.index')
+            ->route('management.users.index')
             ->with('success', 'User berhasil diperbarui');
     }
 
@@ -171,7 +171,7 @@ class UserController extends Controller
         $user->delete();
 
         return redirect()
-            ->route('master.users.index')
+            ->route('management.users.index')
             ->with('success', 'User berhasil dihapus');
     }
 }

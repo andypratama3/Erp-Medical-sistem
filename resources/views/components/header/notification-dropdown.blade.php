@@ -22,7 +22,7 @@
 
          async fetchNotifications() {
              try {
-                 const response = await fetch('/api/notifications/recent');
+                 const response = await fetch('/notifications/recent');
                  const data = await response.json();
                  this.notifications = data.notifications || [];
                  this.unreadCount = data.unread_count || 0;
@@ -45,7 +45,7 @@
 
          async markAsRead(notificationId) {
              try {
-                 await fetch(`/api/notifications/${notificationId}/read`, { method: 'POST' });
+                 await fetch(`/notifications/${notificationId}/read`, { method: 'POST' });
                  this.fetchNotifications();
              } catch (error) {
                  console.error('Failed to mark notification as read:', error);
@@ -56,7 +56,7 @@
              if (!confirm('Mark all notifications as read?')) return;
 
              try {
-                 await fetch('/api/notifications/mark-all-read', { method: 'POST' });
+                 await fetch('/notifications/mark-all-read', { method: 'POST' });
                  this.fetchNotifications();
              } catch (error) {
                  console.error('Failed to mark all as read:', error);
@@ -265,7 +265,7 @@
 
         <!-- View All Button -->
         <a
-            {{-- href="{{ route('notifications.index') }}" --}}
+            href="{{ route('notifications.index') }}"
             class="mt-3 flex justify-center rounded-lg border border-gray-300 bg-white p-3 text-theme-sm font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 hover:text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] dark:hover:text-gray-200"
             @click="closeDropdown()"
         >

@@ -19,7 +19,7 @@
 
     <x-flash-message.flash />
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div class="grid grid-cols-2 lg:grid-cols-3 gap-6">
         <!-- Left: Main Content (2 columns) -->
         <div class="lg:col-span-2 space-y-6">
             <!-- Status Card -->
@@ -28,7 +28,7 @@
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <div>
                         <p class="text-sm text-gray-600 dark:text-gray-400">Status</p>
-                        <span class="inline-block mt-1 px-3 py-1 bg-{{ $stockCheck->status_color }}-100 dark:text-white text-dark rounded text-sm font-bold">
+                        <span class="inline-block mt-1 px-3 py-1 bg-{{ $stockCheck->status_color }}-100 text-dark rounded text-sm font-bold">
                             {{ $stockCheck->status_label }}
                         </span>
                     </div>

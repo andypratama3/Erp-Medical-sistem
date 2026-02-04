@@ -41,8 +41,8 @@ class PermissionController extends Controller
                 'guard_name' => $permission->guard_name ?? 'web',
                 'createdAt' => $permission->created_at?->format('d M Y') ?? '-',
                 'actions' => [
-                    'edit' => route('master.permissions.edit', $permission->id),
-                    'delete' => route('master.permissions.destroy', $permission->id),
+                    'edit' => route('management.permissions.edit', $permission->id),
+                    'delete' => route('management.permissions.destroy', $permission->id),
                 ]
             ];
         })->toArray();
@@ -79,7 +79,7 @@ class PermissionController extends Controller
 
         Permission::create($validated);
 
-        return redirect()->route('master.permissions.index')
+        return redirect()->route('management.permissions.index')
             ->with('success', 'Permission berhasil ditambahkan');
     }
 
@@ -111,7 +111,7 @@ class PermissionController extends Controller
 
         $permission->update($validated);
 
-        return redirect()->route('master.permissions.index')
+        return redirect()->route('management.permissions.index')
             ->with('success', 'Permission berhasil diperbarui');
     }
 
@@ -122,7 +122,7 @@ class PermissionController extends Controller
     {
         $permission->delete();
 
-        return redirect()->route('master.permissions.index')
+        return redirect()->route('management.permissions.index')
             ->with('success', 'Permission berhasil dihapus');
     }
 }

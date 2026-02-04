@@ -5,7 +5,7 @@
 
 <x-common.component-card title="Edit Role">
     <x-flash-message.flash />
-    <form method="POST" action="{{ route('roles.update', $role->id) }}">
+    <form method="POST" action="{{ route('management.roles.update', $role->id) }}">
         @csrf
         @method('PUT')
 

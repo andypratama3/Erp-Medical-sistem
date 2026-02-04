@@ -358,27 +358,64 @@ class StockCheckController extends Controller implements HasMiddleware
     public function markFailed(Request $request, WQSStockCheck $stockCheck)
     {
         $validated = $request->validate([
-            'reason' => 'required|string|max:255',
+            'reason' => 'required|string',
+            'problematic_items' => 'nullable|array',
         ]);
 
-        if ($stockCheck->overall_status === 'completed') {
+        DB::beginTransaction();
+        try {
+            // Update stock check status
+            $stockCheck->update([
+                'overall_status' => 'failed',
+                'failed_reason' => $validated['reason'],
+                'checked_at' => now(),
+            ]);
+
+            // Update Sales DO status to on hold
+            $stockCheck->salesDO->update([
+                'status' => 'wqs_on_hold',
+            ]);
+
+            // Get problematic items
+            $problematicItems = $stockCheck->items()
+                ->where('check_status', '!=', 'pass')
+                ->with('product')
+                ->get()
+                ->map(function ($item) {
+                    return [
+                        'product_id' => $item->product_id,
+                        'product_name' => $item->product_name,
+                        'product_sku' => $item->product_sku,
+                        'qty_ordered' => $item->qty_ordered,
+                        'qty_available' => $item->qty_available,
+                        'qty_shortage' => $item->qty_ordered - $item->qty_available,
+                        'check_status' => $item->check_status,
+                    ];
+                })
+                ->toArray();
+
+            $this->auditLog->log('STOCK_CHECK_FAILED', 'WQS', [
+                'stock_check_id' => $stockCheck->id,
+                'do_code' => $stockCheck->salesDO->do_code,
+                'reason' => $validated['reason'],
+                'problematic_items_count' => count($problematicItems),
+            ]);
+
+            // *** ADD THIS: Dispatch StockCheckFailed event ***
+            event(new StockCheckFailed($stockCheck, $problematicItems));
+
+            DB::commit();
+
+            return redirect()
+                ->route('wqs.stock-checks.show', $stockCheck)
+                ->with('warning', 'Stock check marked as failed. Procurement team has been notified.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
             return redirect()
                 ->back()
-                ->with('error', 'Cannot fail completed stock check.');
+                ->with('error', 'Failed to mark stock check as failed: ' . $e->getMessage());
         }
-
-        $stockCheck->markFailed($validated['reason']);
-        $stockCheck->salesDO->update(['status' => 'crm_to_wqs']);
-
-        $this->auditLog->log('WQS_STOCK_CHECK_FAILED', 'WQS', [
-            'stock_check_id' => $stockCheck->id,
-            'do_code' => $stockCheck->salesDO->do_code,
-            'reason' => $validated['reason'],
-        ]);
-
-        return redirect()
-            ->back()
-            ->with('error', 'Stock check marked as failed: ' . $validated['reason']);
     }
 
     /**
@@ -409,24 +446,84 @@ class StockCheckController extends Controller implements HasMiddleware
      */
     public function getProblematicItems(WQSStockCheck $stockCheck)
     {
-        $items = $stockCheck->getProblematicItems()
-                           ->load('product')
-                           ->map(function($item) {
-                               return [
-                                   'id' => $item->id,
-                                   'product' => $item->product->name,
-                                   'sku' => $item->product->sku,
-                                   'stock_status' => $item->stock_status_label,
-                                   'available_qty' => $item->available_qty,
-                                   'notes' => $item->notes,
-                                   'investigation' => $item->getInvestigationDetails(),
-                               ];
-                           });
+        $items = $stockCheck->items()
+            ->where('check_status', '!=', 'pass')
+            ->with('product')
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'product_name' => $item->product_name,
+                    'product_sku' => $item->product_sku,
+                    'qty_ordered' => $item->qty_ordered,
+                    'qty_available' => $item->qty_available,
+                    'qty_shortage' => $item->qty_ordered - $item->qty_available,
+                    'check_status' => $item->check_status,
+                    'remarks' => $item->remarks,
+                ];
+            });
 
         return response()->json([
             'success' => true,
             'data' => $items,
         ]);
+    }
+
+
+     public function approve(Request $request, WQSStockCheck $stockCheck)
+    {
+        $validated = $request->validate([
+            'notes' => 'nullable|string',
+        ]);
+
+        // Validate all items have passed
+        $failedItems = $stockCheck->items()
+            ->where('check_status', '!=', 'pass')
+            ->count();
+
+        if ($failedItems > 0) {
+            return redirect()
+                ->back()
+                ->with('error', 'Cannot approve. Some items have not passed the check.');
+        }
+
+        DB::beginTransaction();
+        try {
+            $stockCheck->update([
+                'overall_status' => 'completed',
+                'approved_by' => Auth::id(),
+                'approved_at' => now(),
+                'notes' => $validated['notes'] ?? null,
+            ]);
+
+            // Reserve inventory for these items
+            foreach ($stockCheck->items as $item) {
+                // Reduce available stock
+                $product = $item->product;
+                $product->decrement('stock_quantity', $item->qty_ordered);
+
+                // Or use inventory service
+                // app(InventoryManagementService::class)
+                //     ->reserveStock($item->product_id, $item->qty_ordered, $stockCheck->salesDO->id);
+            }
+
+            $this->auditLog->log('STOCK_CHECK_APPROVED', 'WQS', [
+                'stock_check_id' => $stockCheck->id,
+                'do_code' => $stockCheck->salesDO->do_code,
+                'approved_by' => Auth::user()->name,
+            ]);
+
+            DB::commit();
+
+            return redirect()
+                ->route('wqs.stock-checks.show', $stockCheck)
+                ->with('success', 'Stock check approved successfully.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()
+                ->back()
+                ->with('error', 'Failed to approve stock check: ' . $e->getMessage());
+        }
     }
 
     /**

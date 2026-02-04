@@ -12,7 +12,7 @@
     <x-common.component-card
         title="Role List"
         desc="Manage all roles in your system"
-        link="{{ route('master.roles.create') }}">
+        link="{{ route('management.roles.create') }}">
 
         <x-table.table-component
             :data="$rolesData"

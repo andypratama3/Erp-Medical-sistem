@@ -128,7 +128,7 @@ function branchSwitcher() {
 
             try {
                 const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
-                const response = await fetch('{{ route("branches.switch") }}', {
+                const response = await fetch('{{ route("master.branches.switch") }}', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Log;
 
 /**
  * Centralized Notification Service
- * 
+ *
  * Handles all notification operations:
  * - Sending notifications
  * - Marking as read
@@ -19,7 +19,7 @@ class NotificationService
 {
     /**
      * Send a notification to a user
-     * 
+     *
      * @param array $data Notification data
      * @return Notification|null
      */
@@ -61,7 +61,7 @@ class NotificationService
 
     /**
      * Send notification to multiple users
-     * 
+     *
      * @param array $userIds Array of user IDs
      * @param array $notificationData Notification data (without user_id)
      * @return int Number of notifications sent
@@ -69,7 +69,7 @@ class NotificationService
     public function sendToMany(array $userIds, array $notificationData): int
     {
         $count = 0;
-        
+
         foreach ($userIds as $userId) {
             $data = array_merge(['user_id' => $userId], $notificationData);
             if ($this->send($data)) {
@@ -80,9 +80,13 @@ class NotificationService
         return $count;
     }
 
+    public function getAllNotifications(array $userIds): \Illuminate\Database\Eloquent\Collection
+    {
+        return Notification::whereIn('user_id', $userIds)->get();
+    }
     /**
      * Send notification to all users with a specific role
-     * 
+     *
      * @param string $roleName Role name (e.g., 'wqs', 'scm')
      * @param array $notificationData Notification data
      * @param int|null $branchId Optional branch filter
@@ -91,11 +95,11 @@ class NotificationService
     public function sendToRole(string $roleName, array $notificationData, ?int $branchId = null): int
     {
         $query = User::role($roleName);
-        
+
         if ($branchId) {
             $query->where('current_branch_id', $branchId);
         }
-        
+
         $users = $query->get();
         $userIds = $users->pluck('id')->toArray();
 
@@ -104,7 +108,7 @@ class NotificationService
 
     /**
      * Mark notification as read
-     * 
+     *
      * @param int $notificationId
      * @return bool
      */
@@ -112,7 +116,7 @@ class NotificationService
     {
         try {
             $notification = Notification::find($notificationId);
-            
+
             if (!$notification) {
                 return false;
             }
@@ -134,7 +138,7 @@ class NotificationService
 
     /**
      * Mark all notifications as read for a user
-     * 
+     *
      * @param int $userId
      * @return int Number of notifications marked as read
      */
@@ -156,7 +160,7 @@ class NotificationService
 
     /**
      * Get unread notifications for a user
-     * 
+     *
      * @param int $userId
      * @param int $limit
      * @return \Illuminate\Database\Eloquent\Collection
@@ -172,7 +176,7 @@ class NotificationService
 
     /**
      * Get unread notification count for a user
-     * 
+     *
      * @param int $userId
      * @return int
      */
@@ -185,7 +189,7 @@ class NotificationService
 
     /**
      * Get recent notifications (read and unread)
-     * 
+     *
      * @param int $userId
      * @param int $limit
      * @return \Illuminate\Database\Eloquent\Collection
@@ -200,7 +204,7 @@ class NotificationService
 
     /**
      * Delete old read notifications
-     * 
+     *
      * @param int $daysOld Delete notifications older than this many days
      * @return int Number of deleted notifications
      */

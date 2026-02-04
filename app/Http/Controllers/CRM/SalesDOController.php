@@ -467,6 +467,7 @@ class SalesDOController extends Controller implements HasMiddleware
             ->with('success', 'Sales DO deleted successfully.');
     }
 
+
     /**
      * Export Sales DO to PDF
      */

@@ -23,11 +23,11 @@
                         Edit
                     </a>
                 @endif
-                <a href="{{ route('crm.sales-do.exportPDF', $salesDo) }}"
+                {{-- <a href="{{ route('crm.sales-do.exportPDF', $salesDo) }}"
                     class="inline-flex items-center justify-center font-medium gap-2 rounded-lg transition px-4 py-3 text-sm bg-orange-400 text-white shadow-theme-xs hover:bg-orange-600">
                     Export PDF
                     <i class=""></i>
-                </a>
+                </a> --}}
             </div>
         </div>
 

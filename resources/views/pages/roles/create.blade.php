@@ -5,8 +5,8 @@
 
 <x-common.component-card title="Tambah Role">
     <x-flash-message.flash />
-    
-    <form method="POST" action="{{ route('roles.store') }}">
+
+    <form method="POST" action="{{ route('management.roles.store') }}">
         @csrf
         @include('pages.roles.form', [
             'permissions' => $permissions,

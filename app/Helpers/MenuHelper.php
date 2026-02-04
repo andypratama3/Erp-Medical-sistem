@@ -73,9 +73,9 @@ class MenuHelper
                 'icon' => 'gear',
                 'name' => 'Settings',
                 'subItems' => [
-                    ['name'=> 'Users', 'path'=> '/master/users'],
-                    ['name'=> 'Role', 'path'=> '/master/roles'],
-                    ['name'=> 'Permission', 'path'=> '/master/permissions'],
+                    ['name'=> 'Users', 'path'=> '/management-system/users'],
+                    ['name'=> 'Role', 'path'=> '/management-system/roles'],
+                    ['name'=> 'Permission', 'path'=> '/management-system/permissions'],
                 ]
             ],
         ];

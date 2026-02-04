@@ -13,8 +13,12 @@ class RoleSeeder extends Seeder
     {
         // SUPERADMIN - Full Access
         $superadmin = Role::create(['name' => 'superadmin']);
+        $admin = Role::firstOrCreate(['name'=> 'admin']);
         $owner = Role::create(['name' => 'owner','guard_name'=> 'web']);
         $superadmin->givePermissionTo(Permission::all());
+
+
+        $admin->givePermissionTo(Permission::all());
 
         // MANAGER - View All, Limited Edit
         $manager = Role::create(['name' => 'manager','guard_name'=> 'web']);
@@ -30,7 +34,7 @@ class RoleSeeder extends Seeder
         ]);
 
         // STAFF CRM - CRM Only
-        $staffCRM = Role::create(['name' => 'staff_crm','guard_name'=> 'web']);
+        $staffCRM = Role::create(['name' => 'crm','guard_name'=> 'web']);
         $staffCRM->givePermissionTo([
             'dashboard.view',
             'master.view',
@@ -41,7 +45,7 @@ class RoleSeeder extends Seeder
         ]);
 
         // STAFF WQS - WQS Only
-        $staffWQS = Role::create(['name' => 'staff_wqs','guard_name'=> 'web']);
+        $staffWQS = Role::create(['name' => 'wqs','guard_name'=> 'web']);
         $staffWQS->givePermissionTo([
             'dashboard.view',
             'master.view',
@@ -50,7 +54,7 @@ class RoleSeeder extends Seeder
         ]);
 
         // STAFF SCM - SCM Only
-        $staffSCM = Role::create(['name' => 'staff_scm','guard_name'=> 'web']);
+        $staffSCM = Role::create(['name' => 'scm','guard_name'=> 'web']);
         $staffSCM->givePermissionTo([
             'dashboard.view',
             'master.view',
@@ -60,7 +64,7 @@ class RoleSeeder extends Seeder
         ]);
 
         // STAFF ACT - ACT Only
-        $staffACT = Role::create(['name' => 'staff_act','guard_name'=> 'web']);
+        $staffACT = Role::create(['name' => 'act','guard_name'=> 'web']);
         $staffACT->givePermissionTo([
             'dashboard.view',
             'master.view',
@@ -70,7 +74,7 @@ class RoleSeeder extends Seeder
         ]);
 
         // STAFF FIN - FIN Only
-        $staffFIN = Role::create(['name' => 'staff_fin','guard_name'=> 'web']);
+        $staffFIN = Role::create(['name' => 'fin','guard_name'=> 'web']);
         $staffFIN->givePermissionTo([
             'dashboard.view',
             'master.view',
@@ -80,7 +84,7 @@ class RoleSeeder extends Seeder
         ]);
 
         // STAFF REG ALKES - REG ALKES Only
-        $staffRegAlkes = Role::create(['name' => 'staff_reg_alkes','guard_name'=> 'web']);
+        $staffRegAlkes = Role::create(['name' => 'reg_alkes','guard_name'=> 'web']);
         $staffRegAlkes->givePermissionTo([
             'dashboard.view',
             'master.view',

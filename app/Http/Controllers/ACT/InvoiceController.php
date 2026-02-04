@@ -6,6 +6,7 @@ use App\Models\SalesDO;
 use App\Models\Customer;
 use App\Models\ACTInvoice;
 use Illuminate\Http\Request;
+use App\Events\InvoiceCreated;
 use App\Services\AuditLogService;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
@@ -146,6 +147,8 @@ class InvoiceController extends Controller
             // Create invoice
             $invoice = ACTInvoice::create($validated);
 
+            event(new InvoiceCreated($invoice));
+
             // Log audit
             $this->auditLog->log('CREATE', "Invoice {$invoice->invoice_number} created", Auth::id());
 
@@ -224,6 +227,8 @@ class InvoiceController extends Controller
 
             $this->auditLog->log('UPDATE', "Invoice {$invoice->invoice_number} updated", Auth::id());
 
+            event(new InvoiceCreated($invoice));
+
             return redirect()->route('invoices.show', $invoice)
                 ->with('success', 'Invoice berhasil diubah!');
         } catch (\Illuminate\Validation\ValidationException $e) {
@@ -262,21 +267,93 @@ class InvoiceController extends Controller
     /**
      * Approve invoice
      */
-    public function approve(ACTInvoice $invoice)
+    public function approve(Request $request, ACTInvoice $invoice)
     {
+        $validated = $request->validate([
+            'notes' => 'nullable|string',
+        ]);
+
+        if ($invoice->status === 'approved') {
+            return redirect()
+                ->back()
+                ->with('info', 'Invoice is already approved.');
+        }
+
+        DB::beginTransaction();
         try {
-            if ($invoice->status !== 'draft') {
-                return redirect()->back()->with('error', 'Invoice harus dalam status draft!');
-            }
+            // Update invoice status
+            $invoice->update([
+                'status' => 'approved',
+                'approved_by' => Auth::id(),
+                'approved_at' => now(),
+                'notes' => $validated['notes'] ?? null,
+            ]);
 
-            $invoice->markAsApproved();
-            $this->auditLog->log('APPROVE', "Invoice {$invoice->invoice_number} approved", Auth::id());
+            // Update Sales DO status
+            $invoice->salesDO->update(['status' => 'act_invoiced']);
 
-            return redirect()->back()->with('success', 'Invoice berhasil disetujui!');
+            $this->auditLog->log('INVOICE_APPROVED', 'ACT', [
+                'invoice_id' => $invoice->id,
+                'invoice_number' => $invoice->invoice_number,
+                'approved_by' => Auth::user()->name,
+            ]);
+
+            // *** ADD THIS: Dispatch InvoiceApproved event ***
+            event(new InvoiceApproved($invoice));
+
+            DB::commit();
+
+            return redirect()
+                ->route('act.invoices.show', $invoice)
+                ->with('success', 'Invoice approved successfully.');
+
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Error: ' . $e->getMessage());
+            DB::rollBack();
+            return redirect()
+                ->back()
+                ->with('error', 'Failed to approve invoice: ' . $e->getMessage());
         }
     }
+
+    public function tukarFaktur(Request $request, ACTInvoice $invoice)
+    {
+        $validated = $request->validate([
+            'exchange_date' => 'required|date',
+            'received_by' => 'required|string|max:255',
+            'notes' => 'nullable|string',
+        ]);
+
+        DB::beginTransaction();
+        try {
+            $invoice->update([
+                'tukar_faktur_date' => $validated['exchange_date'],
+                'tukar_faktur_received_by' => $validated['received_by'],
+                'tukar_faktur_notes' => $validated['notes'] ?? null,
+            ]);
+
+            // Update Sales DO status
+            $invoice->salesDO->update(['status' => 'act_tukar_faktur']);
+
+            $this->auditLog->log('INVOICE_TUKAR_FAKTUR', 'ACT', [
+                'invoice_id' => $invoice->id,
+                'invoice_number' => $invoice->invoice_number,
+                'received_by' => $validated['received_by'],
+            ]);
+
+            DB::commit();
+
+            return redirect()
+                ->route('act.invoices.show', $invoice)
+                ->with('success', 'Invoice exchange recorded successfully.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()
+                ->back()
+                ->with('error', 'Failed to record invoice exchange: ' . $e->getMessage());
+        }
+    }
+
 
     /**
      * Cancel invoice

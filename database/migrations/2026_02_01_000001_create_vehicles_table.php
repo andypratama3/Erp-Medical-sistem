@@ -30,7 +30,7 @@ return new class extends Migration
             $table->date('next_service_date')->nullable();
             $table->integer('odometer_reading')->nullable();
             $table->text('notes')->nullable();
-            $table->enum('status', ['active', 'maintenance', 'inactive'])->default('active');
+            $table->enum('status', ['active', 'maintenance', 'inactive','in_use'])->default('active');
             $table->timestamps();
             $table->softDeletes();
 

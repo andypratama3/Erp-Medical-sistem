@@ -17,6 +17,62 @@ class NotificationController extends Controller
         // $this->middleware('auth');
     }
 
+    public function index()
+    {
+        $user_id = auth()->user()->id;
+        $notifications = Notification::where('user_id', $user_id)->paginate(15);
+
+        $columns = [
+                ['key' => 'type', 'label' => 'Type', 'type' => 'text'],
+                ['key' => 'title', 'label' => 'Title', 'type' => 'text'],
+                ['key' => 'message', 'label' => 'Message', 'type' => 'text'],
+                ['key' => 'url', 'label' => 'URL', 'type' => 'text'],
+                ['key' => 'data', 'label' => 'Data', 'type' => 'text'],
+                ['key' => 'read_at', 'label' => 'Read At', 'type' => 'text'],
+            ];
+
+        $notificationsData = $notifications->getCollection()->map(function ($product) {
+            return [
+                'type' => [
+                    'value' => ucfirst($product->status),
+                    'label' => match($product->status) {
+                        'active' => 'Active',
+                        'inactive' => 'Inactive',
+                        'discontinued' => 'Discontinued',
+                        default => 'Gray',
+                    }
+                ],
+                'title' => [
+                    'value' => $product->name,
+                    'label' => 'Title',
+                    'type' => 'text',
+                ],
+                'message' => [
+                    'value' => $product->message,
+                    'label' => 'Message',
+                    'type' => 'text',
+                ],
+                'url' => [
+                    'value' => $product->url,
+                    'label' => 'URL',
+                    'type' => 'text',
+                ],
+                'data' => [
+                    'value' => $product->data,
+                    'label' => 'Data',
+                    'type' => 'text',
+                ],
+                'read_at' => [
+                    'value' => $product->read_at,
+                    'label' => 'Read At',
+                    'type' => 'text',
+                ],
+            ];
+        })->toArray();
+
+        return view('pages.notification.index', compact('notifications','columns','notificationsData'));
+    }
+
     /**
      * Display recent notifications (read & unread)
      */

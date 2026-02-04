@@ -1,5 +1,83 @@
 @extends('layouts.app')
 
+@push('styles')
+    <style>
+        <style>
+        /* ================================
+        SweetAlert2 FIX & THEME
+        ================================ */
+
+        /* .nav */
+
+        /* FIX BUG: grid bikin tombol disabled */
+        .swal2-popup {
+            display: flex !important;
+            flex-direction: column;
+        }
+
+        /* Pastikan tombol selalu sejajar */
+        .swal2-actions {
+            display: flex !important;
+            gap: 0.75rem;
+        }
+
+        /* Hilangkan backdrop putih bawaan */
+        div:where(.swal2-container).swal2-backdrop-show,
+        div:where(.swal2-container).swal2-noanimation {
+            background: transparent !important;
+        }
+
+        /* ================================
+        DARK MODE
+        ================================ */
+        .dark .swal2-popup {
+            background-color: #020617 !important; /* slate-950 */
+            color: #e5e7eb !important;
+            border-radius: 1rem;
+        }
+
+        .dark .swal2-title {
+            color: #f9fafb !important;
+        }
+
+        .dark .swal2-html-container {
+            color: #cbd5f5 !important;
+        }
+
+        /* Icon warning */
+        .dark .swal2-icon.swal2-warning {
+            border-color: #facc15 !important;
+            color: #facc15 !important;
+        }
+
+        /* Buttons */
+        .dark .swal2-confirm {
+            background-color: #dc2626 !important;
+            color: #fff !important;
+            border-radius: 0.75rem;
+        }
+
+        .dark .swal2-confirm:hover {
+            background-color: #b91c1c !important;
+        }
+
+        .dark .swal2-cancel {
+            background-color: #1f2937 !important;
+            color: #e5e7eb !important;
+            border-radius: 0.75rem;
+        }
+
+        .dark .swal2-cancel:hover {
+            background-color: #374151 !important;
+        }
+
+        /* Backdrop dark */
+        .dark .swal2-backdrop-show {
+            background: rgba(2, 6, 23, 0.85) !important;
+        }
+    </style>
+@endpush
+
 @section('content')
 <div class="space-y-6">
     {{-- Flash Message --}}
@@ -182,10 +260,10 @@
                                 </a>
                                 @endif
                                 @if($do->canBeDeleted())
-                                <form action="{{ route('crm.sales-do.destroy', $do) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure?')">
+                                <form action="{{ route('crm.sales-do.destroy', $do) }}" method="POST" class="inline form-delete">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/50 transition" title="Delete">
+                                    <button type="button" class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/50 transition js-confirm-delete" data-url="{{ $do }}" title="Delete" >
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                                         </svg>
@@ -217,4 +295,106 @@
         </div>
     </x-common.component-card>
 </div>
+
+@push('scripts')
+
+
+<script>
+/**
+ * SweetAlert Helper untuk delete confirmation
+ */
+window.swalConfirm = function ({
+    title = 'Anda yakin?',
+    text = 'Data yang sudah dihapus tidak dapat dikembalikan!',
+    confirmText = 'Hapus!',
+    cancelText = 'Batal',
+    icon = 'warning',
+    onConfirm = () => {}
+}) {
+    return Swal.fire({
+        title,
+        text,
+        icon,
+        showCancelButton: true,
+        confirmButtonText: confirmText,
+        cancelButtonText: cancelText,
+        reverseButtons: true,
+        allowOutsideClick: false,
+        allowEscapeKey: true,
+        confirmButtonColor: '#dc2626',
+        cancelButtonColor: '#6b7280',
+        didOpen: () => {
+            const popup = Swal.getPopup();
+            popup && popup.offsetHeight;
+        }
+    }).then(result => {
+        if (result.isConfirmed) {
+            onConfirm();
+        }
+    });
+};
+</script>
+
+<script>
+/**
+ * Handle delete button click
+ */
+window.swalConfirm = function ({
+    title = 'Anda yakin?',
+    text = 'Data yang sudah dihapus tidak dapat dikembalikan!',
+    confirmText = 'Hapus!',
+    cancelText = 'Batal',
+    icon = 'warning',
+    onConfirm = () => {}
+}) {
+    return Swal.fire({
+        title,
+        text,
+        icon,
+        showCancelButton: true,
+        confirmButtonText: confirmText,
+        cancelButtonText: cancelText,
+        reverseButtons: true,
+        allowOutsideClick: false,
+        allowEscapeKey: true,
+        confirmButtonColor: '#dc2626',
+        cancelButtonColor: '#6b7280',
+        didOpen: () => {
+            const popup = Swal.getPopup();
+            popup && popup.offsetHeight;
+        }
+    }).then(result => {
+        if (result.isConfirmed) {
+            onConfirm();
+        }
+    });
+};
+
+document.addEventListener('click', function (e) {
+    const btn = e.target.closest('.js-confirm-delete');
+    if (!btn) return;
+
+    e.preventDefault();
+
+    // Option A: Find form by traversing up (RECOMMENDED)
+    const form = btn.closest('form');
+
+    // Option B: Find form by action URL if needed
+    // const url = btn.dataset.url;
+    // const form = document.querySelector(`form[action="${url}"]`);
+
+    if (!form) {
+        console.error('Delete form not found');
+        return;
+    }
+
+    swalConfirm({
+        onConfirm: () => {
+            form.submit();
+        }
+    });
+});
+</script>
+
+@endpush
 @endsection

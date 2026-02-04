@@ -6,7 +6,7 @@
 <x-common.component-card title="Edit User">
     <x-flash-message.flash />
 
-    <form method="POST" action="{{ route('master.users.update', $user->id) }}">
+    <form method="POST" action="{{ route('management.users.update', $user->id) }}">
         @csrf
         @method('PUT')
 

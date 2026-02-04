@@ -111,7 +111,6 @@ class ProductController extends Controller
     public function store(Request $request)
     {
 
-        // ✅ FIXED: Validate file uploads properly
         $validated = $request->validate([
             'category_id' => 'required|exists:categories,id',
             'product_group_id' => 'required|exists:product_groups,id',

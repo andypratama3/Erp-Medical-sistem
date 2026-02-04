@@ -80,7 +80,7 @@
     {{-- Actions --}}
     <div class="flex justify-end gap-3">
         <a
-            href="{{ route('roles.index') }}"
+            href="{{ route('management.roles.index') }}"
             class="px-4 py-2 rounded-lg border
                    border-gray-300 text-gray-700
                    dark:border-gray-700 dark:text-white
@@ -89,7 +89,7 @@
         </a>
 
         <a
-            href="{{ route('roles.edit', $role) }}"
+            href="{{ route('management.roles.edit', $role) }}"
             class="px-4 py-2 rounded-lg bg-blue-600 dark:text-white
                    hover:bg-blue-700">
             Edit Role
