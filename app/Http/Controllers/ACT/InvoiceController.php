@@ -7,9 +7,11 @@ use App\Models\Customer;
 use App\Models\ACTInvoice;
 use Illuminate\Http\Request;
 use App\Events\InvoiceCreated;
+use App\Events\InvoiceApproved;
 use App\Services\AuditLogService;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class InvoiceController extends Controller
 {
@@ -19,7 +21,6 @@ class InvoiceController extends Controller
     {
         $this->auditLog = $auditLog;
     }
-
 
     public function index(Request $request)
     {
@@ -103,21 +104,20 @@ class InvoiceController extends Controller
         ));
     }
 
-
     /**
      * Show the form for creating a new invoice
      */
     public function create()
     {
-        $salesOrders = SalesDO::where('status', 'approved')
+        $salesOrders = SalesDO::where('status', 'scm_delivered')
             ->where('branch_id', Auth::user()->current_branch_id)
+            ->whereDoesntHave('invoice')
             ->get();
 
         $customers = Customer::where('branch_id', Auth::user()->current_branch_id)
             ->get();
 
         return view('pages.act.invoices.create', compact('salesOrders', 'customers'));
-
     }
 
     /**
@@ -147,13 +147,18 @@ class InvoiceController extends Controller
             // Create invoice
             $invoice = ACTInvoice::create($validated);
 
+            // *** DISPATCH EVENT: Invoice Created ***
             event(new InvoiceCreated($invoice));
 
             // Log audit
-            $this->auditLog->log('CREATE', "Invoice {$invoice->invoice_number} created", Auth::id());
+            $this->auditLog->log('INVOICE_CREATED', 'ACT', [
+                'invoice_number' => $invoice->invoice_number,
+                'customer_id' => $invoice->customer_id,
+            ]);
 
-            return redirect()->route('invoices.show', $invoice)
-                ->with('success', 'Invoice berhasil dibuat!');
+            return redirect()->route('act.invoices.show', $invoice)
+                ->with('success', 'Invoice created successfully!');
+
         } catch (\Illuminate\Validation\ValidationException $e) {
             return redirect()->back()
                 ->withErrors($e->errors())
@@ -174,7 +179,7 @@ class InvoiceController extends Controller
             $invoice->load(['salesDO', 'customer', 'payments', 'createdBy']);
             return view('pages.act.invoices.show', compact('invoice'));
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Gagal mengambil data: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Failed to retrieve data: ' . $e->getMessage());
         }
     }
 
@@ -185,10 +190,10 @@ class InvoiceController extends Controller
     {
         try {
             if ($invoice->status !== 'draft') {
-                return redirect()->back()->with('error', 'Hanya invoice draft yang bisa diedit!');
+                return redirect()->back()->with('error', 'Only draft invoices can be edited!');
             }
 
-            $salesOrders = SalesDO::where('status', 'approved')
+            $salesOrders = SalesDO::where('status', 'scm_delivered')
                 ->where('branch_id', Auth::user()->current_branch_id)
                 ->get();
 
@@ -197,7 +202,7 @@ class InvoiceController extends Controller
 
             return view('pages.act.invoices.edit', compact('invoice', 'salesOrders', 'customers'));
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Gagal membuka form: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Failed to open form: ' . $e->getMessage());
         }
     }
 
@@ -208,7 +213,7 @@ class InvoiceController extends Controller
     {
         try {
             if ($invoice->status !== 'draft') {
-                return redirect()->back()->with('error', 'Hanya invoice draft yang bisa diubah!');
+                return redirect()->back()->with('error', 'Only draft invoices can be updated!');
             }
 
             $validated = $request->validate([
@@ -225,12 +230,13 @@ class InvoiceController extends Controller
 
             $invoice->update($validated);
 
-            $this->auditLog->log('UPDATE', "Invoice {$invoice->invoice_number} updated", Auth::id());
+            $this->auditLog->log('INVOICE_UPDATED', 'ACT', [
+                'invoice_number' => $invoice->invoice_number,
+            ]);
 
-            event(new InvoiceCreated($invoice));
+            return redirect()->route('act.invoices.show', $invoice)
+                ->with('success', 'Invoice updated successfully!');
 
-            return redirect()->route('invoices.show', $invoice)
-                ->with('success', 'Invoice berhasil diubah!');
         } catch (\Illuminate\Validation\ValidationException $e) {
             return redirect()->back()
                 ->withErrors($e->errors())
@@ -249,18 +255,20 @@ class InvoiceController extends Controller
     {
         try {
             if ($invoice->status !== 'draft') {
-                return redirect()->back()->with('error', 'Hanya invoice draft yang bisa dihapus!');
+                return redirect()->back()->with('error', 'Only draft invoices can be deleted!');
             }
 
             $invoiceNumber = $invoice->invoice_number;
             $invoice->delete();
 
-            $this->auditLog->log('DELETE', "Invoice {$invoiceNumber} deleted", Auth::id());
+            $this->auditLog->log('INVOICE_DELETED', 'ACT', [
+                'invoice_number' => $invoiceNumber,
+            ]);
 
-            return redirect()->route('invoices.index')
-                ->with('success', 'Invoice berhasil dihapus!');
+            return redirect()->route('act.invoices.index')
+                ->with('success', 'Invoice deleted successfully!');
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Gagal menghapus: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Failed to delete: ' . $e->getMessage());
         }
     }
 
@@ -298,8 +306,8 @@ class InvoiceController extends Controller
                 'approved_by' => Auth::user()->name,
             ]);
 
-            // *** ADD THIS: Dispatch InvoiceApproved event ***
-            event(new InvoiceApproved($invoice));
+            // *** DISPATCH EVENT: Invoice Approved ***
+            event(new InvoiceApproved($invoice, $invoice->salesDO));
 
             DB::commit();
 
@@ -315,6 +323,9 @@ class InvoiceController extends Controller
         }
     }
 
+    /**
+     * Record invoice exchange (Tukar Faktur)
+     */
     public function tukarFaktur(Request $request, ACTInvoice $invoice)
     {
         $validated = $request->validate([
@@ -354,7 +365,6 @@ class InvoiceController extends Controller
         }
     }
 
-
     /**
      * Cancel invoice
      */
@@ -362,13 +372,16 @@ class InvoiceController extends Controller
     {
         try {
             if (in_array($invoice->status, ['paid', 'cancelled'])) {
-                return redirect()->back()->with('error', 'Invoice tidak bisa dibatalkan!');
+                return redirect()->back()->with('error', 'Invoice cannot be cancelled!');
             }
 
-            $invoice->markAsCancelled();
-            $this->auditLog->log('CANCEL', "Invoice {$invoice->invoice_number} cancelled", Auth::id());
+            $invoice->update(['status' => 'cancelled']);
 
-            return redirect()->back()->with('success', 'Invoice berhasil dibatalkan!');
+            $this->auditLog->log('INVOICE_CANCELLED', 'ACT', [
+                'invoice_number' => $invoice->invoice_number,
+            ]);
+
+            return redirect()->back()->with('success', 'Invoice cancelled successfully!');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Error: ' . $e->getMessage());
         }

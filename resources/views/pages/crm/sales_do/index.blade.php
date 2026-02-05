@@ -187,7 +187,7 @@
                 </svg>
                 Apply Filter
             </button>
-            @can('create_sales_do')
+            {{-- @can('create_sales_do') --}}
             <a href="{{ route('crm.sales-do.create') }}"
                 class="inline-flex items-center justify-center font-medium gap-2 rounded-lg transition px-5 py-2.5 text-sm bg-green-600 text-white hover:bg-green-700 dark:bg-green-600 dark:hover:bg-green-700 ml-auto">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -195,7 +195,7 @@
                 </svg>
                 New DO
             </a>
-            @endcan
+            {{-- @endcan --}}
         </div>
     </form>
 

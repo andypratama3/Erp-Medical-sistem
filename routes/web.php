@@ -296,7 +296,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     | Master Data Management
     |--------------------------------------------------------------------------
     */
-    Route::prefix('master')->name('master.')->middleware(['role:owner|superadmin'])->group(function () {
+    Route::prefix('master')->name('master.')->group(function () {
 
         // Branch Management
         Route::resource('branches', BranchController::class);

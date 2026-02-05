@@ -53,7 +53,45 @@
          },
 
          async markAllAsRead() {
-             if (!confirm('Mark all notifications as read?')) return;
+
+            // window.swalConfirm = function ({
+            //         title = 'Anda yakin?',
+            //         text = 'Menandai Semua Notifikasi Telah Di Baca!',
+            //         confirmText = 'Hapus!',
+            //         cancelText = 'Batal',
+            //         icon = 'warning',
+            //         onConfirm = () => {}
+            //     }) {
+            //         return Swal.fire({
+            //             title,
+            //             text,
+            //             icon,
+            //             showCancelButton: true,
+            //             confirmButtonText: confirmText,
+            //             cancelButtonText: cancelText,
+            //             reverseButtons: true,
+            //             allowOutsideClick: false,
+            //             allowEscapeKey: true,
+            //             confirmButtonColor: '#dc2626',
+            //             cancelButtonColor: '#6b7280',
+            //             didOpen: () => {
+            //                 const popup = Swal.getPopup();
+            //                 popup && popup.offsetHeight;
+            //             }
+            //         }).then(result => {
+            //             if (result.isConfirmed) {
+            //                 onConfirm();
+            //             }
+            //         });
+            //     };
+
+            //  if (!confirm('Mark all notifications as read?')) return;
+            // Swal.fire
+
+            if()
+
+
+
 
              try {
                  await fetch('/notifications/mark-all-read', { method: 'POST' });
@@ -277,6 +315,7 @@
 {{-- Add CSRF token meta tag if not already present --}}
 @push('scripts')
 <script>
+
     // Configure fetch to include CSRF token
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
     if (csrfToken) {

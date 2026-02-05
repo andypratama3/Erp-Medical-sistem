@@ -10,7 +10,7 @@ use Illuminate\Queue\SerializesModels;
 
 /**
  * Event fired when delivery is dispatched (on the way)
- * 
+ *
  * This event triggers:
  * - Start delivery tracking
  * - Notify customer
@@ -21,17 +21,15 @@ class DeliveryDispatched
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public SCMDelivery $delivery;
     public SalesDO $salesDo;
+    public SCMDelivery $delivery;
 
-    public function __construct(SCMDelivery $delivery)
+    /**
+     * Create a new event instance.
+     */
+    public function __construct(SalesDO $salesDo, SCMDelivery $delivery)
     {
-        $this->delivery = $delivery->load([
-            'salesDO.customer',
-            'driver',
-            'vehicle',
-        ]);
-        
-        $this->salesDo = $this->delivery->salesDO;
+        $this->salesDo = $salesDo;
+        $this->delivery = $delivery;
     }
 }

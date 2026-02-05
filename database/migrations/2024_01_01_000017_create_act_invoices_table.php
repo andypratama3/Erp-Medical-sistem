@@ -22,6 +22,9 @@ return new class extends Migration
             $table->enum('invoice_status', ['draft', 'issued', 'tukar_faktur', 'completed'])->default('draft');
             $table->timestamp('tukar_faktur_at')->nullable();
             $table->string('tukar_faktur_pic', 200)->nullable();
+            $table->enum('payment_status', ['unpaid', 'partial', 'paid', 'overdue'])->default('unpaid');
+
+            $table->date('approved_at')->nullable();
             $table->text('notes')->nullable();
             $table->timestamps();
 

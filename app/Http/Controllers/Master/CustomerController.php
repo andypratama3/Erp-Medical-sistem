@@ -7,16 +7,28 @@ use App\Models\PaymentTerm;
 use Illuminate\Http\Request;
 use App\Helpers\StatusBadgeHelper;
 use App\Http\Controllers\Controller;
+use Illuminate\Routing\Controllers\Middleware;
+use Illuminate\Routing\Controllers\HasMiddleware;
 
-class CustomerController extends Controller
+class CustomerController extends Controller implements HasMiddleware
 {
+     public static function middleware(): array
+    {
+        return [
+            new Middleware('permission:view-customers', only: ['index', 'show']),
+            new Middleware('permission:create-customers', only: ['create', 'store']),
+            new Middleware('permission:edit-customers', only: ['edit', 'update']),
+            new Middleware('permission:delete-customers', only: ['destroy']),
+        ];
+    }
+
     public function index(Request $request)
     {
         $customers = Customer::with('paymentTerm')->paginate(15);
 
         if ($request->filled('search')) {
             $search = $request->search;
-            $query->where(function($q) use ($search) {
+            $customers->where(function($q) use ($search) {
                 $q->where('code', 'like', "%{$search}%")
                   ->orWhere('name', 'like', "%{$search}%");
             });

@@ -10,7 +10,7 @@ use Illuminate\Queue\SerializesModels;
 
 /**
  * Event fired when payment is received and confirmed
- * 
+ *
  * This event triggers:
  * - Update invoice status
  * - Send payment receipt to customer
@@ -25,13 +25,12 @@ class PaymentReceived
     public FINPayment $payment;
     public ACTInvoice $invoice;
 
-    public function __construct(FINPayment $payment)
+    /**
+     * Create a new event instance.
+     */
+    public function __construct(FINPayment $payment, ACTInvoice $invoice)
     {
-        $this->payment = $payment->load([
-            'invoice.customer',
-            'invoice.salesDO',
-        ]);
-        
-        $this->invoice = $this->payment->invoice;
+        $this->payment = $payment;
+        $this->invoice = $invoice;
     }
 }

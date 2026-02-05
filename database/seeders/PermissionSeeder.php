@@ -2,73 +2,175 @@
 
 namespace Database\Seeders;
 
-use App\Models\Permission;
 use Illuminate\Database\Seeder;
-
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 
 class PermissionSeeder extends Seeder
 {
-    public function run(): void
+    /**
+     * Run the database seeds.
+     *
+     * @return void
+     */
+    public function run()
     {
         // Reset cached roles and permissions
-        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+        app()['cache']->forget('spatie.permission.cache');
 
-        $permissions = [
-            // Master Data Permissions
-            'master.view',
-            'master.create',
-            'master.edit',
-            'master.delete',
+        // Create Permissions for Dashboard
+        Permission::firstOrCreate(['name' => 'view-dashboard']);
 
-            // Sales Permissions
-            'sales.view',
-            'sales.create',
-            'sales.edit',
-            'sales.delete',
+        // Create Permissions for Data Master
+        Permission::firstOrCreate(['name' => 'view-master-data']);
+        Permission::firstOrCreate(['name' => 'view-branches']);
+        Permission::firstOrCreate(['name' => 'view-offices']);
+        Permission::firstOrCreate(['name' => 'view-departments']);
+        Permission::firstOrCreate(['name' => 'view-customers']);
+        Permission::firstOrCreate(['name' => 'view-vendors']);
+        Permission::firstOrCreate(['name' => 'view-manufactures']);
+        Permission::firstOrCreate(['name' => 'view-products']);
+        Permission::firstOrCreate(['name' => 'view-taxes']);
+        Permission::firstOrCreate(['name' => 'view-payment-terms']);
 
-            // CRM Permissions
-            'crm.view',
-            'crm.create',
-            'crm.edit',
-            'crm.delete',
-            'crm.submit',
+        // Create Permissions for CRM
+        Permission::firstOrCreate(['name' => 'view-crm']);
+        Permission::firstOrCreate(['name' => 'view-sales']);
+        Permission::firstOrCreate(['name' => 'view-customers']);
+        Permission::firstOrCreate(['name' => 'view-vendors']);
+        Permission::firstOrCreate(['name' => 'create-sales']);
+        Permission::firstOrCreate(['name' => 'edit-sales']);
+        Permission::firstOrCreate(['name' => 'delete-sales']);
 
-            // WQS Permissions
-            'wqs.view',
-            'wqs.process',
 
-            // SCM Permissions
-            'scm.view',
-            'scm.process',
-            'scm.deliver',
+        // Create Permissions for WQS
+        Permission::firstOrCreate(['name' => 'view-wqs']);
+        Permission::firstOrCreate(['name' => 'view-wqs-tasks']);
+        Permission::firstOrCreate(['name' => 'view-stock-checks']);
+        Permission::firstOrCreate(['name' => 'view-inventory']);
 
-            // ACT Permissions
-            'act.view',
-            'act.process',
-            'act.invoice',
+        // Create Permissions for SCM
+        Permission::firstOrCreate(['name' => 'view-scm']);
+        Permission::firstOrCreate(['name' => 'view-drivers']);
+        Permission::firstOrCreate(['name' => 'view-scm-tasks']);
+        Permission::firstOrCreate(['name' => 'view-deliveries']);
+        Permission::firstOrCreate(['name' => 'view-vehicles']);
 
-            // FIN Permissions
-            'fin.view',
-            'fin.process',
-            'fin.collect',
+        // Create Permissions for ACT
+        Permission::firstOrCreate(['name' => 'view-act']);
+        Permission::firstOrCreate(['name' => 'view-act-tasks']);
+        Permission::firstOrCreate(['name' => 'view-invoices']);
 
-            // REG ALKES Permissions
-            'reg_alkes.view',
-            'reg_alkes.create',
-            'reg_alkes.process',
-            'reg_alkes.import',
+        // Create Permissions for FIN
+        Permission::firstOrCreate(['name' => 'view-fin']);
+        Permission::firstOrCreate(['name' => 'view-fin-tasks']);
+        Permission::firstOrCreate(['name' => 'view-collections']);
+        Permission::firstOrCreate(['name' => 'view-aging']);
 
-            // Dashboard Permission
-            'dashboard.view',
+        // Create Permissions for Settings
+        Permission::firstOrCreate(['name' => 'manage-users']);
+        Permission::firstOrCreate(['name' => 'manage-roles']);
+        Permission::firstOrCreate(['name' => 'manage-permissions']);
+
+        // Create Roles
+        $adminRole = Role::firstOrCreate(['name' => 'admin']);
+        $managerRole = Role::firstOrCreate(['name' => 'manager']);
+        $salesRole = Role::firstOrCreate(['name' => 'sales']);
+        $warehouseRole = Role::firstOrCreate(['name' => 'warehouse']);
+        $logisticsRole = Role::firstOrCreate(['name' => 'logistics']);
+        $accountingRole = Role::firstOrCreate(['name' => 'accounting']);
+        $financeRole = Role::firstOrCreate(['name' => 'finance']);
+
+        // Assign All Permissions to Admin
+        $adminPermissions = Permission::all();
+        $adminRole->syncPermissions($adminPermissions);
+
+        // Assign Permissions to Manager
+        $managerPermissions = [
+            'view-dashboard',
+            'view-master-data',
+            'view-branches',
+            'view-offices',
+            'view-departments',
+            'view-customers',
+            'view-vendors',
+            'view-manufactures',
+            'view-products',
+            'view-taxes',
+            'view-payment-terms',
+            'view-crm',
+            'view-sales',
+            'view-wqs',
+            'view-wqs-tasks',
+            'view-stock-checks',
+            'view-inventory',
+            'view-scm',
+            'view-drivers',
+            'view-scm-tasks',
+            'view-deliveries',
+            'view-vehicles',
+            'view-act',
+            'view-act-tasks',
+            'view-invoices',
+            'view-fin',
+            'view-fin-tasks',
+            'view-collections',
+            'view-aging',
         ];
+        $managerRole->syncPermissions($managerPermissions);
 
-        foreach ($permissions as $permission) {
-            Permission::create([
-                'name' => $permission,
-                'guard_name' => 'web',
-            ]);
-        }
+        // Assign Permissions to Sales
+        $salesPermissions = [
+            'view-dashboard',
+            'view-master-data',
+            'view-crm',
+            'view-sales',
+            'view-customers',
+            'create-sales',
+            'edit-sales',
+            'delete-sales',
+        ];
+        $salesRole->syncPermissions($salesPermissions);
 
-        $this->command->info('✅ Created ' . count($permissions) . ' permissions');
+        // Assign Permissions to Warehouse
+        $warehousePermissions = [
+            'view-dashboard',
+            'view-wqs',
+            'view-wqs-tasks',
+            'view-stock-checks',
+            'view-inventory',
+            'view-products',
+        ];
+        $warehouseRole->syncPermissions($warehousePermissions);
+
+        // Assign Permissions to Logistics
+        $logisticsPermissions = [
+            'view-dashboard',
+            'view-scm',
+            'view-drivers',
+            'view-scm-tasks',
+            'view-deliveries',
+            'view-vehicles',
+        ];
+        $logisticsRole->syncPermissions($logisticsPermissions);
+
+        // Assign Permissions to Accounting
+        $accountingPermissions = [
+            'view-dashboard',
+            'view-act',
+            'view-act-tasks',
+            'view-invoices',
+        ];
+        $accountingRole->syncPermissions($accountingPermissions);
+
+        // Assign Permissions to Finance
+        $financePermissions = [
+            'view-dashboard',
+            'view-fin',
+            'view-fin-tasks',
+            'view-collections',
+            'view-aging',
+        ];
+        $financeRole->syncPermissions($financePermissions);
     }
 }

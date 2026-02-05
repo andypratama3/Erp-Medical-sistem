@@ -223,6 +223,7 @@
                                         </template>
 
                                         {{-- EDIT --}}
+                                        
                                         <template x-if="item.actions?.edit && item.actions.edit !== null">
                                             <a
                                                 :href="item.actions.edit"

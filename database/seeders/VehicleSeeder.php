@@ -10,7 +10,7 @@ class VehicleSeeder extends Seeder
 {
     public function run(): void
     {
-        $branch = Branch::first();
+        $branch = Branch::where('code', 'SBY')->first();
 
         $vehicles = [
             [

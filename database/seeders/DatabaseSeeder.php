@@ -13,6 +13,9 @@ class DatabaseSeeder extends Seeder
             PermissionSeeder::class,
             RoleSeeder::class,
 
+             // Users & Access
+            UserSeeder::class,
+
             // Master Data
             BranchSeeder::class,
             MasterOfficeSeeder::class,
@@ -26,15 +29,14 @@ class DatabaseSeeder extends Seeder
             CustomerSeeder::class,
             VendorSeeder::class,
 
-            // Users & Access
-            UserSeeder::class,
+
 
             // Operational Data
             SalesDOSeeder::class,
-            StockCheckSeeder::class,
+            // StockCheckSeeder::class,
             VehicleSeeder::class,
             DriverSeeder::class,
-            DeliverySeeder::class,
+            // DeliverySeeder::class,
             InvoiceSeeder::class,
             CollectionSeeder::class,
             PaymentSeeder::class,

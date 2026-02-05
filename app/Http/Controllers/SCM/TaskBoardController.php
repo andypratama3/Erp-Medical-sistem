@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\SalesDO;
 use App\Models\SCMDriver;
 use App\Models\SCMDelivery;
+use App\Events\DeliveryDispatched;
+use App\Events\DeliveryCompleted;
 use App\Services\DocumentUploadService;
 use App\Services\AuditLogService;
 use App\Services\StateMachineService;
@@ -218,6 +220,9 @@ class TaskBoardController extends Controller implements HasMiddleware
                 'departure' => $validated['actual_departure'],
             ]);
 
+            // *** DISPATCH EVENT: Delivery Dispatched ***
+            event(new DeliveryDispatched($salesDo, $salesDo->delivery));
+
             DB::commit();
 
             return redirect()
@@ -306,6 +311,9 @@ class TaskBoardController extends Controller implements HasMiddleware
                 'received_by' => $validated['received_by'],
                 'arrival' => $validated['actual_arrival'],
             ]);
+
+            // *** DISPATCH EVENT: Delivery Completed ***
+            event(new DeliveryCompleted($salesDo, $salesDo->delivery));
 
             DB::commit();
 

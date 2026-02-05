@@ -10,7 +10,7 @@ use Illuminate\Queue\SerializesModels;
 
 /**
  * Event fired when invoice is approved and ready for collection
- * 
+ *
  * This event triggers:
  * - Create FIN collection task
  * - Notify finance team
@@ -24,14 +24,12 @@ class InvoiceApproved
     public ACTInvoice $invoice;
     public SalesDO $salesDo;
 
-    public function __construct(ACTInvoice $invoice)
+    /**
+     * Create a new event instance.
+     */
+    public function __construct(ACTInvoice $invoice, SalesDO $salesDo)
     {
-        $this->invoice = $invoice->load([
-            'customer',
-            'salesDO',
-            'paymentTerm',
-        ]);
-        
-        $this->salesDo = $this->invoice->salesDO;
+        $this->invoice = $invoice;
+        $this->salesDo = $salesDo;
     }
 }

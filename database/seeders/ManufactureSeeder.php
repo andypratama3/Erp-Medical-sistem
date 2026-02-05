@@ -9,6 +9,7 @@ class ManufactureSeeder extends Seeder
 {
     public function run(): void
     {
+        
         $manufactures = [
             [
                 'code' => 'MFG-001',

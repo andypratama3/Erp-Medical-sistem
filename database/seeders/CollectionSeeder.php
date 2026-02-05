@@ -14,11 +14,11 @@ class CollectionSeeder extends Seeder
     {
         $invoices = ACTInvoice::whereIn('invoice_status', ['issued', 'tukar_faktur', 'completed'])->get();
         $users = User::all();
-        $branch = Branch::first();
+        $branch = Branch::where('code', 'SBY')->first();
 
         foreach ($invoices->take(15) as $index => $invoice) {
             $startedAt = now()->subDays(rand(1, 45));
-            
+
             FINCollection::create([
                 'sales_do_id' => $invoice->sales_do_id,
                 'invoice_id' => $invoice->id,

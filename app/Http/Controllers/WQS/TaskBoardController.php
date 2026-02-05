@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\SalesDO;
 use App\Models\TaskBoard;
 use App\Models\WQSStockCheck;
+use App\Events\WQSCompleted;
+use App\Events\StockCheckFailed;
 use App\Services\AuditLogService;
 use App\Services\StateMachineService;
 use Illuminate\Http\Request;
@@ -135,8 +137,10 @@ class TaskBoardController extends Controller implements HasMiddleware
     /**
      * Start processing task
      */
-    public function start(TaskBoard $taskBoard)
+    public function start($id)
     {
+        $taskBoard = TaskBoard::findOrFail($id);
+
         if (!$taskBoard->canStart()) {
             return redirect()
                 ->back()
@@ -153,11 +157,9 @@ class TaskBoardController extends Controller implements HasMiddleware
             'task_id' => $taskBoard->id,
             'do_code' => $taskBoard->salesDO->do_code,
             'task_type' => $taskBoard->task_type,
-        ]);
-
-
-        // Make task Board to SCM Task Board AND invoice
-        // (new WQSStockCheck())->start($taskBoard);
+        ]); 
+        // add event
+        event(new WQSCompleted($taskBoard));
 
         return redirect()
             ->route('wqs.task-board.show', $taskBoard)
@@ -179,26 +181,45 @@ class TaskBoardController extends Controller implements HasMiddleware
                 ->with('error', 'Task cannot be held from current status.');
         }
 
-        if (!$taskBoard->hold($validated['reason'])) {
+        DB::beginTransaction();
+        try {
+            if (!$taskBoard->hold($validated['reason'])) {
+                throw new \Exception('Failed to hold task.');
+            }
+
+            // Update related SO status
+            if ($taskBoard->task_type === 'wqs_stock_check') {
+                $taskBoard->salesDO->update(['status' => 'wqs_on_hold']);
+
+                // Check if stock shortage and dispatch event
+                $stockCheck = WQSStockCheck::where('sales_do_id', $taskBoard->sales_do_id)
+                                           ->latest()
+                                           ->first();
+
+                if ($stockCheck && !$stockCheck->allAvailable()) {
+                    // *** DISPATCH EVENT: Stock Check Failed ***
+                    event(new StockCheckFailed($taskBoard->salesDO, $stockCheck));
+                }
+            }
+
+            $this->auditLog->log('TASK_HELD', 'WQS', [
+                'task_id' => $taskBoard->id,
+                'do_code' => $taskBoard->salesDO->do_code,
+                'reason' => $validated['reason'],
+            ]);
+
+            DB::commit();
+
             return redirect()
                 ->back()
-                ->with('error', 'Failed to hold task.');
+                ->with('warning', 'Task placed on hold: ' . $validated['reason']);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()
+                ->back()
+                ->with('error', 'Failed to hold task: ' . $e->getMessage());
         }
-
-        // Update related SO status if needed
-        if ($taskBoard->task_type === 'wqs_stock_check') {
-            $taskBoard->salesDO->update(['status' => 'wqs_on_hold']);
-        }
-
-        $this->auditLog->log('TASK_HELD', 'WQS', [
-            'task_id' => $taskBoard->id,
-            'do_code' => $taskBoard->salesDO->do_code,
-            'reason' => $validated['reason'],
-        ]);
-
-        return redirect()
-            ->back()
-            ->with('warning', 'Task placed on hold: ' . $validated['reason']);
     }
 
     /**
@@ -276,7 +297,7 @@ class TaskBoardController extends Controller implements HasMiddleware
                 'task_type' => $taskBoard->task_type,
             ]);
 
-            // *** ADD THIS: Dispatch WQSCompleted event ***
+            // *** DISPATCH EVENT: WQS Completed ***
             event(new WQSCompleted($taskBoard->salesDO));
 
             DB::commit();
@@ -296,17 +317,19 @@ class TaskBoardController extends Controller implements HasMiddleware
     /**
      * Reject task
      */
-    public function reject(Request $request, TaskBoard $taskBoard)
+    public function reject(Request $request, $taskBoardId)
     {
         $validated = $request->validate([
             'reason' => 'required|string|max:255',
         ]);
 
-        // if (!$taskBoard->canHold()) {
-        //     return redirect()
-        //         ->back()
-        //         ->with('error', 'Task cannot be rejected from current status.');
-        // }
+        $taskBoard = TaskBoard::find($taskBoardId);
+
+        if (!$taskBoard->canHold()) {
+            return redirect()
+                ->back()
+                ->with('error', 'Task cannot be rejected from current status.');
+        }
 
         DB::beginTransaction();
         try {
@@ -353,19 +376,7 @@ class TaskBoardController extends Controller implements HasMiddleware
 
                 if ($stockCheck && $stockCheck->allAvailable()) {
                     // All items available - proceed to SCM
-                    $salesDo->update(['status' => 'scm_on_delivery']);
-
-                    // Create SCM task
-                    TaskBoard::create([
-                        'sales_do_id' => $salesDo->id,
-                        'module' => 'scm',
-                        'task_type' => 'scm_pick_pack',
-                        'task_status' => 'pending',
-                        'task_description' => 'Pick & Pack for DO ' . $salesDo->do_code,
-                        'priority' => 'high',
-                        'due_date' => now()->addDays(1),
-                        'created_by' => auth()->id(),
-                    ]);
+                    $salesDo->update(['status' => 'wqs_ready']);
                 } else {
                     // Some items not available - place on hold
                     $salesDo->update(['status' => 'wqs_on_hold']);
@@ -374,19 +385,7 @@ class TaskBoardController extends Controller implements HasMiddleware
 
             case 'wqs_quality_review':
                 // Quality review done - ready for SCM
-                $salesDo->update(['status' => 'scm_on_delivery']);
-
-                // Create SCM delivery task
-                TaskBoard::create([
-                    'sales_do_id' => $salesDo->id,
-                    'module' => 'scm',
-                    'task_type' => 'scm_delivery',
-                    'task_status' => 'pending',
-                    'task_description' => 'Delivery for DO ' . $salesDo->do_code,
-                    'priority' => 'high',
-                    'due_date' => now()->addDays(2),
-                    'created_by' => auth()->id(),
-                ]);
+                $salesDo->update(['status' => 'wqs_ready']);
                 break;
         }
     }
@@ -446,7 +445,6 @@ class TaskBoardController extends Controller implements HasMiddleware
     {
         $stats = TaskBoard::getDashboardStats('wqs');
         $stats['total'] = $stats['pending'] + $stats['in_progress'] + $stats['on_hold'];
-
 
         return response()->json([
             'success' => true,

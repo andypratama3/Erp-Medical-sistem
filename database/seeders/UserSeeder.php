@@ -3,109 +3,128 @@
 namespace Database\Seeders;
 
 use App\Models\User;
-use App\Models\Branch;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
 class UserSeeder extends Seeder
 {
-    public function run(): void
+    /**
+     * Run the database seeds.
+     *
+     * @return void
+     */
+    public function run()
     {
-
-    
-
-        $owner = User::create([
-            'name' => 'Owner RMI',
-            'email' => 'owner@rmi.local',
-            'password'=> Hash::make('owner1234'),
-            'email_verified_at' => now(),
-        ]);
-
+        // OWNER
+        $owner = User::firstOrCreate(
+            ['email' => 'owner@rmi.local'],
+            [
+                'name' => 'Owner RMI',
+                'password' => Hash::make('owner1234'),
+                'email_verified_at' => now(),
+            ]
+        );
         $owner->assignRole('owner');
 
         // SUPERADMIN
-        $admin = User::create([
-            'name' => 'Admin RMI',
-            'email' => 'admin@rmi.local',
-            'password' => Hash::make('admin123'),
-            'email_verified_at' => now(),
-        ]);
+        $admin = User::firstOrCreate(
+            ['email' => 'admin@rmi.local'],
+            [
+                'name' => 'Admin RMI',
+                'password' => Hash::make('admin123'),
+                'email_verified_at' => now(),
+            ]
+        );
         $admin->assignRole('superadmin');
 
-
-        // Sales
-        $sales = User::create([
-            'name' => 'Sales RMI',
-            'email' => 'sales@rmi.local',
-            'password' => Hash::make('admin123'),
-            'email_verified_at' => now(),
-        ]);
-        $sales->assignRole('sales');
- 
-
         // MANAGER
-        $manager = User::create([
-            'name' => 'Manager RMI',
-            'email' => 'manager@rmi.local',
-            'password' => Hash::make('admin123'),
-            'email_verified_at' => now(),
-        ]);
+        $manager = User::firstOrCreate(
+            ['email' => 'manager@rmi.local'],
+            [
+                'name' => 'Manager RMI',
+                'password' => Hash::make('admin123'),
+                'email_verified_at' => now(),
+            ]
+        );
         $manager->assignRole('manager');
 
+        // SALES
+        $sales = User::firstOrCreate(
+            ['email' => 'sales@rmi.local'],
+            [
+                'name' => 'Sales RMI',
+                'password' => Hash::make('admin123'),
+                'email_verified_at' => now(),
+            ]
+        );
+        $sales->assignRole('sales');
+
         // STAFF CRM
-        $staffCRM = User::create([
-            'name' => 'Staff CRM',
-            'email' => 'crm@rmi.local',
-            'password' => Hash::make('admin123'),
-            'email_verified_at' => now(),
-        ]);
+        $staffCRM = User::firstOrCreate(
+            ['email' => 'crm@rmi.local'],
+            [
+                'name' => 'Staff CRM',
+                'password' => Hash::make('admin123'),
+                'email_verified_at' => now(),
+            ]
+        );
         $staffCRM->assignRole('crm');
 
         // STAFF WQS
-        $staffWQS = User::create([
-            'name' => 'Staff WQS',
-            'email' => 'wqs@rmi.local',
-            'password' => Hash::make('admin123'),
-            'email_verified_at' => now(),
-        ]);
+        $staffWQS = User::firstOrCreate(
+            ['email' => 'wqs@rmi.local'],
+            [
+                'name' => 'Staff WQS',
+                'password' => Hash::make('admin123'),
+                'email_verified_at' => now(),
+            ]
+        );
         $staffWQS->assignRole('wqs');
 
         // STAFF SCM
-        $staffSCM = User::create([
-            'name' => 'Staff SCM',
-            'email' => 'scm@rmi.local',
-            'password' => Hash::make('admin123'),
-            'email_verified_at' => now(),
-        ]);
+        $staffSCM = User::firstOrCreate(
+            ['email' => 'scm@rmi.local'],
+            [
+                'name' => 'Staff SCM',
+                'password' => Hash::make('admin123'),
+                'email_verified_at' => now(),
+            ]
+        );
         $staffSCM->assignRole('scm');
 
         // STAFF ACT
-        $staffACT = User::create([
-            'name' => 'Staff ACT',
-            'email' => 'act@rmi.local',
-            'password' => Hash::make('admin123'),
-            'email_verified_at' => now(),
-        ]);
+        $staffACT = User::firstOrCreate(
+            ['email' => 'act@rmi.local'],
+            [
+                'name' => 'Staff ACT',
+                'password' => Hash::make('admin123'),
+                'email_verified_at' => now(),
+            ]
+        );
         $staffACT->assignRole('act');
 
         // STAFF FIN
-        $staffFIN = User::create([
-            'name' => 'Staff FIN',
-            'email' => 'fin@rmi.local',
-            'password' => Hash::make('admin123'),
-            'email_verified_at' => now(),
-        ]);
+        $staffFIN = User::firstOrCreate(
+            ['email' => 'fin@rmi.local'],
+            [
+                'name' => 'Staff FIN',
+                'password' => Hash::make('admin123'),
+                'email_verified_at' => now(),
+            ]
+        );
         $staffFIN->assignRole('fin');
 
         // STAFF REG ALKES
-        $staffRegAlkes = User::create([
-            'name' => 'Staff REG ALKES',
-            'email' => 'regalkes@rmi.local',
-            'password' => Hash::make('admin123'),
-            'email_verified_at' => now(),
-        ]);
+        $staffRegAlkes = User::firstOrCreate(
+            ['email' => 'regalkes@rmi.local'],
+            [
+                'name' => 'Staff REG ALKES',
+                'password' => Hash::make('admin123'),
+                'email_verified_at' => now(),
+            ]
+        );
         $staffRegAlkes->assignRole('reg_alkes');
 
-        $this->command->info('✅ Created 8 users with roles');
+        $this->command->info('✅ Created 9 test users with roles');
     }
 }

@@ -26,7 +26,7 @@ class StockCheckController extends Controller implements HasMiddleware
     public static function middleware(): array
     {
         return [
-            new Middleware('permission:view_wqs', only: ['index', 'show']),
+            new Middleware('permission:wqs.view', only: ['index', 'show']),
             new Middleware('permission:process_wqs', only: ['create', 'store', 'update', 'destroy']),
         ];
     }
@@ -37,6 +37,7 @@ class StockCheckController extends Controller implements HasMiddleware
     public function index(Request $request)
     {
         $query = WQSStockCheck::with([
+            'salesDO',
             'salesDO.customer',
             'salesDO.office',
             'checkedBy',
@@ -69,6 +70,10 @@ class StockCheckController extends Controller implements HasMiddleware
         }
 
         $stockChecks = $query->latest('check_date')->paginate(15);
+
+        // foreach($stockChecks as $stockCheck) {
+        //     dd($stockCheck->salesDO->id);
+        // }
 
         $tasks = WQSStockCheck::with([
             'salesDO.customer',

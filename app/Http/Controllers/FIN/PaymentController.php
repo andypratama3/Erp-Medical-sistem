@@ -4,11 +4,20 @@ namespace App\Http\Controllers\FIN;
 
 use App\Http\Controllers\Controller;
 use App\Models\{FINPayment, FINCollection, ACTInvoice};
+use App\Events\PaymentReceived;
+use App\Services\AuditLogService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class PaymentController extends Controller
 {
+    protected $auditLog;
+
+    public function __construct(AuditLogService $auditLog)
+    {
+        $this->auditLog = $auditLog;
+    }
+
     public function index(Request $request)
     {
         $payments = FINPayment::with(['invoice', 'collection'])
@@ -59,9 +68,23 @@ class PaymentController extends Controller
 
             if ($totalPaid >= $invoice->grand_total) {
                 $invoice->update(['payment_status' => 'paid']);
+
+                // Update Sales DO status to fin_paid
+                $invoice->salesDO->update(['status' => 'fin_paid']);
             } else {
                 $invoice->update(['payment_status' => 'partial']);
             }
+
+            // Log audit
+            $this->auditLog->log('PAYMENT_RECEIVED', 'FIN', [
+                'payment_id' => $payment->id,
+                'invoice_number' => $invoice->invoice_number,
+                'amount' => $validated['payment_amount'],
+                'method' => $validated['payment_method'],
+            ]);
+
+            // *** DISPATCH EVENT: Payment Received ***
+            event(new PaymentReceived($payment, $invoice));
 
             DB::commit();
 

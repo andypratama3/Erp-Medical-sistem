@@ -34,10 +34,10 @@ class SalesDOController extends Controller implements HasMiddleware
     public static function middleware(): array
     {
         return [
-            new Middleware('permission:sales.view', only: ['index', 'show']),
-            new Middleware('permission:sales.create', only: ['create', 'store']),
-            new Middleware('permission:sales.edit', only: ['edit', 'update']),
-            new Middleware('permission:sales.delete', only: ['destroy']),
+            new Middleware('permission:view-sales', only: ['index', 'show']),
+            new Middleware('permission:create-sales', only: ['create', 'store']),
+            new Middleware('permission:edit-sales', only: ['edit', 'update']),
+            new Middleware('permission:delete-sales', only: ['destroy']),
         ];
     }
 
@@ -483,12 +483,12 @@ class SalesDOController extends Controller implements HasMiddleware
 
     public function submit(SalesDO $salesDo)
     {
-        // Check permission
-        if (!auth()->user()->can('submit_sales_do')) {
-            return redirect()
-                ->back()
-                ->with('error', 'You do not have permission to submit Sales DO.');
-        }
+        // // Check permission
+        // if (!auth()->user()->can('submit_sales_do')) {
+        //     return redirect()
+        //         ->back()
+        //         ->with('error', 'You do not have permission to submit Sales DO.');
+        // }
 
         // Only allow submit if status is crm_to_wqs
         if ($salesDo->status !== 'crm_to_wqs') {

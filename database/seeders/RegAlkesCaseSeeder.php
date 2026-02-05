@@ -28,7 +28,7 @@ class RegAlkesCaseSeeder extends Seeder
             $manufacture = $manufactures->random();
 
             $case = RegAlkesCase::create([
-                'branch_id'            => Branch::first()->id,
+                'branch_id'            => Branch::where('code', 'SBY')->first()->id,
                 'case_number'       => 'ALKES-' . now()->format('Ymd') . '-' . str_pad($i, 4, '0', STR_PAD_LEFT),
                 'manufacture_id'    => $manufacture->id,
                 'manufacture_name'  => $manufacture->name,
@@ -69,7 +69,7 @@ class RegAlkesCaseSeeder extends Seeder
                 }
 
                 RegAlkesCaseItem::create([
-                    'branch_id'            => Branch::first()->id,
+                    'branch_id'            => Branch::where('code', 'SBY')->first()->id,
                     'case_id'           => $case->id,
                     'product_id'        => $product?->id,
                     'product_name'      => $product?->name ?? 'Medical Device ' . $j,

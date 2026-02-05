@@ -116,7 +116,7 @@
                     @forelse($stockChecks as $check)
                     <tr class="dark:hover:bg-gray-700/50 transition">
                         <td class="px-6 py-4">
-                            <a href="{{ route('crm.sales-do.show', $check->salesDO) }}"
+                            <a href="{{ route('crm.sales-do.show', $check->salesDO->id) }}"
                                 class="text-blue-600 dark:text-blue-400 hover:underline font-mono font-semibold">
                                 {{ $check->salesDO->do_code }}
                             </a>

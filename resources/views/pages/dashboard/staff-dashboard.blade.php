@@ -6,15 +6,15 @@
 <div class="mx-auto max-w-screen-2xl p-4 md:p-6 2xl:p-10">
     <!-- Header -->
     <div class="mb-6 flex items-center justify-between">
-        <div>
+        <div class="text-dark dark:text-white">
             <h2 class="text-title-md2 font-semibold text-black dark:text-white">
                 {{ $currentBranch->name }} Dashboard
             </h2>
-            <p class="text-sm text-body">Your branch performance overview</p>
+            <p class="text-sm text-body text-dark dark:text-white">Your branch performance overview</p>
         </div>
         <div class="text-right">
-            <p class="text-sm text-body">Current Branch</p>
-            <p class="text-lg font-semibold text-primary">{{ $currentBranch->code }}</p>
+            <p class="text-sm text-body text-dark dark:text-white">Current Branch</p>
+            <p class="text-lg font-semibold text-gray-800 dark:text-amber-500">{{ $currentBranch->code }}</p>
         </div>
     </div>
 
@@ -32,7 +32,7 @@
                     <h4 class="text-title-md font-bold text-black dark:text-white">
                         {{ $stats['my_sales_do'] }}
                     </h4>
-                    <span class="text-sm font-medium dark:text-white">My Sales DO</span>
+                    <span class="text-sm font-medium text-dark dark:text-white">My Sales DO</span>
                 </div>
             </div>
         </div>
@@ -49,7 +49,7 @@
                     <h4 class="text-title-md font-bold text-black dark:text-white">
                         {{ $stats['my_tasks'] }}
                     </h4>
-                    <span class="text-sm font-medium dark:text-white">Assigned to Me</span>
+                    <span class="text-sm font-medium text-dark dark:text-white">Assigned to Me</span>
                 </div>
             </div>
         </div>
@@ -66,7 +66,7 @@
                     <h4 class="text-title-md font-bold text-black dark:text-white">
                         Rp {{ number_format($stats['branch_revenue'], 0, ',', '.') }}
                     </h4>
-                    <span class="text-sm font-medium dark:text-white">Branch Revenue</span>
+                    <span class="text-sm font-medium text-dark dark:text-white">Branch Revenue</span>
                 </div>
             </div>
         </div>
@@ -83,7 +83,7 @@
                     <h4 class="text-title-md font-bold text-black dark:text-white">
                         {{ $stats['pending_items'] }}
                     </h4>
-                    <span class="text-sm font-medium dark:text-white">Pending Actions</span>
+                    <span class="text-sm font-medium text-dark dark:text-white">Pending Actions</span>
                 </div>
             </div>
         </div>

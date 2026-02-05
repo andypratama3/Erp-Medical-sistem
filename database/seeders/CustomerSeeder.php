@@ -12,7 +12,8 @@ class CustomerSeeder extends Seeder
     public function run(): void
     {
         $paymentTerm = PaymentTerm::first();
-        $branch = Branch::first();
+        $branch = Branch::where('code', 'SBY')->first();
+
 
         $customers = [
             [

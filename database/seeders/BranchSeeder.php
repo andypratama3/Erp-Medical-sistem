@@ -89,10 +89,10 @@ class BranchSeeder extends Seeder
         if ($owner) {
             foreach ($branches as $branch) {
                 $owner->branches()->attach($branch->id, [
-                    'is_default' => $branch->code === 'HQ',
+                    'is_default' => $branch->code === 'SBY',
                 ]);
             }
-            $owner->update(['current_branch_id' => $branches->firstWhere('code', 'HQ')->id]);
+            $owner->update(['current_branch_id' => $branches->firstWhere('code', 'SBY')->id]);
         }
 
         // Admin gets all branches
@@ -100,18 +100,18 @@ class BranchSeeder extends Seeder
         if ($admin) {
             foreach ($branches as $branch) {
                 $admin->branches()->attach($branch->id, [
-                    'is_default' => $branch->code === 'HQ',
+                    'is_default' => $branch->code === 'SBY',
                 ]);
             }
-            $admin->update(['current_branch_id' => $branches->firstWhere('code', 'HQ')->id]);
+            $admin->update(['current_branch_id' => $branches->firstWhere('code', 'SBY')->id]);
         }
 
         // Assign staff to specific branches
         $staffMappings = [
-            'staff@rmi.local' => ['HQ', 'BDG'],
-            'manager@rmi.local' => ['BDG'],
-            'wqs@rmi.local' => ['HQ', 'BDG','MKS', 'SBY'],
-            'sales@rmi.local' => ['SBY', 'MKS'],
+            'staff@rmi.local' => ['SB'],
+            'manager@rmi.local' => ['SBY'],
+            'wqs@rmi.local' => ['SBY'],
+            'sales@rmi.local' => ['SBY'],
         ];
 
         foreach ($staffMappings as $email => $branchCodes) {

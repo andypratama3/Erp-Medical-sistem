@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Branch;
 use App\Models\SCMDriver;
 use Illuminate\Database\Seeder;
 
@@ -9,6 +10,8 @@ class DriverSeeder extends Seeder
 {
     public function run(): void
     {
+        $branch = Branch::wherE('code', 'SBY')->first();
+
         $drivers = [
             [
                 'code' => 'DRV-001',

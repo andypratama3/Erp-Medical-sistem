@@ -10,7 +10,7 @@ use Illuminate\Queue\SerializesModels;
 
 /**
  * Event fired when delivery is completed (POD uploaded)
- * 
+ *
  * This event triggers:
  * - Create ACT task for invoicing
  * - Notify accounting team
@@ -21,17 +21,15 @@ class DeliveryCompleted
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public SCMDelivery $delivery;
     public SalesDO $salesDo;
+    public SCMDelivery $delivery;
 
-    public function __construct(SCMDelivery $delivery)
+    /**
+     * Create a new event instance.
+     */
+    public function __construct(SalesDO $salesDo, SCMDelivery $delivery)
     {
-        $this->delivery = $delivery->load([
-            'salesDO.customer',
-            'salesDO.items.product',
-            'driver',
-        ]);
-        
-        $this->salesDo = $this->delivery->salesDO;
+        $this->salesDo = $salesDo;
+        $this->delivery = $delivery;
     }
 }
