@@ -11,14 +11,14 @@ class InventoryController extends Controller
 {
     public function index(Request $request)
     {
-        $products = Product::with('category')
+        $inventory = InventoryAdjustment::with('product')
             ->when($request->search, fn($q, $search) =>
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('sku', 'like', "%{$search}%")
+                $q->where('product.name', 'like', "%{$search}%")
+                  ->orWhere('product.sku', 'like', "%{$search}%")
             )
             ->paginate(20);
 
-        return view('pages.wqs.inventory.index', compact('products'));
+        return view('pages.wqs.inventory.index', compact('inventory'));
     }
 
     public function adjustments(Request $request)

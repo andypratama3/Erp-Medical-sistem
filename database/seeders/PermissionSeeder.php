@@ -20,6 +20,12 @@ class PermissionSeeder extends Seeder
             'master.edit',
             'master.delete',
 
+            // Sales Permissions
+            'sales.view',
+            'sales.create',
+            'sales.edit',
+            'sales.delete',
+
             // CRM Permissions
             'crm.view',
             'crm.create',

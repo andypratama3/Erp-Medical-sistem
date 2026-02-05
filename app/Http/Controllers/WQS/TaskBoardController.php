@@ -29,8 +29,8 @@ class TaskBoardController extends Controller implements HasMiddleware
     public static function middleware(): array
     {
         return [
-            new Middleware('permission:view_wqs', only: ['index', 'show']),
-            new Middleware('permission:process_wqs', only: ['process', 'start', 'hold', 'complete']),
+            new Middleware('permission:wqs.view', only: ['index', 'show','view']),
+            new Middleware('permission:wqs.process', only: ['process', 'start', 'hold', 'complete']),
         ];
     }
 
@@ -158,8 +158,6 @@ class TaskBoardController extends Controller implements HasMiddleware
 
         // Make task Board to SCM Task Board AND invoice
         // (new WQSStockCheck())->start($taskBoard);
-
-
 
         return redirect()
             ->route('wqs.task-board.show', $taskBoard)
@@ -304,11 +302,11 @@ class TaskBoardController extends Controller implements HasMiddleware
             'reason' => 'required|string|max:255',
         ]);
 
-        if (!$taskBoard->canHold()) {
-            return redirect()
-                ->back()
-                ->with('error', 'Task cannot be rejected from current status.');
-        }
+        // if (!$taskBoard->canHold()) {
+        //     return redirect()
+        //         ->back()
+        //         ->with('error', 'Task cannot be rejected from current status.');
+        // }
 
         DB::beginTransaction();
         try {

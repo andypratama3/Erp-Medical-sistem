@@ -29,6 +29,7 @@
 
     <!-- Action Buttons -->
     <div class="mb-6 flex flex-wrap gap-6">
+        
         @if($taskBoard->canStart())
             <form method="POST" action="{{ route('wqs.task-board.start', $taskBoard) }}" style="display:inline;">
                 @csrf
@@ -225,7 +226,6 @@
                         <p class="text-gray-900 dark:text-white font-semibold mt-1">{{ $taskBoard->created_at->format('d M Y H:i') }}</p>
                         <p class="text-xs text-gray-600 dark:text-gray-400">{{ $taskBoard->createdBy?->name ?? '-' }}</p>
                     </div>
-
                     @if($taskBoard->started_at)
                         <div class="pb-3 border-b border-gray-200 dark:border-gray-700">
                             <p class="text-xs text-gray-600 dark:text-gray-400 font-bold">Started</p>

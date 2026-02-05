@@ -88,7 +88,7 @@ class TaskBoard extends Model
 
     public function salesDO(): BelongsTo
     {
-        return $this->belongsTo(SalesDO::class, 'sales_do_id');
+        return $this->belongsTo(SalesDO::class, 'sales_do_id', 'id');
     }
 
     public function assignedUser(): BelongsTo

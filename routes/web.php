@@ -73,7 +73,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Profile Management
     Route::prefix('profile')->name('profile.')->group(function () {
-        Route::get('/', [ProfileController::class, 'edit'])->name('edit');
+        Route::get('/', [ProfileController::class, 'index'])->name('index');
         Route::patch('/', [ProfileController::class, 'update'])->name('update');
         Route::delete('/', [ProfileController::class, 'destroy'])->name('destroy');
     });

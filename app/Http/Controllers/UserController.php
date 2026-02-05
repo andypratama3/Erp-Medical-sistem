@@ -72,7 +72,7 @@ class UserController extends Controller
             'name'     => 'required|string|max:255',
             'email'    => 'required|email|unique:users,email',
             'password' => 'required|min:6|confirmed',
-            'roles'    => 'required|array',
+            'roles'    => 'required|string',
             'branches' => 'required|array|min:1',
             'default_branch_id' => 'required|integer',
         ]);
@@ -129,7 +129,7 @@ class UserController extends Controller
         $request->validate([
             'name'     => 'required|string|max:255',
             'email'    => 'required|email|unique:users,email,' . $user->id,
-            'roles'    => 'required|array',
+            'roles'    => 'required|string',
             'branches' => 'required|array|min:1',
             'default_branch_id' => 'required|integer',
             'password' => 'nullable|min:6|confirmed',

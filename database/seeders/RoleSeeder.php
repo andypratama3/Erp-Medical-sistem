@@ -43,6 +43,18 @@ class RoleSeeder extends Seeder
             'crm.edit',
             'crm.submit',
         ]);
+        
+        // Sales  
+        $salesDO = Role::create(['name' => 'sales','guard_name'=> 'web']);
+        $salesDO->givePermissionTo([
+            'dashboard.view',
+            'master.view',
+            'sales.view',
+            'sales.create',
+            'sales.edit',
+            'sales.delete',
+        ]);
+
 
         // STAFF WQS - WQS Only
         $staffWQS = Role::create(['name' => 'wqs','guard_name'=> 'web']);

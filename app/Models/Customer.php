@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\HasBranchScope;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -9,11 +10,12 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Customer extends Model
 {
-    use SoftDeletes;
+    use SoftDeletes, HasBranchScope;
 
     protected $table = 'master_customers';
 
     protected $fillable = [
+        'branch_id',
         'code',
         'name',
         'legal_name',

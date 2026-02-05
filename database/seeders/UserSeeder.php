@@ -2,14 +2,18 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Models\User;
+use App\Models\Branch;
+use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
 class UserSeeder extends Seeder
 {
     public function run(): void
     {
+
+    
+
         $owner = User::create([
             'name' => 'Owner RMI',
             'email' => 'owner@rmi.local',
@@ -28,6 +32,17 @@ class UserSeeder extends Seeder
         ]);
         $admin->assignRole('superadmin');
 
+
+        // Sales
+        $sales = User::create([
+            'name' => 'Sales RMI',
+            'email' => 'sales@rmi.local',
+            'password' => Hash::make('admin123'),
+            'email_verified_at' => now(),
+        ]);
+        $sales->assignRole('sales');
+ 
+
         // MANAGER
         $manager = User::create([
             'name' => 'Manager RMI',
@@ -44,7 +59,7 @@ class UserSeeder extends Seeder
             'password' => Hash::make('admin123'),
             'email_verified_at' => now(),
         ]);
-        $staffCRM->assignRole('staff_crm');
+        $staffCRM->assignRole('crm');
 
         // STAFF WQS
         $staffWQS = User::create([
@@ -53,7 +68,7 @@ class UserSeeder extends Seeder
             'password' => Hash::make('admin123'),
             'email_verified_at' => now(),
         ]);
-        $staffWQS->assignRole('staff_wqs');
+        $staffWQS->assignRole('wqs');
 
         // STAFF SCM
         $staffSCM = User::create([
@@ -62,7 +77,7 @@ class UserSeeder extends Seeder
             'password' => Hash::make('admin123'),
             'email_verified_at' => now(),
         ]);
-        $staffSCM->assignRole('staff_scm');
+        $staffSCM->assignRole('scm');
 
         // STAFF ACT
         $staffACT = User::create([
@@ -71,7 +86,7 @@ class UserSeeder extends Seeder
             'password' => Hash::make('admin123'),
             'email_verified_at' => now(),
         ]);
-        $staffACT->assignRole('staff_act');
+        $staffACT->assignRole('act');
 
         // STAFF FIN
         $staffFIN = User::create([
@@ -80,7 +95,7 @@ class UserSeeder extends Seeder
             'password' => Hash::make('admin123'),
             'email_verified_at' => now(),
         ]);
-        $staffFIN->assignRole('staff_fin');
+        $staffFIN->assignRole('fin');
 
         // STAFF REG ALKES
         $staffRegAlkes = User::create([
@@ -89,7 +104,7 @@ class UserSeeder extends Seeder
             'password' => Hash::make('admin123'),
             'email_verified_at' => now(),
         ]);
-        $staffRegAlkes->assignRole('staff_reg_alkes');
+        $staffRegAlkes->assignRole('reg_alkes');
 
         $this->command->info('✅ Created 8 users with roles');
     }

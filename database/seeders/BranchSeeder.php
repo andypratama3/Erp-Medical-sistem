@@ -110,6 +110,7 @@ class BranchSeeder extends Seeder
         $staffMappings = [
             'staff@rmi.local' => ['HQ', 'BDG'],
             'manager@rmi.local' => ['BDG'],
+            'wqs@rmi.local' => ['HQ', 'BDG','MKS', 'SBY'],
             'sales@rmi.local' => ['SBY', 'MKS'],
         ];
 

@@ -107,9 +107,10 @@
                     </thead>
                     <tbody>
                         @forelse($tasks as $task)
+                        
                         <tr class="border-b border-gray-100 dark:border-gray-800">
                             <td class="px-6 py-4">
-                                <a href="{{ route('crm.sales-do.show', $task->salesDO) }}"
+                                <a href="{{ route('crm.sales-do.show', $task->sales_do_id) }}"
                                     class="text-black dark:text-white hover:underline font-mono font-semibold">
                                     {{ $task->salesDO->do_code }}
                                 </a>

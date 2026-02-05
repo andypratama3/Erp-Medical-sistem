@@ -40,6 +40,8 @@ class MenuHelper
                 'subItems'=> [
                     ['name'=> 'Task Board', 'path'=> '/wqs/task-board'],
                     ['name'=> 'Stock Check', 'path'=> '/wqs/stock-checks'],
+                    ['name'=> 'Inventory', 'path'=> '/wqs/inventory'],
+                    
                 ]
             ],
             [
@@ -66,7 +68,7 @@ class MenuHelper
                 'subItems'=> [
                     ['name'=> 'Task Board', 'path'=> '/fin/task-board'],
                     ['name'=> 'Collection', 'path'=> '/fin/collections'],
-                    ['name'=> 'Aging', 'path'=> '/fin/agings'],
+                    ['name'=> 'Aging', 'path'=> '/fin/aging'],
                 ]
             ],
             [

@@ -34,10 +34,10 @@ class SalesDOController extends Controller implements HasMiddleware
     public static function middleware(): array
     {
         return [
-            new Middleware('permission:view_sales_do', only: ['index', 'show']),
-            new Middleware('permission:create_sales_do', only: ['create', 'store']),
-            new Middleware('permission:edit_sales_do', only: ['edit', 'update']),
-            new Middleware('permission:delete_sales_do', only: ['destroy']),
+            new Middleware('permission:sales.view', only: ['index', 'show']),
+            new Middleware('permission:sales.create', only: ['create', 'store']),
+            new Middleware('permission:sales.edit', only: ['edit', 'update']),
+            new Middleware('permission:sales.delete', only: ['destroy']),
         ];
     }
 
