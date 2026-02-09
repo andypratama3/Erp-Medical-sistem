@@ -13,6 +13,10 @@ use App\Http\Controllers\CRM\SalesDOController;
 // WQS Controllers
 use App\Http\Controllers\WQS\InventoryController;
 use App\Http\Controllers\WQS\StockCheckController;
+use App\Http\Controllers\WQS\StockController;
+use App\Http\Controllers\WQS\PurchaseRequestController;
+use App\Http\Controllers\WQS\StockAdjustmentController;
+use App\Http\Controllers\WQS\StockSnapshotController;
 use App\Http\Controllers\WQS\TaskBoardController as WQSTaskBoardController;
 
 // SCM Controllers
@@ -31,6 +35,39 @@ use App\Http\Controllers\FIN\PaymentController;
 use App\Http\Controllers\FIN\CollectionController;
 use App\Http\Controllers\FIN\TaskBoardController as FINTaskBoardController;
 
+// PURCHASING Controllers
+use App\Http\Controllers\Purchasing\PurchaseOrderController;
+use App\Http\Controllers\Purchasing\ImportControlController;
+use App\Http\Controllers\Purchasing\InvoiceAPController;
+use App\Http\Controllers\Purchasing\PaymentAPController;
+use App\Http\Controllers\Purchasing\ForwarderQuoteController;
+use App\Http\Controllers\Purchasing\ForwarderInvoiceController;
+use App\Http\Controllers\Purchasing\CeisaPIBController;
+use App\Http\Controllers\Purchasing\ForwardingDocsController;
+use App\Http\Controllers\Purchasing\AuditLogController as PurchasingAuditController;
+
+// PAYROLL Controllers
+use App\Http\Controllers\Payroll\SalaryMatrixController;
+use App\Http\Controllers\Payroll\EmployeeSettingsController;
+use App\Http\Controllers\Payroll\PayrollRunController;
+use App\Http\Controllers\Payroll\LoanController;
+use App\Http\Controllers\Payroll\ReportController as PayrollReportController;
+
+// HR Controllers
+use App\Http\Controllers\HR\EmployeeController;
+use App\Http\Controllers\HR\AttendanceController;
+use App\Http\Controllers\HR\LeaveRequestController;
+use App\Http\Controllers\HR\AttendanceSettingsController;
+use App\Http\Controllers\HR\DocumentController as HRDocumentController;
+
+// FIXED ASSET Controllers
+use App\Http\Controllers\FixedAsset\AssetController;
+use App\Http\Controllers\FixedAsset\DepreciationController;
+use App\Http\Controllers\FixedAsset\MaintenanceController;
+use App\Http\Controllers\FixedAsset\TransferController;
+use App\Http\Controllers\FixedAsset\DisposalController;
+use App\Http\Controllers\FixedAsset\AuditController as AssetAuditController;
+
 // Master Data Controllers
 use App\Http\Controllers\Master\TaxController;
 use App\Http\Controllers\Master\BranchController;
@@ -41,6 +78,14 @@ use App\Http\Controllers\Master\CustomerController;
 use App\Http\Controllers\Master\PaymentTermController;
 use App\Http\Controllers\Master\DepartmentController;
 use App\Http\Controllers\Master\ManufactureController;
+use App\Http\Controllers\Master\EmployeeController as MasterEmployeeController;
+use App\Http\Controllers\Master\CompanyBankAccountController;
+use App\Http\Controllers\Master\EmailCompanyController;
+use App\Http\Controllers\Master\DiscountPolicyController;
+
+// System Controllers
+use App\Http\Controllers\System\ConfigController;
+use App\Http\Controllers\System\AuditLogController;
 
 // Admin Controllers
 use App\Http\Controllers\PermissionController;
@@ -163,6 +208,51 @@ Route::middleware(['auth', 'verified'])->group(function () {
             // API Endpoint
             Route::get('/api/check-stock/{product}', [InventoryController::class, 'checkStock'])->name('api.check-stock');
         });
+
+        // ✅ NEW: Stock Management
+        Route::prefix('stock')->name('stock.')->group(function () {
+            Route::get('/', [StockController::class, 'index'])->name('index');
+            Route::get('/{product}', [StockController::class, 'show'])->name('show');
+            Route::get('/{product}/history', [StockController::class, 'history'])->name('history');
+        });
+
+        // ✅ NEW: Purchase Request (PR)
+        Route::prefix('purchase-requests')->name('purchase-requests.')->group(function () {
+            Route::get('/', [PurchaseRequestController::class, 'index'])->name('index');
+            Route::get('/create', [PurchaseRequestController::class, 'create'])->name('create');
+            Route::post('/', [PurchaseRequestController::class, 'store'])->name('store');
+            Route::get('/{pr}', [PurchaseRequestController::class, 'show'])->name('show');
+            Route::get('/{pr}/edit', [PurchaseRequestController::class, 'edit'])->name('edit');
+            Route::put('/{pr}', [PurchaseRequestController::class, 'update'])->name('update');
+            Route::delete('/{pr}', [PurchaseRequestController::class, 'destroy'])->name('destroy');
+
+            // Workflow
+            Route::post('/{pr}/submit', [PurchaseRequestController::class, 'submit'])->name('submit');
+            Route::post('/{pr}/approve', [PurchaseRequestController::class, 'approve'])->name('approve');
+            Route::post('/{pr}/reject', [PurchaseRequestController::class, 'reject'])->name('reject');
+            Route::get('/{pr}/export-pdf', [PurchaseRequestController::class, 'exportPDF'])->name('export-pdf');
+        });
+
+        // ✅ NEW: Stock Adjustments
+        Route::prefix('adjustments')->name('adjustments.')->group(function () {
+            Route::get('/', [StockAdjustmentController::class, 'index'])->name('index');
+            Route::get('/create', [StockAdjustmentController::class, 'create'])->name('create');
+            Route::post('/', [StockAdjustmentController::class, 'store'])->name('store');
+            Route::get('/{adjustment}', [StockAdjustmentController::class, 'show'])->name('show');
+            Route::delete('/{adjustment}', [StockAdjustmentController::class, 'destroy'])->name('destroy');
+
+            // Approval
+            Route::post('/{adjustment}/approve', [StockAdjustmentController::class, 'approve'])->name('approve');
+            Route::post('/{adjustment}/reject', [StockAdjustmentController::class, 'reject'])->name('reject');
+        });
+
+        // ✅ NEW: Stock Snapshot
+        Route::prefix('snapshots')->name('snapshots.')->group(function () {
+            Route::get('/', [StockSnapshotController::class, 'index'])->name('index');
+            Route::post('/create', [StockSnapshotController::class, 'create'])->name('create');
+            Route::get('/{snapshot}', [StockSnapshotController::class, 'show'])->name('show');
+            Route::get('/{snapshot}/export', [StockSnapshotController::class, 'export'])->name('export');
+        });
     });
 
     /*
@@ -194,7 +284,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('/{delivery}/edit', [SCMDeliveryController::class, 'edit'])->name('edit');
             Route::put('/{delivery}', [SCMDeliveryController::class, 'update'])->name('update');
             Route::delete('/{delivery}', [SCMDeliveryController::class,'destroy'])->name('destroy');
-
 
             // Workflow Actions
             Route::post('/{delivery}/assign-driver', [SCMDeliveryController::class, 'assignDriver'])->name('assign-driver');
@@ -293,6 +382,296 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     /*
     |--------------------------------------------------------------------------
+    | ✅ NEW: PURCHASING Module - Procurement & Import Management
+    | Flow: PR → PO → Import Control → Ceisa/PIB → AP Invoice → Payment
+    |--------------------------------------------------------------------------
+    */
+    Route::prefix('purchasing')->name('purchasing.')->group(function () {
+
+        // Purchase Orders
+        Route::prefix('purchase-orders')->name('purchase-orders.')->group(function () {
+            Route::get('/', [PurchaseOrderController::class, 'index'])->name('index');
+            Route::get('/create', [PurchaseOrderController::class, 'create'])->name('create');
+            Route::post('/', [PurchaseOrderController::class, 'store'])->name('store');
+            Route::get('/{po}', [PurchaseOrderController::class, 'show'])->name('show');
+            Route::get('/{po}/edit', [PurchaseOrderController::class, 'edit'])->name('edit');
+            Route::put('/{po}', [PurchaseOrderController::class, 'update'])->name('update');
+            Route::delete('/{po}', [PurchaseOrderController::class, 'destroy'])->name('destroy');
+
+            // Workflow
+            Route::post('/from-pr/{pr}', [PurchaseOrderController::class, 'createFromPR'])->name('from-pr');
+            Route::post('/{po}/submit', [PurchaseOrderController::class, 'submit'])->name('submit');
+            Route::post('/{po}/approve', [PurchaseOrderController::class, 'approve'])->name('approve');
+            Route::get('/{po}/export-pdf', [PurchaseOrderController::class, 'exportPDF'])->name('export-pdf');
+        });
+
+        // Import Control
+        Route::prefix('import-control')->name('import-control.')->group(function () {
+            Route::get('/', [ImportControlController::class, 'index'])->name('index');
+            Route::get('/{po}', [ImportControlController::class, 'show'])->name('show');
+            Route::put('/{po}', [ImportControlController::class, 'update'])->name('update');
+
+            // Milestones
+            Route::post('/{po}/update-production', [ImportControlController::class, 'updateProduction'])->name('update-production');
+            Route::post('/{po}/update-shipping', [ImportControlController::class, 'updateShipping'])->name('update-shipping');
+            Route::post('/{po}/update-arrival', [ImportControlController::class, 'updateArrival'])->name('update-arrival');
+        });
+
+        // Forwarder Quotes
+        Route::prefix('forwarder-quotes')->name('forwarder-quotes.')->group(function () {
+            Route::get('/', [ForwarderQuoteController::class, 'index'])->name('index');
+            Route::get('/create', [ForwarderQuoteController::class, 'create'])->name('create');
+            Route::post('/', [ForwarderQuoteController::class, 'store'])->name('store');
+            Route::get('/{quote}', [ForwarderQuoteController::class, 'show'])->name('show');
+            Route::put('/{quote}', [ForwarderQuoteController::class, 'update'])->name('update');
+            Route::delete('/{quote}', [ForwarderQuoteController::class, 'destroy'])->name('destroy');
+
+            // Selection
+            Route::post('/{quote}/select', [ForwarderQuoteController::class, 'select'])->name('select');
+        });
+
+        // Forwarder Invoices
+        Route::prefix('forwarder-invoices')->name('forwarder-invoices.')->group(function () {
+            Route::get('/', [ForwarderInvoiceController::class, 'index'])->name('index');
+            Route::get('/create', [ForwarderInvoiceController::class, 'create'])->name('create');
+            Route::post('/', [ForwarderInvoiceController::class, 'store'])->name('store');
+            Route::get('/{invoice}', [ForwarderInvoiceController::class, 'show'])->name('show');
+            Route::put('/{invoice}', [ForwarderInvoiceController::class, 'update'])->name('update');
+        });
+
+        // CEISA / PIB
+        Route::prefix('ceisa')->name('ceisa.')->group(function () {
+            Route::get('/', [CeisaPIBController::class, 'index'])->name('index');
+            Route::get('/{pib}', [CeisaPIBController::class, 'show'])->name('show');
+            Route::put('/{pib}', [CeisaPIBController::class, 'update'])->name('update');
+
+            // Workflow
+            Route::post('/{pib}/submit', [CeisaPIBController::class, 'submit'])->name('submit');
+            Route::post('/{pib}/reject', [CeisaPIBController::class, 'reject'])->name('reject');
+            Route::post('/{pib}/sppb', [CeisaPIBController::class, 'sppb'])->name('sppb');
+        });
+
+        // Forwarding Documents
+        Route::prefix('forwarding-docs')->name('forwarding-docs.')->group(function () {
+            Route::get('/', [ForwardingDocsController::class, 'index'])->name('index');
+            Route::post('/', [ForwardingDocsController::class, 'store'])->name('store');
+            Route::delete('/{doc}', [ForwardingDocsController::class, 'destroy'])->name('destroy');
+        });
+
+        // AP Invoices
+        Route::prefix('ap-invoices')->name('ap-invoices.')->group(function () {
+            Route::get('/', [InvoiceAPController::class, 'index'])->name('index');
+            Route::get('/create', [InvoiceAPController::class, 'create'])->name('create');
+            Route::post('/', [InvoiceAPController::class, 'store'])->name('store');
+            Route::get('/{invoice}', [InvoiceAPController::class, 'show'])->name('show');
+            Route::put('/{invoice}', [InvoiceAPController::class, 'update'])->name('update');
+        });
+
+        // AP Payments
+        Route::prefix('ap-payments')->name('ap-payments.')->group(function () {
+            Route::get('/', [PaymentAPController::class, 'index'])->name('index');
+            Route::post('/', [PaymentAPController::class, 'store'])->name('store');
+            Route::get('/{payment}', [PaymentAPController::class, 'show'])->name('show');
+        });
+
+        // Audit Log
+        Route::get('/audit-log', [PurchasingAuditController::class, 'index'])->name('audit-log');
+    });
+
+    /*
+    |--------------------------------------------------------------------------
+    | ✅ NEW: PAYROLL Module
+    | Flow: Salary Matrix → Employee Settings → Payroll Run → Loans
+    |--------------------------------------------------------------------------
+    */
+    Route::prefix('payroll')->name('payroll.')->group(function () {
+
+        // Salary Matrix
+        Route::prefix('salary-matrix')->name('salary-matrix.')->group(function () {
+            Route::get('/', [SalaryMatrixController::class, 'index'])->name('index');
+            Route::get('/create', [SalaryMatrixController::class, 'create'])->name('create');
+            Route::post('/', [SalaryMatrixController::class, 'store'])->name('store');
+            Route::get('/{matrix}', [SalaryMatrixController::class, 'show'])->name('show');
+            Route::get('/{matrix}/edit', [SalaryMatrixController::class, 'edit'])->name('edit');
+            Route::put('/{matrix}', [SalaryMatrixController::class, 'update'])->name('update');
+            Route::delete('/{matrix}', [SalaryMatrixController::class, 'destroy'])->name('destroy');
+
+            // Import/Export
+            Route::get('/import/template', [SalaryMatrixController::class, 'downloadTemplate'])->name('import-template');
+            Route::post('/import', [SalaryMatrixController::class, 'import'])->name('import');
+            Route::get('/export', [SalaryMatrixController::class, 'export'])->name('export');
+        });
+
+        // Employee Settings
+        Route::prefix('employee-settings')->name('employee-settings.')->group(function () {
+            Route::get('/', [EmployeeSettingsController::class, 'index'])->name('index');
+            Route::get('/{employee}/edit', [EmployeeSettingsController::class, 'edit'])->name('edit');
+            Route::put('/{employee}', [EmployeeSettingsController::class, 'update'])->name('update');
+        });
+
+        // Payroll Runs
+        Route::prefix('runs')->name('runs.')->group(function () {
+            Route::get('/', [PayrollRunController::class, 'index'])->name('index');
+            Route::get('/create', [PayrollRunController::class, 'create'])->name('create');
+            Route::post('/', [PayrollRunController::class, 'store'])->name('store');
+            Route::get('/{run}', [PayrollRunController::class, 'show'])->name('show');
+            Route::get('/{run}/edit', [PayrollRunController::class, 'edit'])->name('edit');
+            Route::put('/{run}', [PayrollRunController::class, 'update'])->name('update');
+
+            // Workflow
+            Route::post('/{run}/generate', [PayrollRunController::class, 'generate'])->name('generate');
+            Route::post('/{run}/post', [PayrollRunController::class, 'post'])->name('post');
+            Route::post('/{run}/paid', [PayrollRunController::class, 'markPaid'])->name('paid');
+
+            // Export
+            Route::get('/{run}/export-bank', [PayrollRunController::class, 'exportBank'])->name('export-bank');
+            Route::get('/{run}/export-slips', [PayrollRunController::class, 'exportSlips'])->name('export-slips');
+        });
+
+        // Loans & Kasbon
+        Route::prefix('loans')->name('loans.')->group(function () {
+            Route::get('/', [LoanController::class, 'index'])->name('index');
+            Route::get('/create', [LoanController::class, 'create'])->name('create');
+            Route::post('/', [LoanController::class, 'store'])->name('store');
+            Route::get('/{loan}', [LoanController::class, 'show'])->name('show');
+            Route::put('/{loan}', [LoanController::class, 'update'])->name('update');
+
+            // Actions
+            Route::post('/{loan}/approve', [LoanController::class, 'approve'])->name('approve');
+            Route::post('/{loan}/close', [LoanController::class, 'close'])->name('close');
+        });
+
+        // Reports
+        Route::prefix('reports')->name('reports.')->group(function () {
+            Route::get('/summary', [PayrollReportController::class, 'summary'])->name('summary');
+            Route::get('/by-department', [PayrollReportController::class, 'byDepartment'])->name('by-department');
+            Route::get('/tax-report', [PayrollReportController::class, 'taxReport'])->name('tax-report');
+        });
+    });
+
+    /*
+    |--------------------------------------------------------------------------
+    | ✅ NEW: HR Module - Human Resources
+    | Flow: Employees → Attendance → Leave Requests → Documents
+    |--------------------------------------------------------------------------
+    */
+    Route::prefix('hr')->name('hr.')->group(function () {
+
+        // Employees (berbeda dengan Master Employees)
+        Route::prefix('employees')->name('employees.')->group(function () {
+            Route::get('/', [EmployeeController::class, 'index'])->name('index');
+            Route::get('/{employee}', [EmployeeController::class, 'show'])->name('show');
+            Route::get('/{employee}/profile', [EmployeeController::class, 'profile'])->name('profile');
+        });
+
+        // Attendance
+        Route::prefix('attendance')->name('attendance.')->group(function () {
+            Route::get('/', [AttendanceController::class, 'index'])->name('index');
+            Route::get('/my-attendance', [AttendanceController::class, 'myAttendance'])->name('my-attendance');
+            Route::post('/check-in', [AttendanceController::class, 'checkIn'])->name('check-in');
+            Route::post('/check-out', [AttendanceController::class, 'checkOut'])->name('check-out');
+
+            // Reports
+            Route::get('/recap', [AttendanceController::class, 'recap'])->name('recap');
+            Route::get('/export', [AttendanceController::class, 'export'])->name('export');
+        });
+
+        // Leave Requests
+        Route::prefix('leave-requests')->name('leave-requests.')->group(function () {
+            Route::get('/', [LeaveRequestController::class, 'index'])->name('index');
+            Route::get('/create', [LeaveRequestController::class, 'create'])->name('create');
+            Route::post('/', [LeaveRequestController::class, 'store'])->name('store');
+            Route::get('/{request}', [LeaveRequestController::class, 'show'])->name('show');
+
+            // Approval
+            Route::post('/{request}/approve', [LeaveRequestController::class, 'approve'])->name('approve');
+            Route::post('/{request}/reject', [LeaveRequestController::class, 'reject'])->name('reject');
+        });
+
+        // Attendance Settings
+        Route::prefix('settings')->name('settings.')->group(function () {
+            Route::get('/', [AttendanceSettingsController::class, 'index'])->name('index');
+            Route::put('/', [AttendanceSettingsController::class, 'update'])->name('update');
+
+            // Office Geofence
+            Route::get('/offices', [AttendanceSettingsController::class, 'offices'])->name('offices');
+            Route::put('/offices/{office}', [AttendanceSettingsController::class, 'updateOffice'])->name('update-office');
+        });
+
+        // HR Documents
+        Route::prefix('documents')->name('documents.')->group(function () {
+            Route::get('/', [HRDocumentController::class, 'index'])->name('index');
+            Route::get('/create', [HRDocumentController::class, 'create'])->name('create');
+            Route::post('/', [HRDocumentController::class, 'store'])->name('store');
+            Route::get('/{document}', [HRDocumentController::class, 'show'])->name('show');
+
+            // Workflow
+            Route::post('/{document}/submit', [HRDocumentController::class, 'submit'])->name('submit');
+            Route::post('/{document}/approve', [HRDocumentController::class, 'approve'])->name('approve');
+            Route::post('/{document}/acknowledge', [HRDocumentController::class, 'acknowledge'])->name('acknowledge');
+        });
+    });
+
+    /*
+    |--------------------------------------------------------------------------
+    | ✅ NEW: FIXED ASSET Module
+    | Flow: Assets → Depreciation → Maintenance → Transfer → Disposal → Audit
+    |--------------------------------------------------------------------------
+    */
+    Route::prefix('fixed-assets')->name('fixed-assets.')->group(function () {
+
+        // Assets
+        Route::resource('assets', AssetController::class);
+        Route::post('/assets/{asset}/toggle-status', [AssetController::class, 'toggleStatus'])->name('assets.toggle-status');
+
+        // Depreciation
+        Route::prefix('depreciation')->name('depreciation.')->group(function () {
+            Route::get('/', [DepreciationController::class, 'index'])->name('index');
+            Route::post('/run', [DepreciationController::class, 'run'])->name('run');
+            Route::get('/{run}', [DepreciationController::class, 'show'])->name('show');
+            Route::get('/{run}/export', [DepreciationController::class, 'export'])->name('export');
+        });
+
+        // Maintenance
+        Route::prefix('maintenance')->name('maintenance.')->group(function () {
+            Route::get('/', [MaintenanceController::class, 'index'])->name('index');
+            Route::get('/create', [MaintenanceController::class, 'create'])->name('create');
+            Route::post('/', [MaintenanceController::class, 'store'])->name('store');
+            Route::get('/{maintenance}', [MaintenanceController::class, 'show'])->name('show');
+            Route::put('/{maintenance}', [MaintenanceController::class, 'update'])->name('update');
+        });
+
+        // Transfers
+        Route::prefix('transfers')->name('transfers.')->group(function () {
+            Route::get('/', [TransferController::class, 'index'])->name('index');
+            Route::get('/create', [TransferController::class, 'create'])->name('create');
+            Route::post('/', [TransferController::class, 'store'])->name('store');
+            Route::get('/{transfer}', [TransferController::class, 'show'])->name('show');
+        });
+
+        // Disposals
+        Route::prefix('disposals')->name('disposals.')->group(function () {
+            Route::get('/', [DisposalController::class, 'index'])->name('index');
+            Route::get('/create', [DisposalController::class, 'create'])->name('create');
+            Route::post('/', [DisposalController::class, 'store'])->name('store');
+            Route::get('/{disposal}', [DisposalController::class, 'show'])->name('show');
+        });
+
+        // Asset Audits
+        Route::prefix('audits')->name('audits.')->group(function () {
+            Route::get('/', [AssetAuditController::class, 'index'])->name('index');
+            Route::get('/create', [AssetAuditController::class, 'create'])->name('create');
+            Route::post('/', [AssetAuditController::class, 'store'])->name('store');
+            Route::get('/{audit}', [AssetAuditController::class, 'show'])->name('show');
+
+            // Workflow
+            Route::post('/{audit}/close', [AssetAuditController::class, 'close'])->name('close');
+            Route::get('/{audit}/report', [AssetAuditController::class, 'report'])->name('report');
+        });
+    });
+
+    /*
+    |--------------------------------------------------------------------------
     | Master Data Management
     |--------------------------------------------------------------------------
     */
@@ -331,7 +710,45 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // Departments
         Route::resource('departments', DepartmentController::class);
 
+        // ✅ NEW: Employees
+        Route::resource('employees', MasterEmployeeController::class);
+        Route::post('/employees/{employee}/toggle-status', [MasterEmployeeController::class, 'toggleStatus'])->name('employees.toggle-status');
 
+        // ✅ NEW: Company Bank Accounts
+        Route::resource('bank-accounts', CompanyBankAccountController::class);
+
+        // ✅ NEW: Company Emails
+        Route::resource('emails', EmailCompanyController::class);
+
+        // ✅ NEW: Discount Policies
+        Route::resource('discount-policies', DiscountPolicyController::class);
+    });
+
+    /*
+    |--------------------------------------------------------------------------
+    | ✅ NEW: SYSTEM Module - Configuration & Audit
+    |--------------------------------------------------------------------------
+    */
+    Route::prefix('system')->name('system.')->group(function () {
+
+        // System Configuration
+        Route::prefix('config')->name('config.')->group(function () {
+            Route::get('/', [ConfigController::class, 'index'])->name('index');
+            Route::put('/', [ConfigController::class, 'update'])->name('update');
+
+            // Group-based config
+            Route::get('/{group}', [ConfigController::class, 'byGroup'])->name('by-group');
+        });
+
+        // System Audit Log
+        Route::prefix('audit-log')->name('audit-log.')->group(function () {
+            Route::get('/', [AuditLogController::class, 'index'])->name('index');
+            Route::get('/{log}', [AuditLogController::class, 'show'])->name('show');
+            Route::get('/export', [AuditLogController::class, 'export'])->name('export');
+
+            // Filter by module
+            Route::get('/module/{module}', [AuditLogController::class, 'byModule'])->name('by-module');
+        });
     });
 
     /*
@@ -339,8 +756,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     | User & Role Management (Admin)
     |--------------------------------------------------------------------------
     */
-
-      Route::prefix('management-system')->name('management.')->middleware(['role:owner|admin'])->group(function () {
+    Route::prefix('management-system')->name('management.')->middleware(['role:owner|admin'])->group(function () {
 
         // Users
         Route::resource('users', UserController::class);

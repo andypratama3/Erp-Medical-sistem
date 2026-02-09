@@ -204,7 +204,7 @@
     </div>
 
     <!-- Items Section -->
-    <div class="border-b border-gray-200 dark:border-gray-700 pb-6 mt-3">
+    <div class="border-b border-gray-200 dark:border-gray-700 pb-6 mt-3 h-full ">
         <div class="flex justify-between items-center mb-4">
             <h3 class="text-lg font-semibold text-gray-800 dark:text-white">Order Items</h3>
             <button type="button" id="addItemBtn"
@@ -222,7 +222,7 @@
                     <tr class="border-b border-gray-200 dark:border-gray-700">
                         <th class="text-left py-2 px-2 font-medium text-gray-700 dark:text-gray-300 w-12">#</th>
                         <th class="text-left py-2 px-2 font-medium text-gray-700 dark:text-gray-300" style="min-width: 250px;">Product</th>
-                        <th class="text-right py-2 px-2 font-medium text-gray-700 dark:text-gray-300" style="min-width: 100px;">Qty</th>
+                        <th class="text-right py-2 px-2 font-medium text-gray-700 dark:text-gray-300" style="min-width: 140px;">Qty / Stock</th>
                         <th class="text-right py-2 px-2 font-medium text-gray-700 dark:text-gray-300" style="min-width: 120px;">Unit Price</th>
                         <th class="text-right py-2 px-2 font-medium text-gray-700 dark:text-gray-300" style="min-width: 120px;">Discount %</th>
                         <th class="text-right py-2 px-2 font-medium text-gray-700 dark:text-gray-300" style="min-width: 150px;">Line Total</th>
@@ -274,7 +274,6 @@
         </button>
     </div>
 </div>
-
 @push('scripts')
 <script>
     const products = @json($products);
@@ -288,38 +287,92 @@
         const container = document.getElementById('itemsContainer');
         const currentIndex = itemCounter++;
         const rowNumber = container.children.length + 1;
-        const uniqueId = 'product_select_' + currentIndex + '_' + Date.now();
-
-        const productOptions = products.map(p => ({
-            value: p.id,
-            label: `${p.name} (${p.sku})`
-        }));
 
         const row = document.createElement('tr');
         row.className = 'border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800';
         row.setAttribute('data-item-index', currentIndex);
 
         row.innerHTML = `
-            <td class="py-3 px-2 dark:text-gray-400 text-center">${rowNumber}</td>
-            <td class="py-3 px-2">
-                <select name="items[${currentIndex}][product_id]" required class="w-full h-9 rounded border border-gray-300 bg-transparent px-2 text-sm text-gray-800 dark:text-white dark:border-gray-700 dark:bg-gray-900" onchange="updateLineTotal(this)">
-                    <option value="">-- Select Product --</option>
-                    ${products.map(p => `<option value="${p.id}" ${product_id == p.id ? 'selected' : ''}>${p.name} (${p.sku})</option>`).join('')}
-                </select>
+            <td class="py-3 px-2 dark:text-gray-400 text-center align-top">${rowNumber}</td>
+            <td class="py-3 px-2 align-top">
+                <div class="relative" data-product-select="${currentIndex}">
+                    <input type="hidden" 
+                           name="items[${currentIndex}][product_id]" 
+                           id="product_input_${currentIndex}"
+                           value="${product_id}"
+                           required>
+                    
+                    <button type="button"
+                            onclick="toggleProductSelect(${currentIndex})"
+                            class="h-9 w-full flex items-center justify-between rounded-lg border px-3 text-sm
+                                   bg-transparent text-gray-800 dark:text-white
+                                   border-gray-300 dark:border-gray-700 dark:bg-gray-900
+                                   focus:ring-2 focus:ring-blue-500/20">
+                        <span id="product_label_${currentIndex}" class="truncate text-left flex-1 text-gray-400">-- Select Product --</span>
+                        <svg class="w-4 h-4 text-gray-500 transition-transform flex-shrink-0" id="product_arrow_${currentIndex}"
+                             fill="none" viewBox="0 0 24 24">
+                            <path stroke="currentColor" stroke-width="1.5" d="M6 9l6 6 6-6"/>
+                        </svg>
+                    </button>
+
+                    <div id="product_dropdown_${currentIndex}"
+                         class="hidden absolute z-[60] mt-1 w-full bg-white dark:bg-gray-900
+                                border border-gray-300 dark:border-gray-700
+                                rounded-lg shadow-lg max-h-64 overflow-hidden">
+                        <div class="p-2 border-b border-gray-200 dark:border-gray-700">
+                            <input type="text"
+                                   id="product_search_${currentIndex}"
+                                   placeholder="Search product..."
+                                   onkeyup="searchProducts(${currentIndex})"
+                                   class="w-full h-8 rounded border px-3 text-sm
+                                          bg-transparent text-gray-800 dark:text-white
+                                          border-gray-300 dark:border-gray-700
+                                          focus:ring-2 focus:ring-blue-500/20">
+                        </div>
+
+                        <div class="max-h-48 overflow-y-auto" id="product_options_${currentIndex}">
+                            <button type="button"
+                                    onclick="chooseProduct(${currentIndex}, '', '', 0, 0)"
+                                    class="w-full text-left px-4 py-2 text-sm text-gray-500
+                                           hover:bg-gray-100 dark:hover:bg-gray-800">
+                                <em>Clear selection</em>
+                            </button>
+                            ${products.map(p => `
+                                <button type="button"
+                                        onclick="chooseProduct(${currentIndex}, '${p.id}', '${(p.name || '').replace(/'/g, "\\'")} (${p.sku || ''})', ${p.stock || 0}, ${p.price || p.unit_price || 0})"
+                                        data-product-option="${currentIndex}"
+                                        data-product-id="${p.id}"
+                                        data-product-label="${(p.name || '')} (${p.sku || ''})"
+                                        class="w-full text-left px-4 py-2 text-sm transition
+                                               hover:bg-blue-50 dark:hover:bg-gray-800
+                                               text-gray-800 dark:text-gray-200">
+                                    ${p.name || ''} (${p.sku || ''})
+                                </button>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
             </td>
-            <td class="py-3 px-2">
-                <input type="number"
-                       name="items[${currentIndex}][qty_ordered]"
-                       required
-                       min="1"
-                       value="${qty_ordered}"
-                       class="w-full h-9 rounded border border-gray-300 bg-transparent px-2 text-sm text-right dark:border-gray-700 dark:bg-gray-900 dark:text-white focus:border-blue-300 focus:ring-2 focus:ring-blue-500/10 focus:outline-none"
-                       onchange="updateLineTotal(this.closest('tr'))"
-                       onkeyup="updateLineTotal(this.closest('tr'))">
+            <td class="py-3 px-2 align-top">
+                <div class="space-y-1">
+                    <input type="number"
+                           name="items[${currentIndex}][qty_ordered]"
+                           id="qty_${currentIndex}"
+                           required
+                           min="1"
+                           value="${qty_ordered}"
+                           class="w-full h-9 rounded border border-gray-300 bg-transparent px-2 text-sm text-right dark:border-gray-700 dark:bg-gray-900 dark:text-white focus:border-blue-300 focus:ring-2 focus:ring-blue-500/10 focus:outline-none"
+                           onchange="updateLineTotal(this.closest('tr'))"
+                           onkeyup="updateLineTotal(this.closest('tr'))">
+                    <div class="text-xs text-gray-500 dark:text-gray-400 text-right" id="stock-info-${currentIndex}">
+                        Stock: -
+                    </div>
+                </div>
             </td>
-            <td class="py-3 px-2">
+            <td class="py-3 px-2 align-top">
                 <input type="number"
                        name="items[${currentIndex}][unit_price]"
+                       id="unit_price_${currentIndex}"
                        required
                        min="0"
                        step="0.01"
@@ -328,10 +381,11 @@
                        onchange="updateLineTotal(this.closest('tr'))"
                        onkeyup="updateLineTotal(this.closest('tr'))">
             </td>
-            <td class="py-3 px-2">
+            <td class="py-3 px-2 align-top">
                 <div class="flex items-center gap-1">
                     <input type="number"
                            name="items[${currentIndex}][discount_percent]"
+                           id="discount_${currentIndex}"
                            min="0"
                            max="100"
                            step="0.01"
@@ -342,8 +396,8 @@
                     <span class="text-gray-800 dark:text-white text-sm">%</span>
                 </div>
             </td>
-            <td class="py-3 px-2 text-right text-gray-800 dark:text-white font-medium" data-line-total="0">Rp 0</td>
-            <td class="py-3 px-2 text-center">
+            <td class="py-3 px-2 text-right text-gray-800 dark:text-white font-medium align-top" data-line-total="0">Rp 0</td>
+            <td class="py-3 px-2 text-center align-top">
                 <button type="button"
                         onclick="removeItem(this)"
                         class="inline-flex items-center justify-center px-2 py-1 rounded bg-red-600 text-white text-xs hover:bg-red-700 transition">
@@ -356,8 +410,138 @@
 
         container.appendChild(row);
 
+        // Update stock info if product is pre-selected
+        if (product_id) {
+            const product = products.find(p => p.id == product_id);
+            if (product) {
+                document.getElementById(`product_label_${currentIndex}`).textContent = `${product.name} (${product.sku})`;
+                document.getElementById(`product_label_${currentIndex}`).classList.remove('text-gray-400');
+                document.getElementById(`product_label_${currentIndex}`).classList.add('text-gray-800', 'dark:text-white');
+                updateStockDisplay(currentIndex, product_id);
+            }
+        }
+
         // Update line total after adding
         setTimeout(() => updateLineTotal(row), 100);
+    }
+
+    function toggleProductSelect(index) {
+        const dropdown = document.getElementById(`product_dropdown_${index}`);
+        const arrow = document.getElementById(`product_arrow_${index}`);
+        const isHidden = dropdown.classList.contains('hidden');
+        
+        // Close all other dropdowns
+        document.querySelectorAll('[id^="product_dropdown_"]').forEach(dd => {
+            if (dd.id !== `product_dropdown_${index}`) {
+                dd.classList.add('hidden');
+            }
+        });
+        document.querySelectorAll('[id^="product_arrow_"]').forEach(arr => {
+            if (arr.id !== `product_arrow_${index}`) {
+                arr.classList.remove('rotate-180');
+            }
+        });
+
+        if (isHidden) {
+            dropdown.classList.remove('hidden');
+            arrow.classList.add('rotate-180');
+            setTimeout(() => {
+                document.getElementById(`product_search_${index}`)?.focus();
+            }, 100);
+        } else {
+            dropdown.classList.add('hidden');
+            arrow.classList.remove('rotate-180');
+        }
+    }
+
+    function chooseProduct(index, productId, productLabel, stock = 0, unitPrice = 0) {
+        const input = document.getElementById(`product_input_${index}`);
+        const label = document.getElementById(`product_label_${index}`);
+        const dropdown = document.getElementById(`product_dropdown_${index}`);
+        const arrow = document.getElementById(`product_arrow_${index}`);
+        const unitPriceInput = document.getElementById(`unit_price_${index}`);
+
+        input.value = productId;
+        
+        if (productId) {
+            label.textContent = productLabel;
+            label.classList.remove('text-gray-400');
+            label.classList.add('text-gray-800', 'dark:text-white');
+            
+            // Update unit price
+            if (unitPriceInput && unitPrice > 0) {
+                unitPriceInput.value = unitPrice;
+            }
+            
+            updateStockDisplay(index, productId);
+        } else {
+            label.textContent = '-- Select Product --';
+            label.classList.add('text-gray-400');
+            label.classList.remove('text-gray-800', 'dark:text-white');
+            
+            // Clear unit price
+            if (unitPriceInput) {
+                unitPriceInput.value = 0;
+            }
+            
+            updateStockDisplay(index, '');
+        }
+
+        dropdown.classList.add('hidden');
+        arrow.classList.remove('rotate-180');
+        
+        // Clear search
+        const searchInput = document.getElementById(`product_search_${index}`);
+        if (searchInput) {
+            searchInput.value = '';
+            searchProducts(index);
+        }
+
+        // Update line total
+        const row = input.closest('tr');
+        if (row) updateLineTotal(row);
+    }
+
+    function searchProducts(index) {
+        const searchInput = document.getElementById(`product_search_${index}`);
+        const searchTerm = searchInput.value.toLowerCase();
+        const options = document.querySelectorAll(`[data-product-option="${index}"]`);
+
+        options.forEach(option => {
+            const label = option.getAttribute('data-product-label').toLowerCase();
+            if (label.includes(searchTerm)) {
+                option.style.display = 'block';
+            } else {
+                option.style.display = 'none';
+            }
+        });
+    }
+
+    function updateStockDisplay(itemIndex, productId) {
+        const product = products.find(p => p.id == productId);
+        const stockInfo = document.getElementById(`stock-info-${itemIndex}`);
+        
+        if (stockInfo) {
+            if (!productId || !product) {
+                stockInfo.className = 'text-xs text-gray-500 dark:text-gray-400 text-right';
+                stockInfo.textContent = 'Stock: -';
+                return;
+            }
+
+            const stock = product.stock || 0;
+            let stockClass = 'text-xs text-right font-medium ';
+            
+            if (stock > 10) {
+                stockClass += 'text-green-600 dark:text-green-400';
+            } else if (stock > 0) {
+                stockClass += 'text-yellow-600 dark:text-yellow-400';
+            } else {
+                stockClass += 'text-red-600 dark:text-red-400';
+            }
+            
+            stockInfo.className = stockClass;
+            stockInfo.textContent = `Stock: ${stock}`;
+        }
     }
 
     function removeItem(btn) {
@@ -425,17 +609,28 @@
         });
     }
 
+    // Close dropdowns when clicking outside
+    document.addEventListener('click', function(event) {
+        if (!event.target.closest('[data-product-select]')) {
+            document.querySelectorAll('[id^="product_dropdown_"]').forEach(dd => {
+                dd.classList.add('hidden');
+            });
+            document.querySelectorAll('[id^="product_arrow_"]').forEach(arr => {
+                arr.classList.remove('rotate-180');
+            });
+        }
+    });
+
     // Event Listeners
     document.getElementById('addItemBtn').addEventListener('click', () => addItem());
 
-    // Watch for tax changes using a more reliable method
+    // Watch for tax changes
     let taxObserverTimeout;
     function observeTaxChanges() {
         clearTimeout(taxObserverTimeout);
         taxObserverTimeout = setTimeout(() => {
             const taxHiddenInput = document.querySelector('input[name="tax_id"]');
             if (taxHiddenInput) {
-                // Use MutationObserver to watch for changes
                 const observer = new MutationObserver(() => {
                     updateTotals();
                 });
@@ -444,11 +639,9 @@
                     attributeFilter: ['value']
                 });
 
-                // Also add direct event listener
                 taxHiddenInput.addEventListener('change', updateTotals);
                 taxHiddenInput.addEventListener('input', updateTotals);
             } else {
-                // Retry if not found yet
                 if (document.readyState !== 'complete') {
                     observeTaxChanges();
                 }
@@ -458,12 +651,9 @@
 
     // Initialize items on page load
     document.addEventListener('DOMContentLoaded', function() {
-        // Start observing tax changes
         observeTaxChanges();
 
-        // Load existing items or add empty row
         if (existingItems && existingItems.length > 0) {
-            console.log('Loading existing items:', existingItems.length);
             existingItems.forEach(item => {
                 addItem(
                     item.product_id || '',
@@ -473,24 +663,14 @@
                 );
             });
         } else {
-            console.log('Adding empty row');
-            // Add one empty row by default
             addItem();
         }
 
-        // Update totals after all items loaded
         setTimeout(() => {
             updateTotals();
-            console.log('Initial totals calculated');
         }, 500);
     });
 
-    // Also try to observe tax changes after Alpine.js initializes
-    document.addEventListener('alpine:initialized', () => {
-        observeTaxChanges();
-    });
-
-    // Fallback: periodically check and update totals for first few seconds
     let initCheckCount = 0;
     const initCheckInterval = setInterval(() => {
         updateTotals();
@@ -499,5 +679,7 @@
             clearInterval(initCheckInterval);
         }
     }, 500);
+
+
 </script>
 @endpush

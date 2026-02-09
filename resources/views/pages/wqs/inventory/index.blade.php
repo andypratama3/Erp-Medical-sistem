@@ -43,6 +43,10 @@
                 class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm whitespace-nowrap">
                 View Adjustments
             </a>
+            <a href="{{ route('wqs.inventory.create') }}" 
+                class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm whitespace-nowrap">
+                Create Stock
+            </a>
         </div>
 
         <div class="overflow-x-auto">

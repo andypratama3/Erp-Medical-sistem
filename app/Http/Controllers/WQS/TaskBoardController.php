@@ -159,7 +159,7 @@ class TaskBoardController extends Controller implements HasMiddleware
             'task_type' => $taskBoard->task_type,
         ]); 
         // add event
-        event(new WQSCompleted($taskBoard));
+        event(new WQSCompleted($taskBoard->salesDO));
 
         return redirect()
             ->route('wqs.task-board.show', $taskBoard)

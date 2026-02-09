@@ -569,4 +569,10 @@ class SalesDOController extends Controller implements HasMiddleware
                 ->with('error', 'Failed to submit Sales DO: ' . $e->getMessage());
         }
     }
+
+    public function getStock(Request $request)
+    {
+        $productId = $request->input('product_id');
+        
+    }
 }

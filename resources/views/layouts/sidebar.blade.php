@@ -21,11 +21,14 @@
                 @foreach ($menuGroup['items'] as $itemIndex => $item)
                     @if (isset($item['subItems']))
                         // Check if any submenu item matches current path
-                        @foreach ($item['subItems'] as $subItem)
+                       @foreach ($item['subItems'] as $subItem)
+                        @if (!isset($subItem['divider']))
                             if (currentPath === '{{ ltrim($subItem['path'], '/') }}' ||
                                 window.location.pathname === '{{ $subItem['path'] }}') {
                                 this.openSubmenus['{{ $groupIndex }}-{{ $itemIndex }}'] = true;
-                            } @endforeach
+                            }
+                        @endif
+                    @endforeach
             @endif
             @endforeach
             @endforeach
@@ -147,32 +150,31 @@
                                         <div x-show="isSubmenuOpen({{ $groupIndex }}, {{ $itemIndex }}) && ($store.sidebar.isExpanded || $store.sidebar.isHovered || $store.sidebar.isMobileOpen)">
                                             <ul class="mt-2 space-y-1 ml-9">
                                                 @foreach ($item['subItems'] as $subItem)
-                                                    <li>
-                                                        <a href="{{ $subItem['path'] }}" class="menu-dropdown-item"
-                                                            :class="isActive('{{ $subItem['path'] }}') ?
-                                                                'menu-dropdown-item-active' :
-                                                                'menu-dropdown-item-inactive'">
-                                                            {{ $subItem['name'] }}
-                                                            <span class="flex items-center gap-1 ml-auto">
-                                                                @if (!empty($subItem['new']))
-                                                                    <span
-                                                                        :class="isActive('{{ $subItem['path'] }}') ?
-                                                                            'menu-dropdown-badge menu-dropdown-badge-active' :
-                                                                            'menu-dropdown-badge menu-dropdown-badge-inactive'">
-                                                                        new
-                                                                    </span>
-                                                                @endif
-                                                                @if (!empty($subItem['pro']))
-                                                                    <span
-                                                                        :class="isActive('{{ $subItem['path'] }}') ?
-                                                                            'menu-dropdown-badge-pro menu-dropdown-badge-pro-active' :
-                                                                            'menu-dropdown-badge-pro menu-dropdown-badge-pro-inactive'">
-                                                                        pro
-                                                                    </span>
-                                                                @endif
-                                                            </span>
-                                                        </a>
-                                                    </li>
+                                                    @if (isset($subItem['divider']))
+                                                        <!-- Divider -->
+                                                        <li class="my-2">
+                                                            <hr class="border-gray-200 dark:border-gray-700">
+                                                        </li>
+                                                    @else
+                                                        <li>
+                                                            <a href="{{ $subItem['path'] }}" class="menu-dropdown-item"
+                                                                :class="isActive('{{ $subItem['path'] }}') ?
+                                                                    'menu-dropdown-item-active' :
+                                                                    'menu-dropdown-item-inactive'">
+                                                                {{ $subItem['name'] }}
+                                                                <span class="flex items-center gap-1 ml-auto">
+                                                                    @if (!empty($subItem['new']))
+                                                                        <span
+                                                                            :class="isActive('{{ $subItem['path'] }}') ?
+                                                                                'menu-dropdown-badge menu-dropdown-badge-active' :
+                                                                                'menu-dropdown-badge menu-dropdown-badge-inactive'">
+                                                                            new
+                                                                        </span>
+                                                                    @endif
+                                                                </span>
+                                                            </a>
+                                                        </li>
+                                                    @endif
                                                 @endforeach
                                             </ul>
                                         </div>
