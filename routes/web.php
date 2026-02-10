@@ -200,7 +200,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         // Inventory Management
         Route::prefix('inventory')->name('inventory.')->group(function () {
-            Route::get('/', [InventoryController::class, 'index'])->name('index');
+            Route::resource('/', InventoryController::class);
             Route::get('/adjustments', [InventoryController::class, 'adjustments'])->name('adjustments');
             Route::post('/adjust', [InventoryController::class, 'adjust'])->name('adjust');
             Route::get('/stock-levels', [InventoryController::class, 'stockLevels'])->name('stock-levels');
@@ -721,7 +721,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::resource('emails', EmailCompanyController::class);
 
         // ✅ NEW: Discount Policies
-        Route::resource('discount-policies', DiscountPolicyController::class);
+        Route::resource('discount-policy', DiscountPolicyController::class);
     });
 
     /*

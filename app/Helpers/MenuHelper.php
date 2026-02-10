@@ -84,9 +84,9 @@ class MenuHelper
                         'can' => 'view-company-emails'
                     ],
                     [
-                        'name' => 'Discount Policies',
-                        'path' => '/master/discount-policies',
-                        'can' => 'view-discount-policies'
+                        'name' => 'Discount Policy',
+                        'path' => '/master/discount-policy',
+                        'can' => 'view-discount-policy'
                     ],
                 ]
             ],
