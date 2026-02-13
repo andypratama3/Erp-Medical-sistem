@@ -12,6 +12,7 @@
         @include('pages.master.discount-policy.form',[
             'departments' => $departments,
             'discountPolicy' => $discountPolicy,
+            'departments' => $departments,
         ])
     </form>
 </x-common.component-card>

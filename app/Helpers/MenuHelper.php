@@ -80,8 +80,8 @@ class MenuHelper
                     ],
                     [
                         'name' => 'Company Emails',
-                        'path' => '/master/emails',
-                        'can' => 'view-company-emails'
+                        'path' => '/master/email-company',
+                        'can' => 'view-email-company'
                     ],
                     [
                         'name' => 'Discount Policy',

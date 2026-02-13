@@ -25,7 +25,7 @@ class EmployeeSeeder extends Seeder
             'dept_code' => $department->code,
             'level_type' => 'level_1',
             'grade' => 'A',
-            'payroll_status' => 'active',
+            'payroll_status' => 'permanent',
             'payroll_level' => 'A',
             'job_title' => 'John Doe',
             'nik' => '1234567890',

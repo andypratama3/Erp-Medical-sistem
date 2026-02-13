@@ -718,7 +718,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::resource('bank-accounts', CompanyBankAccountController::class);
 
         // ✅ NEW: Company Emails
-        Route::resource('emails', EmailCompanyController::class);
+        Route::resource('email-company', EmailCompanyController::class);
 
         // ✅ NEW: Discount Policies
         Route::resource('discount-policy', DiscountPolicyController::class);

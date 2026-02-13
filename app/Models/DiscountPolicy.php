@@ -17,8 +17,12 @@ class DiscountPolicy extends Model
         'status',
     ];
 
+    protected $casts = [
+        'max_discount_percent' => 'decimal:2',
+    ];
+
     public function department()
     {
-        return $this->belongsTo(Department::class);
-    }   
+        return $this->belongsTo(MasterDepartment::class, 'department_code', 'code');
+    }
 }

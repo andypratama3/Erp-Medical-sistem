@@ -1,370 +1,484 @@
 @php
-    $isEdit = isset($product);
+    $isEdit = isset($employee);
 @endphp
 
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
 
-
-<div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-
-    {{-- SKU --}}
-    <div class="md:col-span-4">
+    {{-- Employee Code --}}
+    <div class="sm:col-span-2 lg:col-span-2">
         <label class="block text-sm font-medium mb-1 dark:text-white">
-            SKU <span class="text-red-500">*</span>
+            Employee Code <span class="text-red-500">*</span>
         </label>
-        <input type="text" name="sku" required
-               value="{{ old('sku', $product->sku ?? '') }}"
+        <input type="text" name="employee_code" required
+               value="{{ old('employee_code', $employee->employee_code ?? '') }}"
                class="w-full h-11 rounded-lg border px-3 text-sm
                       bg-white text-gray-900
-                      focus:ring-2 focus:ring-blue-500/20
+                      focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500
                       dark:bg-gray-800 dark:border-gray-700 dark:text-white
-                      dark:placeholder-gray-400">
+                      dark:placeholder-gray-400"
+               placeholder="e.g., EMP001">
+        @error('employee_code')
+            <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+        @enderror
     </div>
 
-    {{-- Nama Produk --}}
-    <div class="md:col-span-4">
+    {{-- Employee Name --}}
+    <div class="sm:col-span-2 lg:col-span-2">
         <label class="block text-sm font-medium mb-1 dark:text-white">
-            Nama Produk <span class="text-red-500">*</span>
+            Employee Name <span class="text-red-500">*</span>
         </label>
-        <input type="text" name="name" required
-               value="{{ old('name', $product->name ?? '') }}"
+        <input type="text" name="employee_name" required
+               value="{{ old('employee_name', $employee->employee_name ?? '') }}"
                class="w-full h-11 rounded-lg border px-3 text-sm
                       bg-white text-gray-900
-                      focus:ring-2 focus:ring-blue-500/20
-                      dark:bg-gray-800 dark:border-gray-700 dark:text-white">
+                      focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500
+                      dark:bg-gray-800 dark:border-gray-700 dark:text-white
+                      dark:placeholder-gray-400"
+               placeholder="Full name">
+        @error('employee_name')
+            <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+        @enderror
     </div>
 
-
-    {{-- Unit --}}
-    <div class="md:col-span-1">
+    {{-- NIK --}}
+    <div class="sm:col-span-2 lg:col-span-2">
         <label class="block text-sm font-medium mb-1 dark:text-white">
-            Unit <span class="text-red-500">*</span>
+            NIK (ID Card Number)
         </label>
-        <input type="text" name="unit" required
-               value="{{ old('unit', $product->unit ?? 'PCS') }}"
+        <input type="text" name="nik" maxlength="16"
+               value="{{ old('nik', $employee->nik ?? '') }}"
                class="w-full h-11 rounded-lg border px-3 text-sm
                       bg-white text-gray-900
-                      dark:bg-gray-800 dark:border-gray-700 dark:text-white">
+                      focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500
+                      dark:bg-gray-800 dark:border-gray-700 dark:text-white
+                      dark:placeholder-gray-400"
+               placeholder="16 digit NIK">
+        @error('nik')
+            <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+        @enderror
     </div>
 
-    {{-- Unit Price --}}
-    <div>
+    {{-- NPWP --}}
+    <div class="sm:col-span-2 lg:col-span-2">
         <label class="block text-sm font-medium mb-1 dark:text-white">
-            Unit Price <span class="text-red-500">*</span>
+            NPWP (Tax ID)
         </label>
-        <div class="relative">
-
-            <input type="text" id="unit_price_display" required
-                   value="{{ old('unit_price', isset($product) ? number_format($product->unit_price, 0, ',', '.') : '0') }}"
-                     class="w-full h-11 rounded-lg border px-3 text-sm
-                      bg-white text-gray-900
-                      focus:ring-2 focus:ring-blue-500/20
-                      dark:bg-gray-800 dark:border-gray-700 dark:text-white">
-            <input type="hidden" name="unit_price" id="unit_price_value"
-                   value="{{ old('unit_price', $product->unit_price ?? 0) }}">
-        </div>
-    </div>
-
-    {{-- Cost Price --}}
-    <div>
-        <label class="block text-sm font-medium mb-1 dark:text-white">
-            Cost Price
-        </label>
-        <div class="relative">
-            {{-- <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm dark:text-gray-400">Rp</span> --}}
-            <input type="text" id="cost_price_display"
-                   value="{{ old('cost_price', isset($product) ? number_format($product->cost_price ?? 0, 0, ',', '.') : '0') }}"
-                     class="w-full h-11 rounded-lg border px-3 text-sm
-                      bg-white text-gray-900
-                      focus:ring-2 focus:ring-blue-500/20
-                      dark:bg-gray-800 dark:border-gray-700 dark:text-white">
-            <input type="hidden" name="cost_price" id="cost_price_value"
-                   value="{{ old('cost_price', $product->cost_price ?? 0) }}">
-        </div>
-    </div>
-
-    {{-- Barcode --}}
-    <div class="md:col-span-4">
-        <label class="block text-sm font-medium mb-1 dark:text-white">Barcode</label>
-        <input type="text" name="barcode"
-               value="{{ old('barcode', $product->barcode ?? '') }}"
+        <input type="text" name="npwp" maxlength="20"
+               value="{{ old('npwp', $employee->npwp ?? '') }}"
                class="w-full h-11 rounded-lg border px-3 text-sm
                       bg-white text-gray-900
-                      dark:bg-gray-800 dark:border-gray-700 dark:text-white">
+                      focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500
+                      dark:bg-gray-800 dark:border-gray-700 dark:text-white
+                      dark:placeholder-gray-400"
+               placeholder="XX.XXX.XXX.X-XXX.XXX">
+        @error('npwp')
+            <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+        @enderror
     </div>
 
-    {{-- ProductGroup --}}
-    <div class="md:col-span-4">
+    {{-- Department --}}
+    <div class="sm:col-span-2 lg:col-span-2">
         <label class="block text-sm font-medium mb-1 dark:text-white">
-            Product Group <span class="text-red-500">*</span>
+            Department <span class="text-red-500">*</span>
         </label>
-        <select name="product_group_id" required
-                class="w-full h-11 rounded-lg border px-3 text-sm
-                       bg-white text-gray-900
-                       dark:bg-gray-800 dark:border-gray-700 dark:text-white">
-            <option value="">-- Pilih --</option>
-            @foreach($productGroups as $pg)
-                <option value="{{ $pg->id }}"
-                    @selected(old('product_group_id',$product->product_group_id ?? '')==$pg->id)>
-                    {{ $pg->name }}
-                </option>
-            @endforeach
-        </select>
+         <x-form.select.searchable-select
+                    name="dept_code"
+                    :options="$departments->map(fn($o) => ['value' => $o->code, 'label' => $o->name])->toArray()"
+                    :selected="old('dept_code', $employee->dept_code ?? '')"
+                    placeholder="-- Select Department --"
+                    searchPlaceholder="Search department..."
+                    :required="true" />
+        @error('dept_code')
+            <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+        @enderror
     </div>
 
-    {{-- Product Type --}}
-    <div class="md:col-span-4">
+    {{-- Office --}}
+    <div class="sm:col-span-2 lg:col-span-2">
         <label class="block text-sm font-medium mb-1 dark:text-white">
-            Product Type <span class="text-red-500">*</span>
-        </label>
-        <select name="product_type" required
-                class="w-full h-11 rounded-lg border px-3 text-sm
-                       bg-white text-gray-900
-                       dark:bg-gray-800 dark:border-gray-700 dark:text-white">
-            <option value="">-- Pilih --</option>
-            <option value="medical_device" @selected(old('product_type',$product->product_type ?? 'medical_device')=='medical_device')>
-                Medical Device
-            </option>
-            <option value="pharmaceutical" @selected(old('product_type',$product->product_type ?? 'medical_device')=='pharmaceutical')>
-                Pharmaceutical
-            </option>
-            <option value="consumable" @selected(old('product_type',$product->product_type ?? 'medical_device')=='consumable')>
-                Consumable
-            </option>
-            <option value="other" @selected(old('product_type',$product->product_type ?? 'medical_device')=='other')>
-                Other
-            </option>
-        </select>
-    </div>
-
-    {{-- Manufacture --}}
-    <div class="md:col-span-4">
-        <label class="block text-sm font-medium mb-1 dark:text-white">
-            Manufacture <span class="text-red-500">*</span>
-        </label>
-        <select name="manufacture_id" required
-                class="w-full h-11 rounded-lg border px-3 text-sm
-                       bg-white text-gray-900
-                       dark:bg-gray-800 dark:border-gray-700 dark:text-white">
-            <option value="">-- Pilih --</option>
-            @foreach($manufactures as $m)
-                <option value="{{ $m->id }}"
-                    @selected(old('manufacture_id',$product->manufacture_id ?? '')==$m->id)>
-                    {{ $m->name }}
-                </option>
-            @endforeach
-        </select>
-    </div>
-
-    {{-- Category --}}
-    <div class="md:col-span-4">
-        <label class="block text-sm font-medium mb-1 dark:text-white">
-            Category <span class="text-red-500">*</span>
+            Office <span class="text-red-500">*</span>
         </label>
         <x-form.select.searchable-select
-            name="category_id"
-            :options="$categories->map(fn($o) => ['value' => $o->id, 'label' => $o->name])->toArray()"
-            :selected="old('category_id', $product->category_id ?? '')"
-            placeholder="-- Select Category --"
-            searchPlaceholder="Search category..."
+                    name="office_code"
+                    :options="$offices->map(fn($o) => ['value' => $o->code, 'label' => $o->name])->toArray()"
+                    :selected="old('office_code', $employee->office_code ?? '')"
+                    placeholder="-- Select Office --"
+                    searchPlaceholder="Search office..."
+                    :required="true" />
+    </div>
+
+    {{-- Job Title --}}
+    <div class="sm:col-span-2 lg:col-span-2">
+        <label class="block text-sm font-medium mb-1 dark:text-white">
+            Job Title <span class="text-red-500">*</span>
+        </label>
+        <input type="text" name="job_title" required
+               value="{{ old('job_title', $employee->job_title ?? '') }}"
+               class="w-full h-11 rounded-lg border px-3 text-sm
+                      bg-white text-gray-900
+                      focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500
+                      dark:bg-gray-800 dark:border-gray-700 dark:text-white
+                      dark:placeholder-gray-400"
+               placeholder="e.g., Senior Manager">
+        @error('job_title')
+            <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+        @enderror
+    </div>
+
+    {{-- Level Type --}}
+    <div class="sm:col-span-2 lg:col-span-1">
+        <label class="block text-sm font-medium mb-1 dark:text-white">
+            Level Type <span class="text-red-500">*</span>
+        </label>
+        <x-form.select.searchable-select
+            name="level_type"
+            :options="collect(\App\Models\Employee::LEVEL_TYPES)
+                ->map(fn($label, $value) => [
+                    'value' => $value,
+                    'label' => $label
+                ])
+                ->values()
+                ->toArray()"
+            :selected="old('level_type', $employee->level_type ?? '')"
+            placeholder="-- Select Level Type --"
+            searchPlaceholder="Search level type..."
             :required="true"
         />
+
+        @error('level_type')
+            <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+        @enderror
     </div>
 
-    {{-- Min Stock --}}
-    <div class="md:col-span-2">
-        <label class="block text-sm font-medium mb-1 dark:text-white">Min Stock</label>
-        <input type="number" name="min_stock" min="0"
-               value="{{ old('min_stock', $product->min_stock ?? 0) }}"
+    {{-- Grade --}}
+    <div class="sm:col-span-2 lg:col-span-1">
+        <label class="block text-sm font-medium mb-1 dark:text-white">
+            Grade
+        </label>
+        <input type="text" name="grade"
+               value="{{ old('grade', $employee->grade ?? '') }}"
                class="w-full h-11 rounded-lg border px-3 text-sm
                       bg-white text-gray-900
-                      dark:bg-gray-800 dark:border-gray-700 dark:text-white">
+                      focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500
+                      dark:bg-gray-800 dark:border-gray-700 dark:text-white
+                      dark:placeholder-gray-400"
+               placeholder="e.g., 1, 2, 3">
+        @error('grade')
+            <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+        @enderror
     </div>
 
-    {{-- Max Stock --}}
-    <div class="md:col-span-2">
-        <label class="block text-sm font-medium mb-1 dark:text-white">Max Stock</label>
-        <input type="number" name="max_stock" min="0"
-               value="{{ old('max_stock', $product->max_stock ?? 0) }}"
+    {{-- Payroll Status --}}
+    <div class="sm:col-span-2 lg:col-span-1">
+        <label class="block text-sm font-medium mb-1 dark:text-white">
+            Payroll Status
+        </label>
+        <select name="payroll_status"
+                class="w-full h-11 rounded-lg border px-3 text-sm
+                       bg-white text-gray-900
+                       focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500
+                       dark:bg-gray-800 dark:border-gray-700 dark:text-white">
+            <option value="">-- Select --</option>
+            <option value="permanent" @selected(old('payroll_status', $employee->payroll_status ?? '') == 'permanent')>Permanent</option>
+            <option value="contract" @selected(old('payroll_status', $employee->payroll_status ?? '') == 'contract')>Contract</option>
+            <option value="probation" @selected(old('payroll_status', $employee->payroll_status ?? '') == 'probation')>Probation</option>
+        </select>
+        @error('payroll_status')
+            <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+        @enderror
+    </div>
+
+    {{-- Payroll Level --}}
+    <div class="sm:col-span-2 lg:col-span-1">
+        <label class="block text-sm font-medium mb-1 dark:text-white">
+            Payroll Level
+        </label>
+        <input type="text" name="payroll_level"
+               value="{{ old('payroll_level', $employee->payroll_level ?? '') }}"
                class="w-full h-11 rounded-lg border px-3 text-sm
                       bg-white text-gray-900
-                      dark:bg-gray-800 dark:border-gray-700 dark:text-white">
+                      focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500
+                      dark:bg-gray-800 dark:border-gray-700 dark:text-white
+                      dark:placeholder-gray-400">
+        @error('payroll_level')
+            <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+        @enderror
     </div>
 
-    {{-- Is Taxable (Radio Button) --}}
-    <div class="md:col-span-2">
-        <div class="flex items-center gap-3 h-11"
-                x-data="{ isChecked: '{{ old('is_taxable', $product->is_taxable ?? true) ? '1' : '0' }}' }">
-            <label class="text-sm font-medium text-gray-800 dark:text-white">
-                Taxable:
-            </label>
-            <div class="flex items-center gap-4">
-                <label :class="isChecked === '0' ? 'text-gray-700 dark:text-white' : 'text-gray-500 dark:text-gray-400'"
-                        class="relative flex cursor-pointer items-center gap-2 text-sm font-medium select-none">
-                    <input class="sr-only" type="radio" name="is_taxable" value="0"
-                            @checked(old('is_taxable', $product->is_taxable ?? true) == false)
-                            @change="isChecked = '0'">
-                    <span :class="isChecked === '0' ? 'border-blue-500 bg-blue-500' : 'bg-transparent border-gray-300 dark:border-gray-700'"
-                            class="flex h-5 w-5 items-center justify-center rounded-full border-[1.25px] transition-all">
-                        <span :class="isChecked === '0' ? 'block' : 'hidden'"
-                                class="h-2 w-2 rounded-full bg-white"></span>
-                    </span>
-                    No
-                </label>
-                <label :class="isChecked === '1' ? 'text-gray-700 dark:text-white' : 'text-gray-500 dark:text-gray-400'"
-                        class="relative flex cursor-pointer items-center gap-2 text-sm font-medium select-none">
-                    <input class="sr-only" type="radio" name="is_taxable" value="1"
-                            @checked(old('is_taxable', $product->is_taxable ?? true) == true)
-                            @change="isChecked = '1'">
-                    <span :class="isChecked === '1' ? 'border-blue-500 bg-blue-500' : 'bg-transparent border-gray-300 dark:border-gray-700'"
-                            class="flex h-5 w-5 items-center justify-center rounded-full border-[1.25px] transition-all">
-                        <span :class="isChecked === '1' ? 'block' : 'hidden'"
-                                class="h-2 w-2 rounded-full bg-white"></span>
-                    </span>
-                    Yes
-                </label>
-            </div>
-        </div>
+    {{-- Education --}}
+    <div class="sm:col-span-2 lg:col-span-2">
+        <label class="block text-sm font-medium mb-1 dark:text-white">
+            Education
+        </label>
+        <select name="education"
+                class="w-full h-11 rounded-lg border px-3 text-sm
+                       bg-white text-gray-900
+                       focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500
+                       dark:bg-gray-800 dark:border-gray-700 dark:text-white">
+            <option value="">-- Select --</option>
+            <option value="SD" @selected(old('education', $employee->education ?? '') == 'SD')>SD</option>
+            <option value="SMP" @selected(old('education', $employee->education ?? '') == 'SMP')>SMP</option>
+            <option value="SMA/SMK" @selected(old('education', $employee->education ?? '') == 'SMA/SMK')>SMA/SMK</option>
+            <option value="D3" @selected(old('education', $employee->education ?? '') == 'D3')>D3</option>
+            <option value="S1" @selected(old('education', $employee->education ?? '') == 'S1')>S1</option>
+            <option value="S2" @selected(old('education', $employee->education ?? '') == 'S2')>S2</option>
+            <option value="S3" @selected(old('education', $employee->education ?? '') == 'S3')>S3</option>
+        </select>
+        @error('education')
+            <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+        @enderror
     </div>
 
-    {{-- Is Importable (Radio Button) --}}
-    <div class="md:col-span-2 ">
-        <div class="flex items-center gap-3 h-11"
-                x-data="{ is_importable: '{{ old('is_importable', $product->is_importable ?? false) ? '1' : '0' }}' }">
-            <label class="text-sm font-medium text-gray-800 dark:text-white">
-                Importable:
-            </label>
-            <div class="flex items-center gap-4">
+    {{-- Join Year --}}
+    <div class="sm:col-span-2 lg:col-span-1">
+        <label class="block text-sm font-medium mb-1 dark:text-white">
+            Join Year
+        </label>
+        <input type="number" name="join_year" min="1900" max="2100"
+               value="{{ old('join_year', $employee->join_year ?? date('Y')) }}"
+               class="w-full h-11 rounded-lg border px-3 text-sm
+                      bg-white text-gray-900
+                      focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500
+                      dark:bg-gray-800 dark:border-gray-700 dark:text-white
+                      dark:placeholder-gray-400"
+               placeholder="{{ date('Y') }}">
+        @error('join_year')
+            <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+        @enderror
+    </div>
 
-                <label :class="is_importable === '0' ? 'text-gray-700 dark:text-white' : 'text-gray-500 dark:text-gray-400'"
-                        class="relative flex cursor-pointer items-center gap-2 text-sm font-medium select-none">
-                    <input class="sr-only" type="radio" name="is_importable" value="0"
-                            @checked(old('is_importable', $product->is_importable ?? false) == false)
-                            @change="is_importable = '0'">
-                    <span :class="is_importable === '0' ? 'border-blue-500 bg-blue-500' : 'bg-transparent border-gray-300 dark:border-gray-700'"
-                            class="flex h-5 w-5 items-center justify-center rounded-full border-[1.25px] transition-all">
-                        <span :class="is_importable === '0' ? 'block' : 'hidden'"
-                                class="h-2 w-2 rounded-full bg-white"></span>
-                    </span>
-                    No
-                </label>
-                <label :class="is_importable === '1' ? 'text-gray-700 dark:text-white' : 'text-gray-500 dark:text-gray-400'"
-                        class="relative flex cursor-pointer items-center gap-2 text-sm font-medium select-none">
-                    <input class="sr-only" type="radio" name="is_importable" value="1"
-                            @checked(old('is_importable', $product->is_importable ?? false) == true)
-                            @change="is_importable = '1'">
-                    <span :class="is_importable === '1' ? 'border-blue-500 bg-blue-500' : 'bg-transparent border-gray-300 dark:border-gray-700'"
-                            class="flex h-5 w-5 items-center justify-center rounded-full border-[1.25px] transition-all">
-                        <span :class="is_importable === '1' ? 'block' : 'hidden'"
-                                class="h-2 w-2 rounded-full bg-white"></span>
-                    </span>
-                    Yes
-                </label>
-            </div>
-        </div>
+    {{-- Join Month --}}
+    <div class="sm:col-span-2 lg:col-span-1">
+        <label class="block text-sm font-medium mb-1 dark:text-white">
+            Join Month
+        </label>
+        <select name="join_month"
+                class="w-full h-11 rounded-lg border px-3 text-sm
+                       bg-white text-gray-900
+                       focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500
+                       dark:bg-gray-800 dark:border-gray-700 dark:text-white">
+            <option value="">-- Select --</option>
+            @for($i = 1; $i <= 12; $i++)
+                <option value="{{ $i }}" @selected(old('join_month', $employee->join_month ?? '') == $i)>
+                    {{ DateTime::createFromFormat('!m', $i)->format('F') }}
+                </option>
+            @endfor
+        </select>
+        @error('join_month')
+            <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+        @enderror
+    </div>
+
+    {{-- Phone --}}
+    <div class="sm:col-span-2 lg:col-span-2">
+        <label class="block text-sm font-medium mb-1 dark:text-white">
+            Phone Number
+        </label>
+        <input type="text" name="phone"
+               value="{{ old('phone', $employee->phone ?? '') }}"
+               class="w-full h-11 rounded-lg border px-3 text-sm
+                      bg-white text-gray-900
+                      focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500
+                      dark:bg-gray-800 dark:border-gray-700 dark:text-white
+                      dark:placeholder-gray-400"
+               placeholder="08xxxxxxxxxx">
+        @error('phone')
+            <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+        @enderror
+    </div>
+
+    {{-- Email --}}
+    <div class="sm:col-span-2 lg:col-span-2">
+        <label class="block text-sm font-medium mb-1 dark:text-white">
+            Email
+        </label>
+        <input type="email" name="email"
+               value="{{ old('email', $employee->email ?? '') }}"
+               class="w-full h-11 rounded-lg border px-3 text-sm
+                      bg-white text-gray-900
+                      focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500
+                      dark:bg-gray-800 dark:border-gray-700 dark:text-white
+                      dark:placeholder-gray-400"
+               placeholder="employee@company.com">
+        @error('email')
+            <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+        @enderror
+    </div>
+
+    {{-- BPJS Ketenagakerjaan Number --}}
+    <div class="sm:col-span-2 lg:col-span-2">
+        <label class="block text-sm font-medium mb-1 dark:text-white">
+            BPJS Ketenagakerjaan No.
+        </label>
+        <input type="text" name="bpjs_tk_no"
+               value="{{ old('bpjs_tk_no', $employee->bpjs_tk_no ?? '') }}"
+               class="w-full h-11 rounded-lg border px-3 text-sm
+                      bg-white text-gray-900
+                      focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500
+                      dark:bg-gray-800 dark:border-gray-700 dark:text-white
+                      dark:placeholder-gray-400"
+               placeholder="BPJS TK Number">
+        @error('bpjs_tk_no')
+            <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+        @enderror
+    </div>
+
+    {{-- BPJS Kesehatan Number --}}
+    <div class="sm:col-span-2 lg:col-span-2">
+        <label class="block text-sm font-medium mb-1 dark:text-white">
+            BPJS Kesehatan No.
+        </label>
+        <input type="text" name="bpjs_kes_no"
+               value="{{ old('bpjs_kes_no', $employee->bpjs_kes_no ?? '') }}"
+               class="w-full h-11 rounded-lg border px-3 text-sm
+                      bg-white text-gray-900
+                      focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500
+                      dark:bg-gray-800 dark:border-gray-700 dark:text-white
+                      dark:placeholder-gray-400"
+               placeholder="BPJS Kesehatan Number">
+        @error('bpjs_kes_no')
+            <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+        @enderror
+    </div>
+
+    {{-- Section: Bank Information --}}
+    <div class="sm:col-span-4 mt-4">
+        <h3 class="text-base font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2">
+            Bank Information
+        </h3>
+    </div>
+
+    {{-- Bank Name --}}
+    <div class="sm:col-span-2 lg:col-span-2">
+        <label class="block text-sm font-medium mb-1 dark:text-white">
+            Bank Name
+        </label>
+        <input type="text" name="bank_name"
+               value="{{ old('bank_name', $employee->bank_name ?? '') }}"
+               class="w-full h-11 rounded-lg border px-3 text-sm
+                      bg-white text-gray-900
+                      focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500
+                      dark:bg-gray-800 dark:border-gray-700 dark:text-white
+                      dark:placeholder-gray-400"
+               placeholder="e.g., BCA, Mandiri, BNI">
+        @error('bank_name')
+            <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+        @enderror
+    </div>
+
+    {{-- Bank Branch --}}
+    <div class="sm:col-span-2 lg:col-span-2">
+        <label class="block text-sm font-medium mb-1 dark:text-white">
+            Bank Branch
+        </label>
+        <input type="text" name="bank_branch"
+               value="{{ old('bank_branch', $employee->bank_branch ?? '') }}"
+               class="w-full h-11 rounded-lg border px-3 text-sm
+                      bg-white text-gray-900
+                      focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500
+                      dark:bg-gray-800 dark:border-gray-700 dark:text-white
+                      dark:placeholder-gray-400"
+               placeholder="Branch name">
+        @error('bank_branch')
+            <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+        @enderror
+    </div>
+
+    {{-- Bank Account Name --}}
+    <div class="sm:col-span-2 lg:col-span-2">
+        <label class="block text-sm font-medium mb-1 dark:text-white">
+            Account Holder Name
+        </label>
+        <input type="text" name="bank_account_name"
+               value="{{ old('bank_account_name', $employee->bank_account_name ?? '') }}"
+               class="w-full h-11 rounded-lg border px-3 text-sm
+                      bg-white text-gray-900
+                      focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500
+                      dark:bg-gray-800 dark:border-gray-700 dark:text-white
+                      dark:placeholder-gray-400"
+               placeholder="Name as per bank account">
+        @error('bank_account_name')
+            <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+        @enderror
+    </div>
+
+    {{-- Bank Account Number --}}
+    <div class="sm:col-span-2 lg:col-span-2">
+        <label class="block text-sm font-medium mb-1 dark:text-white">
+            Account Number
+        </label>
+        <input type="text" name="bank_account_number"
+               value="{{ old('bank_account_number', $employee->bank_account_number ?? '') }}"
+               class="w-full h-11 rounded-lg border px-3 text-sm
+                      bg-white text-gray-900
+                      focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500
+                      dark:bg-gray-800 dark:border-gray-700 dark:text-white
+                      dark:placeholder-gray-400"
+               placeholder="Bank account number">
+        @error('bank_account_number')
+            <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+        @enderror
     </div>
 
     {{-- Status --}}
-    <div class="sm:col-span-4">
+    <div class="sm:col-span-2 lg:col-span-2">
         <label class="block text-sm font-medium mb-1 dark:text-white">
             Status <span class="text-red-500">*</span>
         </label>
         <select name="status" required
                 class="w-full h-11 rounded-lg border px-3 text-sm
                        bg-white text-gray-900
+                       focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500
                        dark:bg-gray-800 dark:border-gray-700 dark:text-white">
-            <option value="inactive">Inactive</option>
-            <option value="active" @selected(old('status',$product->status ?? 'active')=='active')>
-                Active
-            </option>
-            <option value="discontinued" @selected(old('status',$product->status ?? '')=='discontinued')>
-                Discontinued
-            </option>
+            <option value="active" @selected(old('status', $employee->status ?? 'active') == 'active')>Active</option>
+            <option value="inactive" @selected(old('status', $employee->status ?? '') == 'inactive')>Inactive</option>
+            <option value="resigned" @selected(old('status', $employee->status ?? '') == 'resigned')>Resigned</option>
+            <option value="terminated" @selected(old('status', $employee->status ?? '') == 'terminated')>Terminated</option>
         </select>
+        @error('status')
+            <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+        @enderror
     </div>
 
-    {{-- Description --}}
+    {{-- Note --}}
     <div class="sm:col-span-4">
-        <label class="block text-sm font-medium mb-1 dark:text-white">Description</label>
-        <textarea name="description" rows="3"
+        <label class="block text-sm font-medium mb-1 dark:text-white">
+            Note
+        </label>
+        <textarea name="note" rows="3"
                   class="w-full rounded-lg border px-3 py-2 text-sm
                          bg-white text-gray-900
+                         focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500
                          dark:bg-gray-800 dark:border-gray-700 dark:text-white
-                         dark:placeholder-gray-400">{{ old('description', $product->description ?? '') }}</textarea>
+                         dark:placeholder-gray-400"
+                  placeholder="Additional notes...">{{ old('note', $employee->note ?? '') }}</textarea>
+        @error('note')
+            <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+        @enderror
     </div>
-
-
-    <div class="md:col-span-4">
-        <x-form.input.dropzone
-            title="Upload Foto Product"
-            name="images"
-        />
-
-    </div>
-
-    <div class="md:col-span-4">
-        <x-form.input.dropzone-video
-            title="Upload Video Product"
-            name="video"
-            accept="video/mp4,video/mov"
-        />
-    </div>
-
 
     {{-- Actions --}}
-     <div class="sm:col-span-4 flex items-center justify-end gap-3 mt-4">
-        <a href="{{ route('master.products.index') }}"
-            class="inline-flex items-center justify-center font-medium gap-2 rounded-lg transition px-4 py-3 text-sm bg-error-500 text-white shadow-theme-xs hover:bg-error-600">
+    <div class="sm:col-span-4 flex items-center justify-end gap-3 mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+        <a href="{{ route('master.employees.index') }}"
+           class="inline-flex items-center justify-center font-medium gap-2 rounded-lg transition px-4 py-2.5 text-sm
+                  bg-white text-gray-700 border border-gray-300
+                  hover:bg-gray-50
+                  dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
             Cancel
         </a>
         <button type="submit"
-            class="inline-flex items-center justify-center font-medium gap-2 rounded-lg transition px-4 py-3 text-sm bg-brand-500 text-white shadow-theme-xs hover:bg-brand-600">
-
-            {{ $isEdit ? 'Update Product' : 'Create Product' }}
+                class="inline-flex items-center justify-center font-medium gap-2 rounded-lg transition px-4 py-2.5 text-sm
+                       bg-blue-600 text-white shadow-sm
+                       hover:bg-blue-700
+                       focus:ring-2 focus:ring-blue-500/20">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+            </svg>
+            {{ $isEdit ? 'Update Employee' : 'Create Employee' }}
         </button>
     </div>
 
 </div>
-
-@push('scripts')
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Format Rupiah function
-    function formatRupiah(angka) {
-        const number = parseInt(angka.toString().replace(/[^0-9]/g, ''));
-        if (isNaN(number)) return '0';
-        return number.toLocaleString('id-ID');
-    }
-
-    // Setup price input
-    function setupPriceInput(displayId, valueId) {
-        const displayInput = document.getElementById(displayId);
-        const valueInput = document.getElementById(valueId);
-
-        if (!displayInput || !valueInput) return;
-
-        displayInput.addEventListener('input', function(e) {
-            const rawValue = e.target.value.replace(/[^0-9]/g, '');
-            valueInput.value = rawValue;
-            e.target.value = formatRupiah(rawValue);
-        });
-
-        displayInput.addEventListener('blur', function(e) {
-            if (e.target.value === '') {
-                e.target.value = '0';
-                valueInput.value = '0';
-            }
-        });
-
-        displayInput.addEventListener('focus', function(e) {
-            if (e.target.value === '0') {
-                e.target.value = '';
-            }
-        });
-    }
-
-    // Initialize price inputs
-    setupPriceInput('unit_price_display', 'unit_price_value');
-    setupPriceInput('cost_price_display', 'cost_price_value');
-});
-</script>
-@endpush
